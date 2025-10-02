@@ -10,7 +10,8 @@
 ## 🚀 Live Demo
 
 - **🌐 Live Application:** [Demo Link](https://restaurantpro-demo.vercel.app) *(Coming Soon)*
-- **👨‍💼 Admin Dashboard:** `admin@demo.com` / `admin123`
+- **� GitHub Repository:** [View Source Code](https://github.com/hungcuong-278/restaurant-pro)
+- **�👨‍💼 Admin Dashboard:** `admin@demo.com` / `admin123`
 - **👨‍💻 Staff Portal:** `staff@demo.com` / `staff123`
 - **📱 Customer Portal:** `customer@demo.com` / `customer123`
 
@@ -99,7 +100,7 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/restaurant-pro.git
+git clone https://github.com/hungcuong-278/restaurant-pro.git
 cd restaurant-pro
 ```
 
@@ -299,9 +300,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-**Your Name** - [@yourhandle](https://twitter.com/yourhandle) - your.email@example.com
+**Hung Cuong** - [@hungcuong-278](https://github.com/hungcuong-278)
 
-**Project Link:** [https://github.com/yourusername/restaurant-pro](https://github.com/yourusername/restaurant-pro)
+**Project Link:** [https://github.com/hungcuong-278/restaurant-pro](https://github.com/hungcuong-278/restaurant-pro)
 
 ---
 
