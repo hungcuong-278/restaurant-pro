@@ -283,9 +283,8 @@ class TableService {
     const stats = await db('tables')
       .leftJoin('reservations', function() {
         this.on('tables.id', '=', 'reservations.table_id')
-          .andOn('reservations.reservation_date', '>=', db.raw('?', [startDate]))
-          .andOn('reservations.reservation_date', '<=', db.raw('?', [endDate]))
-          .andOn('reservations.status', 'in', db.raw('(?)', [['confirmed', 'seated', 'completed']]));
+          .andOnBetween('reservations.reservation_date', [startDate, endDate])
+          .andOnIn('reservations.status', ['confirmed', 'seated', 'completed']);
       })
       .where('tables.restaurant_id', restaurantId)
       .where('tables.is_active', true)
