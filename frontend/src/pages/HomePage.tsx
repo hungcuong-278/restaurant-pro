@@ -1,10 +1,27 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 import APITestComponent from '../components/APITestComponent';
 import UserStatusComponent from '../components/UserStatusComponent';
 import AuthActivityLog from '../components/AuthActivityLog';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
+  const handleReservationClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      // If logged in, go directly to booking
+      navigate('/reservations/new');
+    } else {
+      // If not logged in, save booking URL and redirect to login
+      sessionStorage.setItem('redirectAfterLogin', '/reservations/new');
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -19,9 +36,12 @@ const HomePage: React.FC = () => {
             and impeccable service in an elegant atmosphere.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/booking" className="btn-primary-large">
+            <button 
+              onClick={handleReservationClick}
+              className="btn-primary-large"
+            >
               Make a Reservation
-            </Link>
+            </button>
             <Link to="/menu" className="btn-secondary-large">
               View Menu
             </Link>

@@ -39,7 +39,7 @@ const ENDPOINTS = {
   
   // Table availability
   GET_AVAILABLE_TABLES: (restaurantId: string) =>
-    `/restaurants/${restaurantId}/tables/availability`,
+    `/restaurants/${restaurantId}/tables/availability/check`,
 };
 
 // ============================================
