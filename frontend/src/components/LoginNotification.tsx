@@ -7,6 +7,7 @@ const LoginNotification: React.FC = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [lastUser, setLastUser] = useState<string | null>(null);
+  const [progressWidth, setProgressWidth] = useState('100%');
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -17,6 +18,11 @@ const LoginNotification: React.FC = () => {
         setShowNotification(true);
         setIsVisible(true);
         setLastUser(currentUserKey);
+        
+        // Start progress bar at 100%
+        setProgressWidth('100%');
+        // Trigger animation to 0% after short delay
+        setTimeout(() => setProgressWidth('0%'), 50);
         
         // Bắt đầu fade-out sau 3.5 giây
         const fadeTimer = setTimeout(() => {
@@ -52,28 +58,37 @@ const LoginNotification: React.FC = () => {
     <div className={`fixed top-4 right-4 z-50 transition-all duration-300 ${
       isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
     }`}>
-      <div className="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg max-w-sm transform hover:scale-105 transition-transform">
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
+      <div className="bg-green-500 text-white rounded-lg shadow-lg max-w-sm transform hover:scale-105 transition-transform overflow-hidden">
+        <div className="px-6 py-4">
+          <div className="flex items-center space-x-3">
+            <div className="flex-shrink-0">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-bold">Đăng nhập thành công! 🎉</h4>
+              <p className="text-sm">
+                Chào mừng <strong>{user.firstName} {user.lastName}</strong>
+              </p>
+              <p className="text-xs opacity-90">
+                Vai trò: {user.role}
+              </p>
+            </div>
+            <button
+              onClick={handleClose}
+              className="text-white hover:text-gray-200 ml-2 self-start hover:bg-white hover:bg-opacity-20 rounded-full p-1 transition-colors"
+            >
+              ✕
+            </button>
           </div>
-          <div className="flex-1">
-            <h4 className="font-bold">Đăng nhập thành công! 🎉</h4>
-            <p className="text-sm">
-              Chào mừng <strong>{user.firstName} {user.lastName}</strong>
-            </p>
-            <p className="text-xs opacity-90">
-              Vai trò: {user.role}
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="text-white hover:text-gray-200 ml-2 self-start hover:bg-white hover:bg-opacity-20 rounded-full p-1 transition-colors"
-          >
-            ✕
-          </button>
+        </div>
+        {/* Progress bar - countdown 3.5 seconds */}
+        <div className="h-1 bg-green-400 bg-opacity-40">
+          <div 
+            className="h-full bg-white transition-all duration-[3500ms] ease-linear"
+            style={{ width: progressWidth }}
+          />
         </div>
       </div>
     </div>
