@@ -8,7 +8,8 @@ import AuthActivityLog from '../components/AuthActivityLog';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const isAdmin = user?.role === 'admin';
 
   const handleReservationClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -170,22 +171,24 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* API Connection Test Section - Development Only */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gr-black mb-4">
-              🔧 Development <span className="text-gr-gold">API Test</span>
-            </h2>
-            <p className="text-lg text-gray-600">
-              Testing Frontend-Backend Connection & User Authentication
-            </p>
+      {/* API Connection Test Section - Admin Only */}
+      {isAdmin && (
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gr-black mb-4">
+                🔧 Development <span className="text-gr-gold">API Test</span>
+              </h2>
+              <p className="text-lg text-gray-600">
+                Testing Frontend-Backend Connection & User Authentication (Admin Only)
+              </p>
+            </div>
+            <UserStatusComponent />
+            <AuthActivityLog />
+            <APITestComponent />
           </div>
-          <UserStatusComponent />
-          <AuthActivityLog />
-          <APITestComponent />
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-16 bg-gr-black text-white">
