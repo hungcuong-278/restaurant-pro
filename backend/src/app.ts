@@ -13,6 +13,7 @@ import menuRoutes from './routes/menuRoutes';
 import tableRoutes from './routes/tableRoutes';
 import reservationRoutes from './routes/reservationRoutes';
 import globalReservationRoutes from './routes/globalReservationRoutes';
+import orderRoutes from './routes/orderRoutes';
 import debugRoutes from './routes/debugRoutes';
 
 // Load environment variables
@@ -68,6 +69,7 @@ app.use('/api/reservations', globalReservationRoutes);
 // Restaurant-specific routes - mount directly with full path
 app.use('/api/restaurants/:restaurantId/tables', tableRoutes);
 app.use('/api/restaurants/:restaurantId/reservations', reservationRoutes);
+app.use('/api/restaurants/:restaurantId/orders', orderRoutes);
 
 // Error handling middleware
 app.use(notFound);
