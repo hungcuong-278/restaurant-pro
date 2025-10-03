@@ -9,6 +9,10 @@ import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 import authRoutes from './routes/authRoutes';
 import healthRoutes from './routes/healthRoutes';
+import menuRoutes from './routes/menuRoutes';
+import tableRoutes from './routes/tableRoutes';
+import reservationRoutes from './routes/reservationRoutes';
+import debugRoutes from './routes/debugRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -42,8 +46,24 @@ app.use(express.urlencoded({ extended: true }));
 // Health check
 app.use('/api/health', healthRoutes);
 
+// Basic API endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Restaurant Pro API is working!',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/menu', menuRoutes);
+app.use('/api/debug', debugRoutes);
+
+// Restaurant-specific routes - mount directly with full path
+app.use('/api/restaurants/:restaurantId/tables', tableRoutes);
+app.use('/api/restaurants/:restaurantId/reservations', reservationRoutes);
 
 // Error handling middleware
 app.use(notFound);

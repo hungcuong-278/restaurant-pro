@@ -4,26 +4,68 @@ const router = Router();
 
 // User registration
 router.post('/register', (req: Request, res: Response) => {
-  // TODO: Implement user registration
-  res.json({
+  const { firstName, lastName, email, password, role = 'customer' } = req.body;
+  
+  // Mock registration for testing
+  if (!firstName || !lastName || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'All fields are required'
+    });
+  }
+
+  // Simulate user creation
+  return res.status(201).json({
     success: true,
-    message: 'User registration endpoint - Coming soon',
-    data: {
-      note: 'Will implement with database connection'
-    }
+    message: 'User registered successfully',
+    user: {
+      id: Date.now().toString(),
+      firstName,
+      lastName,
+      email,
+      role
+    },
+    token: `mock-jwt-token-${Date.now()}`
   });
 });
 
 // User login
 router.post('/login', (req: Request, res: Response) => {
-  // TODO: Implement user login
-  res.json({
-    success: true,
-    message: 'User login endpoint - Coming soon',
-    data: {
-      note: 'Will implement with JWT authentication'
-    }
-  });
+  const { email, password } = req.body;
+  
+  // Mock authentication for testing
+  if (email === 'admin@restaurant.com' && password === 'admin123') {
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: '1',
+        firstName: 'Gordon',
+        lastName: 'Ramsay',
+        email: 'admin@restaurant.com',
+        role: 'admin'
+      },
+      token: 'mock-jwt-token-123456789'
+    });
+  } else if (email === 'chef@restaurant.com' && password === 'chef123') {
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: '2',
+        firstName: 'Jamie',
+        lastName: 'Oliver',
+        email: 'chef@restaurant.com',
+        role: 'manager'
+      },
+      token: 'mock-jwt-token-987654321'
+    });
+  } else {
+    res.status(401).json({
+      success: false,
+      message: 'Invalid email or password'
+    });
+  }
 });
 
 // Password reset request

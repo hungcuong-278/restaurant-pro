@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { store } from './store/store';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import LoginNotification from './components/LoginNotification';
 import HomePage from './pages/HomePage';
 import RestaurantsPage from './pages/RestaurantsPage';
 import BookingPage from './pages/BookingPage';
@@ -21,6 +22,7 @@ const App: React.FC = () => {
       <Router>
         <div className="min-h-screen bg-white">
           <Header />
+          <LoginNotification />
           <main className="flex-1">
             <Routes>
               {/* Public Routes */}

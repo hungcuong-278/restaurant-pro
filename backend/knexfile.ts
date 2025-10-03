@@ -5,11 +5,11 @@ dotenv.config();
 
 const config: { [key: string]: Knex.Config } = {
   development: {
-    client: 'postgresql',
+    client: 'sqlite3',
     connection: {
-      connectionString: process.env.DATABASE_URL,
-      ssl: false
+      filename: './database/dev.sqlite3'
     },
+    useNullAsDefault: true,
     pool: {
       min: 2,
       max: 10

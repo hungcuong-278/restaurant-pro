@@ -1,32 +1,48 @@
 import knex, { Knex } from 'knex';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
 
 const environment = process.env.NODE_ENV || 'development';
 
-// Database configuration
+// Get absolute path to database file
+const dbPath = path.resolve(__dirname, '../../database/dev.sqlite3');
+console.log('[Database] Using database at:', dbPath);
+
+// Database configuration with absolute path
 const dbConfig = {
-  client: 'postgresql',
+  client: 'sqlite3',
   connection: {
-    connectionString: process.env.DATABASE_URL,
-    ssl: environment === 'production' ? { rejectUnauthorized: false } : false
+    filename: dbPath
   },
+  useNullAsDefault: true,
   pool: {
     min: 2,
     max: 10
   },
   migrations: {
     tableName: 'knex_migrations',
-    directory: '../migrations'
+    directory: './migrations'
   },
   seeds: {
-    directory: '../seeds'
+    directory: './seeds'
   }
 };
 
-// Create database connection
-const db: Knex = knex(dbConfig);
+// Create database connection - Singleton pattern
+let db: Knex;
+
+function getDatabase(): Knex {
+  if (!db) {
+    console.log('[Database] Creating new Knex instance');
+    db = knex(dbConfig);
+  }
+  return db;
+}
+
+// Initialize on import
+db = getDatabase();
 
 // Test database connection
 export const testConnection = async (): Promise<boolean> => {
