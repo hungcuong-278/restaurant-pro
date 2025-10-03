@@ -15,12 +15,16 @@ const LoginPage: React.FC = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (only after successful login, not from localStorage)
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
+    // Only redirect after a successful login action, not on initial load
+    if (isAuthenticated && !isLoading && !error) {
+      const timer = setTimeout(() => {
+        navigate('/');
+      }, 1000); // Delay to show success message
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, error, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,10 +49,10 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 animate-fade-in">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-black" style={{ color: '#000000' }}>
+        <div className="text-center animate-slide-up">
+          <h2 className="text-3xl font-bold text-gr-black">
             Welcome Back
           </h2>
           <p className="mt-2 text-gray-600">
@@ -57,10 +61,10 @@ const LoginPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <div className="premium-card">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg animate-fade-in">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -78,6 +82,26 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
           )}
+          
+          {isAuthenticated && !error && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-green-800">
+                    Login Successful!
+                  </h3>
+                  <div className="mt-2 text-sm text-green-700">
+                    Redirecting to dashboard...
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -90,12 +114,8 @@ const LoginPage: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input"
                 placeholder="admin@restaurant.com"
-                style={{ color: '#000', backgroundColor: '#fff' }}
                 required
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Try: admin@restaurant.com
-              </p>
             </div>
 
             <div>
@@ -109,8 +129,7 @@ const LoginPage: React.FC = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   className="form-input pr-12"
-                  placeholder="admin123"
-                  style={{ color: '#000', backgroundColor: '#fff' }}
+                  placeholder="Enter your password"
                   required
                 />
                 <button
@@ -130,9 +149,6 @@ const LoginPage: React.FC = () => {
                   )}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Try: admin123
-              </p>
             </div>
 
             <div className="flex items-center justify-between">
@@ -171,6 +187,15 @@ const LoginPage: React.FC = () => {
               )}
             </button>
           </form>
+
+          {/* Test Credentials Helper */}
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs font-medium text-blue-800 mb-2">💡 Test Credentials:</p>
+            <div className="space-y-1 text-xs text-blue-700">
+              <p>📧 Email: <span className="font-mono">admin@restaurant.com</span></p>
+              <p>🔐 Password: <span className="font-mono">admin123</span></p>
+            </div>
+          </div>
 
           <div className="mt-6">
             <div className="relative">

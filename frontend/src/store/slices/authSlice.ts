@@ -48,12 +48,17 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+// Check if user data exists in localStorage
+const storedUser = localStorage.getItem('user');
+const storedToken = localStorage.getItem('authToken');
+
 const initialState: AuthState = {
-  user: null,
-  token: localStorage.getItem('authToken'),
+  user: storedUser ? JSON.parse(storedUser) : null,
+  token: storedToken,
   isLoading: false,
   error: null,
-  isAuthenticated: !!localStorage.getItem('authToken'),
+  // Only set authenticated if BOTH user and token exist
+  isAuthenticated: !!(storedUser && storedToken),
 };
 
 const authSlice = createSlice({
@@ -72,6 +77,7 @@ const authSlice = createSlice({
       state.error = null;
       localStorage.setItem('authToken', action.payload.token);
       localStorage.setItem('user', JSON.stringify(action.payload.user));
+      localStorage.setItem('lastLoginTime', Date.now().toString());
     },
     loginFailure: (state, action: PayloadAction<string>) => {
       state.isLoading = false;
@@ -85,6 +91,7 @@ const authSlice = createSlice({
       state.error = null;
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
+      localStorage.removeItem('lastLoginTime');
     },
     clearError: (state) => {
       state.error = null;
@@ -105,6 +112,7 @@ const authSlice = createSlice({
         state.error = null;
         localStorage.setItem('authToken', action.payload.token);
         localStorage.setItem('user', JSON.stringify(action.payload.user));
+        localStorage.setItem('lastLoginTime', Date.now().toString());
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
