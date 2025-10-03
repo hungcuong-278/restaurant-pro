@@ -208,7 +208,6 @@ const ReservationPage: React.FC = () => {
       reservation_date: selectedDate,
       reservation_time: selectedTime,
       special_requests: formData.specialRequests,
-      duration: 120, // 2 hours default
     };
 
     try {

@@ -13,14 +13,14 @@ export interface Reservation {
   id: string;
   restaurant_id: string;
   table_id: string;
-  user_id: string;
+  user_id?: string;
   customer_name: string;
   customer_email: string;
   customer_phone: string;
   party_size: number;
   reservation_date: string; // YYYY-MM-DD format
   reservation_time: string; // HH:MM format (24-hour)
-  duration: number; // Duration in minutes (default: 120)
+  duration?: number; // Duration in minutes (default: 120) - Optional, not stored in DB
   status: ReservationStatus;
   special_requests?: string;
   created_at: string;
