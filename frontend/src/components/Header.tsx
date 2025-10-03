@@ -84,7 +84,7 @@ const Header: React.FC = () => {
                 )}
                 <button
                   onClick={handleLogout}
-                  className="btn-secondary text-sm"
+                  className="border-2 border-white text-white px-6 py-2 rounded-none font-sans font-medium tracking-wide uppercase text-sm transition-all duration-300 hover:bg-white hover:text-gr-black"
                 >
                   Logout
                 </button>
