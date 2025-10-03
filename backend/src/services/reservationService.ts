@@ -156,7 +156,12 @@ class ReservationService {
       .insert(data)
       .returning('*');
 
-    return this.getReservationById(reservation.id, data.restaurant_id) as Promise<Reservation>;
+    const fullReservation = await this.getReservationById(reservation.id, data.restaurant_id);
+    if (!fullReservation) {
+      throw new Error('Failed to retrieve created reservation');
+    }
+    
+    return fullReservation;
   }
 
   async updateReservation(
