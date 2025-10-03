@@ -45,6 +45,15 @@ const BookingConfirmationPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Auto-redirect to home after 10 seconds
+  useEffect(() => {
+    const redirectTimer = setTimeout(() => {
+      navigate('/');
+    }, 10000); // 10 seconds
+
+    return () => clearTimeout(redirectTimer);
+  }, [navigate]);
+
   // Handle add to calendar
   const handleAddToCalendar = () => {
     if (!currentReservation) return;

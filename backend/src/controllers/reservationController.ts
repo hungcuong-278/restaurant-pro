@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import reservationService, { ReservationFilters } from '../services/reservationService';
+import emailService from '../services/emailService';
 
 export class ReservationController {
   // Get reservations with filtering
@@ -118,6 +119,34 @@ export class ReservationController {
       }
 
       const reservation = await reservationService.createReservation(reservationData);
+      
+      // Send confirmation email
+      try {
+        const emailResult = await emailService.sendReservationConfirmation({
+          customerName: reservation.customer_name,
+          customerEmail: reservation.customer_email,
+          reservationDate: reservation.reservation_date,
+          reservationTime: reservation.reservation_time,
+          partySize: reservation.party_size,
+          tableNumber: reservation.table?.number || 'TBD',
+          confirmationCode: reservation.id.substring(0, 8).toUpperCase(),
+          restaurantName: 'Golden Fork Restaurant',
+          restaurantPhone: '+1 (555) 123-4567',
+          restaurantEmail: 'info@goldenfork.com',
+        });
+
+        if (emailResult.success) {
+          console.log('[ReservationController] Confirmation email sent successfully');
+          if (emailResult.previewUrl) {
+            console.log('[ReservationController] Email preview:', emailResult.previewUrl);
+          }
+        } else {
+          console.error('[ReservationController] Failed to send confirmation email:', emailResult.error);
+        }
+      } catch (emailError) {
+        // Don't fail the reservation if email fails
+        console.error('[ReservationController] Email sending error:', emailError);
+      }
       
       res.status(201).json({
         success: true,
