@@ -14,15 +14,33 @@ const LoginPage: React.FC = () => {
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [progressWidth, setProgressWidth] = useState('100%');
 
-  // Redirect if already authenticated (only after successful login, not from localStorage)
+  // Show success notification and handle auto-hide with progress bar
   useEffect(() => {
-    // Only redirect after a successful login action, not on initial load
     if (isAuthenticated && !isLoading && !error) {
-      const timer = setTimeout(() => {
+      // Show notification
+      setShowSuccessNotification(true);
+      
+      // Start progress bar animation (100% → 0% in 3 seconds)
+      setProgressWidth('100%');
+      setTimeout(() => setProgressWidth('0%'), 50); // Delay để trigger transition
+      
+      // Hide notification after 3 seconds
+      const hideTimer = setTimeout(() => {
+        setShowSuccessNotification(false);
+      }, 3000);
+      
+      // Redirect after 3 seconds
+      const redirectTimer = setTimeout(() => {
         navigate('/');
-      }, 1000); // Delay to show success message
-      return () => clearTimeout(timer);
+      }, 3000);
+      
+      return () => {
+        clearTimeout(hideTimer);
+        clearTimeout(redirectTimer);
+      };
     }
   }, [isAuthenticated, isLoading, error, navigate]);
 
@@ -83,22 +101,31 @@ const LoginPage: React.FC = () => {
             </div>
           )}
           
-          {isAuthenticated && !error && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-green-800">
-                    Login Successful!
-                  </h3>
-                  <div className="mt-2 text-sm text-green-700">
-                    Redirecting to dashboard...
+          {showSuccessNotification && isAuthenticated && !error && (
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg animate-fade-in overflow-hidden">
+              <div className="p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <h3 className="text-sm font-medium text-green-800">
+                      Login Successful!
+                    </h3>
+                    <div className="mt-2 text-sm text-green-700">
+                      Redirecting to dashboard...
+                    </div>
                   </div>
                 </div>
+              </div>
+              {/* Progress bar - countdown 3 seconds */}
+              <div className="h-1 bg-green-200">
+                <div 
+                  className="h-full bg-green-500 transition-all duration-[3000ms] ease-linear"
+                  style={{ width: progressWidth }}
+                />
               </div>
             </div>
           )}
