@@ -248,7 +248,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {availableTimeSlots.map((time) => {
               const isSelectedTime = selectedTime === time;
-              const isTooSoonTime = selectedDate && isTooSoon(selectedDate, time);
+              const isTooSoonTime = selectedDate ? isTooSoon(selectedDate, time) : false;
 
               return (
                 <button
