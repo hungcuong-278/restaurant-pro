@@ -16,9 +16,18 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
-    // First, get the reservation to find its restaurant
-    const reservations = await reservationService.getReservations('', {});
-    const reservation = reservations.reservations.find(r => r.id === id);
+    // Query database directly to find reservation with its restaurant_id
+    const db = require('../config/database').default;
+    const reservation = await db('reservations')
+      .leftJoin('tables', 'reservations.table_id', 'tables.id')
+      .select(
+        'reservations.*',
+        'tables.number as table_number',
+        'tables.capacity as table_capacity',
+        'tables.location as table_location'
+      )
+      .where('reservations.id', id)
+      .first();
 
     if (!reservation) {
       res.status(404).json({
@@ -28,15 +37,19 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Now fetch full details with restaurant context
-    const fullReservation = await reservationService.getReservationById(
-      id,
-      reservation.restaurant_id
-    );
+    // Format response with table info
+    const formattedReservation = {
+      ...reservation,
+      table: reservation.table_number ? {
+        number: reservation.table_number,
+        capacity: reservation.table_capacity,
+        location: reservation.table_location
+      } : null
+    };
 
     res.json({
       success: true,
-      data: fullReservation
+      data: formattedReservation
     });
   } catch (error) {
     console.error('Error fetching reservation:', error);
