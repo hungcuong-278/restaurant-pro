@@ -81,7 +81,12 @@ const ReservationPage: React.FC = () => {
   // Check if user is authenticated, redirect to login if not
   useEffect(() => {
     if (!isAuthenticated) {
-      alert('Please login to make a reservation');
+      // Save intended destination for redirect after login
+      const currentPath = '/reservations/new';
+      sessionStorage.setItem('redirectAfterLogin', currentPath);
+      
+      // Show friendly message
+      alert('Please login or create an account to make a reservation');
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);

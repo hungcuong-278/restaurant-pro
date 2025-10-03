@@ -15,7 +15,7 @@ const Header: React.FC = () => {
     { name: 'Home', href: '/' },
     { name: 'Restaurants', href: '/restaurants' },
     { name: 'Menu', href: '/menu' },
-    { name: 'Booking', href: '/booking' },
+    { name: 'Book Table', href: '/reservations/new' },
     { name: 'Contact', href: '/contact' },
   ];
 
@@ -74,6 +74,12 @@ const Header: React.FC = () => {
                 <span className="text-white text-sm">
                   Welcome, {user.firstName}
                 </span>
+                <Link
+                  to="/reservations/my-reservations"
+                  className="text-white hover:text-gr-gold transition-colors duration-300 text-sm"
+                >
+                  My Reservations
+                </Link>
                 {user.role === 'admin' && (
                   <Link
                     to="/dashboard"
@@ -165,6 +171,13 @@ const Header: React.FC = () => {
                     <div className="px-3 py-2 text-white text-sm">
                       Welcome, {user.firstName}
                     </div>
+                    <Link
+                      to="/reservations/my-reservations"
+                      className="block px-3 py-2 text-white hover:text-gr-gold hover:bg-gray-800"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      My Reservations
+                    </Link>
                     {user.role === 'admin' && (
                       <Link
                         to="/dashboard"

@@ -34,7 +34,14 @@ const LoginPage: React.FC = () => {
       
       // Redirect after 3 seconds
       const redirectTimer = setTimeout(() => {
-        navigate('/');
+        // Check if there's a redirect URL saved
+        const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectUrl) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectUrl);
+        } else {
+          navigate('/');
+        }
       }, 3000);
       
       return () => {
