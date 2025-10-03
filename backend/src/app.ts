@@ -12,6 +12,7 @@ import healthRoutes from './routes/healthRoutes';
 import menuRoutes from './routes/menuRoutes';
 import tableRoutes from './routes/tableRoutes';
 import reservationRoutes from './routes/reservationRoutes';
+import globalReservationRoutes from './routes/globalReservationRoutes';
 import debugRoutes from './routes/debugRoutes';
 
 // Load environment variables
@@ -60,6 +61,9 @@ app.get('/api', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/debug', debugRoutes);
+
+// Global reservation routes (no restaurant context needed)
+app.use('/api/reservations', globalReservationRoutes);
 
 // Restaurant-specific routes - mount directly with full path
 app.use('/api/restaurants/:restaurantId/tables', tableRoutes);
