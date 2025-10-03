@@ -1,0 +1,530 @@
+{
+  "info": {
+    "name": "Restaurant Pro - Order Management API",
+    "description": "Complete API testing for Order Management & Payment System (Week 7)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "restaurant-pro-week7"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "default"
+    },
+    {
+      "key": "restaurantId",
+      "value": "e4e7bcd3-3b50-47ba-8abc-3597170677bb",
+      "type": "default"
+    },
+    {
+      "key": "tableId",
+      "value": "e1250430-deee-48d9-b721-386309092e67",
+      "type": "default"
+    },
+    {
+      "key": "menuItemId1",
+      "value": "db9c9a7d-7f23-4caf-a7a4-1c16998d8fc7",
+      "type": "default"
+    },
+    {
+      "key": "menuItemId2",
+      "value": "268b5422-1074-46e3-8b39-0e9058f316bf",
+      "type": "default"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "orderItemId",
+      "value": "",
+      "type": "default"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if API is running"
+      }
+    },
+    {
+      "name": "Order Management",
+      "item": [
+        {
+          "name": "1. Create Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success=true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test(\"Order created with correct data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('order_number');",
+                  "    pm.expect(jsonData.data.status).to.eql('pending');",
+                  "    pm.expect(jsonData.data.order_type).to.eql('dine_in');",
+                  "    ",
+                  "    // Save orderId for next requests",
+                  "    pm.collectionVariables.set(\"orderId\", jsonData.data.id);",
+                  "    ",
+                  "    // Save first item ID",
+                  "    if (jsonData.data.items && jsonData.data.items.length > 0) {",
+                  "        pm.collectionVariables.set(\"orderItemId\", jsonData.data.items[0].id);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test(\"Totals calculated correctly\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.subtotal).to.be.a('number');",
+                  "    pm.expect(jsonData.data.tax_amount).to.be.a('number');",
+                  "    pm.expect(jsonData.data.total_amount).to.be.a('number');",
+                  "    ",
+                  "    // Verify tax calculation (8.5%)",
+                  "    var expectedTax = Math.round(jsonData.data.subtotal * 0.085 * 100) / 100;",
+                  "    pm.expect(jsonData.data.tax_amount).to.eql(expectedTax);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_type\": \"dine_in\",\n  \"table_id\": \"{{tableId}}\",\n  \"customer_notes\": \"No onions please\",\n  \"kitchen_notes\": \"Rush order\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menuItemId1}}\",\n      \"quantity\": 2,\n      \"special_instructions\": \"Extra spicy\"\n    },\n    {\n      \"menu_item_id\": \"{{menuItemId2}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders"]
+            }
+          }
+        },
+        {
+          "name": "2. Get All Orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has pagination\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('pagination');",
+                  "    pm.expect(jsonData.pagination).to.have.property('total');",
+                  "    pm.expect(jsonData.pagination).to.have.property('page');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders?status=pending&limit=20&page=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Get Single Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Order has items\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('items');",
+                  "    pm.expect(jsonData.data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders", "{{orderId}}"]
+            }
+          }
+        },
+        {
+          "name": "4. Update Order Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Status updated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.eql('confirmed');",
+                  "    pm.expect(jsonData.data.confirmed_at).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders/{{orderId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders", "{{orderId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "5. Add Item to Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Item added\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.items.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menu_item_id\": \"{{menuItemId2}}\",\n  \"quantity\": 1,\n  \"special_instructions\": \"Extra sauce\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders/{{orderId}}/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders", "{{orderId}}", "items"]
+            }
+          }
+        },
+        {
+          "name": "6. Update Order Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3,\n  \"special_instructions\": \"Updated instructions\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders/{{orderId}}/items/{{orderItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders", "{{orderId}}", "items", "{{orderItemId}}"]
+            }
+          }
+        },
+        {
+          "name": "7. Update Order (Discount & Tip)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Discount and tip applied\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.discount_amount).to.eql(5);",
+                  "    pm.expect(jsonData.data.tip_amount).to.eql(10);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discount_amount\": 5.00,\n  \"discount_reason\": \"Loyalty discount\",\n  \"tip_amount\": 10.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders", "{{orderId}}"]
+            }
+          }
+        },
+        {
+          "name": "8. Remove Item from Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders/{{orderId}}/items/{{orderItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders", "{{orderId}}", "items", "{{orderItemId}}"]
+            }
+          }
+        },
+        {
+          "name": "9. Cancel Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Order cancelled\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.eql('cancelled');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders/{{orderId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders", "{{orderId}}", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Handling Tests",
+      "item": [
+        {
+          "name": "Invalid Table ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Error response format\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "    pm.expect(jsonData).to.have.property('code');",
+                  "    pm.expect(jsonData.code).to.eql('NOT_FOUND');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_type\": \"dine_in\",\n  \"table_id\": \"invalid-table-id\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"{{menuItemId1}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Invalid Menu Item ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_type\": \"dine_in\",\n  \"table_id\": \"{{tableId}}\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"invalid-menu-item-id\",\n      \"quantity\": 1\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Missing Required Fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "orders"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

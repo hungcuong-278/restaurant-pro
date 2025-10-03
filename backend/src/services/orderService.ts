@@ -11,6 +11,18 @@ import {
   OrderStatus,
   OrderItemStatus
 } from '../types/order.types';
+import { createLogger } from '../utils/logger';
+import {
+  NotFoundError,
+  ValidationError,
+  OrderNotModifiableError,
+  InvalidOrderStatusError,
+  OrderAlreadyPaidError,
+  MenuItemNotAvailableError,
+  DatabaseError
+} from '../utils/errors';
+
+const logger = createLogger('OrderService');
 
 // Constants
 const TAX_RATE = 0.085; // 8.5% sales tax
@@ -88,6 +100,8 @@ function isValidStatusTransition(currentStatus: OrderStatus, newStatus: OrderSta
  * Create a new order with items
  */
 async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
+  logger.info('Creating new order', { restaurant_id: data.restaurant_id, table_id: data.table_id });
+  
   return await db.transaction(async (trx) => {
     // Validate restaurant exists
     const restaurant = await trx('restaurants')
@@ -95,7 +109,8 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
       .first();
     
     if (!restaurant) {
-      throw new Error('Restaurant not found');
+      logger.error('Restaurant not found', null, { restaurant_id: data.restaurant_id });
+      throw new NotFoundError('Restaurant', data.restaurant_id);
     }
     
     // Validate table if provided
@@ -105,7 +120,8 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
         .first();
       
       if (!table) {
-        throw new Error('Table not found');
+        logger.error('Table not found', null, { table_id: data.table_id });
+        throw new NotFoundError('Table', data.table_id);
       }
     }
     
@@ -119,11 +135,13 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
         .first();
       
       if (!menuItem) {
-        throw new Error(`Menu item ${item.menu_item_id} not found`);
+        logger.error('Menu item not found', null, { menu_item_id: item.menu_item_id });
+        throw new NotFoundError('Menu item', item.menu_item_id);
       }
       
       if (!menuItem.is_available) {
-        throw new Error(`Menu item ${menuItem.name} is not available`);
+        logger.warn('Menu item not available', { menu_item_id: item.menu_item_id, name: menuItem.name });
+        throw new MenuItemNotAvailableError(item.menu_item_id, menuItem.name);
       }
       
       const itemTotal = menuItem.price * item.quantity;
@@ -176,6 +194,13 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
     const insertedItems = await trx('order_items')
       .insert(orderItems)
       .returning('*');
+    
+    logger.info('Order created successfully', { 
+      order_id: order.id, 
+      order_number: order.order_number,
+      total_items: insertedItems.length,
+      total_amount: order.total_amount
+    });
     
     return {
       ...order,
