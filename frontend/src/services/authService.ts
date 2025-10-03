@@ -35,8 +35,15 @@ export interface AuthResponse {
 export const authService = {
   // Login user
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await api.post('/auth/login', credentials);
-    return response.data;
+    console.log('🌐 API Call: POST /auth/login', credentials);
+    try {
+      const response = await api.post('/auth/login', credentials);
+      console.log('📥 API Response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('🚨 API Error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Register user

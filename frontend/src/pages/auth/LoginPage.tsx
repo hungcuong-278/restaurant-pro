@@ -32,12 +32,15 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔐 Login attempt:', formData);
     try {
-      await dispatch(loginUser(formData)).unwrap();
+      console.log('📤 Dispatching loginUser...');
+      const result = await dispatch(loginUser(formData)).unwrap();
+      console.log('✅ Login successful:', result);
       // User will be redirected by useEffect
     } catch (error) {
       // Error is handled by Redux
-      console.error('Login failed:', error);
+      console.error('❌ Login failed:', error);
     }
   };
 
@@ -45,7 +48,7 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gr-black">
+          <h2 className="text-3xl font-bold text-black" style={{ color: '#000000' }}>
             Welcome Back
           </h2>
           <p className="mt-2 text-gray-600">
@@ -86,8 +89,13 @@ const LoginPage: React.FC = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 className="form-input"
+                placeholder="admin@restaurant.com"
+                style={{ color: '#000', backgroundColor: '#fff' }}
                 required
               />
+              <p className="mt-1 text-xs text-gray-500">
+                Try: admin@restaurant.com
+              </p>
             </div>
 
             <div>
@@ -101,6 +109,8 @@ const LoginPage: React.FC = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   className="form-input pr-12"
+                  placeholder="admin123"
+                  style={{ color: '#000', backgroundColor: '#fff' }}
                   required
                 />
                 <button
@@ -120,6 +130,9 @@ const LoginPage: React.FC = () => {
                   )}
                 </button>
               </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Try: admin123
+              </p>
             </div>
 
             <div className="flex items-center justify-between">
