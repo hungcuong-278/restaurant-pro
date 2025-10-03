@@ -28,7 +28,7 @@ const TableManagementPage: React.FC = () => {
   });
 
   // Mock restaurant ID - replace with actual from auth
-  const restaurantId = 'f46275c0-9917-44fc-b144-e1e9cff89075';
+  const restaurantId = 'e4e7bcd3-3b50-47ba-8abc-3597170677bb';
 
   useEffect(() => {
     dispatch(fetchTables(restaurantId));

@@ -35,7 +35,7 @@ import ReservationForm from '../../components/reservations/ReservationForm';
 import ReservationSummary from '../../components/reservations/ReservationSummary';
 
 // Restaurant ID (in production, this would come from route params or context)
-const RESTAURANT_ID = 'f46275c0-9917-44fc-b144-e1e9cff89075';
+const RESTAURANT_ID = 'e4e7bcd3-3b50-47ba-8abc-3597170677bb';
 const RESTAURANT_NAME = 'Grand Restaurant';
 
 interface FormData {
