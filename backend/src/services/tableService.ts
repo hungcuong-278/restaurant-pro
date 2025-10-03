@@ -268,6 +268,42 @@ class TableService {
     return conflicts.length === 0;
   }
 
+  /**
+   * Get available tables for a specific date, time and party size
+   */
+  async getAvailableTablesForBooking(
+    restaurantId: string,
+    date: string,
+    time: string,
+    partySize?: number
+  ): Promise<Table[]> {
+    // Get all active tables for the restaurant
+    let tablesQuery = db('tables')
+      .where({ restaurant_id: restaurantId, is_active: true });
+
+    // Filter by capacity if party size is specified
+    if (partySize) {
+      tablesQuery = tablesQuery.where('capacity', '>=', partySize);
+    }
+
+    const tables = await tablesQuery.orderBy('capacity', 'asc');
+
+    // Check availability for each table
+    const availableTables: Table[] = [];
+    
+    for (const table of tables) {
+      const isAvailable = await this.checkTableAvailability(table.id, date, time);
+      if (isAvailable) {
+        availableTables.push({
+          ...table,
+          position: table.position ? JSON.parse(table.position) : null
+        });
+      }
+    }
+
+    return availableTables;
+  }
+
   // Table statistics
   async getTableUtilizationStats(
     restaurantId: string,

@@ -244,7 +244,7 @@ export const bulkUpdatePositions = async (req: Request, res: Response): Promise<
 export const getTableAvailability = async (req: Request, res: Response): Promise<void> => {
   try {
     const restaurantId = req.params.restaurantId;
-    const { date, time } = req.query;
+    const { date, time, party_size } = req.query;
 
     if (!date || !time) {
       res.status(400).json({ success: false, message: 'Date and time are required' });
@@ -263,8 +263,15 @@ export const getTableAvailability = async (req: Request, res: Response): Promise
       return;
     }
 
-    const availability = await tableService.getTableAvailability(restaurantId, date as string, time as string);
-    res.json({ success: true, data: availability });
+    const partySize = party_size ? parseInt(party_size as string) : undefined;
+    const availableTables = await tableService.getAvailableTablesForBooking(
+      restaurantId, 
+      date as string, 
+      time as string,
+      partySize
+    );
+    
+    res.json({ success: true, data: availableTables });
   } catch (error: any) {
     setLastError(error);
     addDebugLog(JSON.stringify({ action: 'getTableAvailability', error: error.message }));
