@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/slices/authSlice';
@@ -7,6 +7,7 @@ import { logout } from '../store/slices/authSlice';
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
 
@@ -19,7 +20,19 @@ const Header: React.FC = () => {
   ];
 
   const handleLogout = () => {
-    dispatch(logout());
+    // Confirm logout
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+      // Dispatch logout action
+      dispatch(logout());
+      
+      // Close mobile menu if open
+      setIsMenuOpen(false);
+      
+      // Redirect to login page after short delay
+      setTimeout(() => {
+        navigate('/login');
+      }, 100);
+    }
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -162,10 +175,7 @@ const Header: React.FC = () => {
                       </Link>
                     )}
                     <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={handleLogout}
                       className="block w-full text-left px-3 py-2 text-white hover:text-gr-gold hover:bg-gray-800"
                     >
                       Logout
