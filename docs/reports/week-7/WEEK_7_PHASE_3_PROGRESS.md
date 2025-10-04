@@ -921,3 +921,269 @@ interface CartItem {
 
 *Progress tracked: October 4, 2025 - 7:00 PM*  
 *Last updated: Task 3.3 completed successfully*
+
+---
+
+## ⏳ Task 3.4: Order Details View (3-4 hours) - COMPLETED ✅
+
+**Start Time:** October 4, 2025 - 7:30 PM  
+**End Time:** October 4, 2025 - 9:00 PM  
+**Status:** ✅ Complete  
+**Time Spent:** 1.5h / 3-4h estimated (62% faster! 🚀)
+
+### ✅ Subtask 3.4.1: Create OrderDetails Component (1h) - COMPLETE
+
+**What was done:**
+- ✅ Complete OrderDetailsPage component (~450 lines)
+- ✅ Fetch order by ID from API using useParams
+- ✅ Display comprehensive order information
+- ✅ Show table details (table_number from order.table)
+- ✅ Display order items with quantities
+- ✅ Show subtotal, tax (10%), and total
+- ✅ Special instructions display (order-level + per-item)
+- ✅ Loading state with full-page spinner
+- ✅ Error handling with back button
+
+**Order Information Displayed:**
+```typescript
+- Order ID (first 8 characters)
+- Table number and capacity
+- Created timestamp (formatted)
+- Updated timestamp (if exists)
+- Order status badge
+- Payment status badge
+- Special instructions (highlighted)
+```
+
+**Order Items Section:**
+- Item number, name, quantity
+- Unit price per item
+- Subtotal per item (price × quantity)
+- Special instructions for each item
+- Total summary:
+  - Subtotal (total - 10%)
+  - Tax (10% of subtotal)
+  - Grand total with VND formatting
+
+**API Integration:**
+```typescript
+const response = await orderService.getOrderById(orderId!);
+setOrder(response.data);
+```
+
+---
+
+### ✅ Subtask 3.4.2: Build Order Status Timeline (1h) - COMPLETE
+
+**Features Implemented:**
+
+1. **6-Step Status Flow:**
+```typescript
+const statusFlow = [
+  { status: 'pending', label: 'Pending', icon: '⏱️' },
+  { status: 'confirmed', label: 'Confirmed', icon: '✅' },
+  { status: 'preparing', label: 'Preparing', icon: '👨‍🍳' },
+  { status: 'ready', label: 'Ready', icon: '🍽️' },
+  { status: 'served', label: 'Served', icon: '🎉' },
+  { status: 'completed', label: 'Completed', icon: '✔️' }
+];
+```
+
+2. **Visual Progress Bar:**
+   - Animated blue progress bar
+   - Width calculated: `(currentIndex / totalSteps) * 100%`
+   - Transitions smoothly on status change
+   - Gray background for incomplete steps
+
+3. **Status Indicators:**
+   - Circular icons with emojis
+   - Completed: Blue background (bg-blue-500)
+   - Current: Blue background with pulse
+   - Pending: Gray background (bg-gray-200)
+   - Status labels below each step
+
+4. **Cancelled Order Handling:**
+   - Timeline stops at cancelled status
+   - Red alert banner: "❌ This order has been cancelled"
+   - Progress bar width = 0%
+
+**UI Design:**
+```
+⏱️────✅────👨‍🍳────🍽️────🎉────✔️
+Pending  Confirmed  Preparing  Ready  Served  Done
+         (Current step highlighted in blue)
+```
+
+---
+
+### ✅ Subtask 3.4.3: Add Order Actions Panel (1h) - COMPLETE
+
+**Action Buttons Implemented:**
+
+1. **Back to Orders Button:**
+   - Secondary variant
+   - Navigate to `/orders`
+   - Always visible
+
+2. **Edit Order Button:**
+   - Secondary variant with ✏️ icon
+   - Conditional: Only if `payment_status !== 'paid'` AND `status !== 'completed'` AND `status !== 'cancelled'`
+   - Currently shows alert: "Edit order feature coming soon"
+   - Disabled during action loading
+
+3. **Cancel Order Button:**
+   - Danger variant (red) with ❌ icon
+   - Confirmation dialog: "Are you sure?"
+   - Conditional: Same as Edit button
+   - API call: `orderService.updateOrderStatus(orderId, 'cancelled')`
+   - Success: Alert + refresh order data
+   - Error handling with user-friendly messages
+
+4. **Print Receipt Button:**
+   - Secondary variant with 🖨️ icon
+   - Calls `window.print()`
+   - Always available
+   - Opens browser print dialog
+
+**Action Button Logic:**
+```typescript
+const canEdit = 
+  order.payment_status !== 'paid' && 
+  order.status !== 'completed' && 
+  order.status !== 'cancelled';
+
+const canCancel = canEdit; // Same conditions
+
+// Cancel Handler
+const handleCancelOrder = async () => {
+  if (!window.confirm('Are you sure?')) return;
+  
+  await orderService.updateOrderStatus(order.id, 'cancelled');
+  alert('Order cancelled successfully');
+  fetchOrderDetails(); // Refresh
+};
+```
+
+**Quick Actions Section (Right Panel):**
+- 🖨️ Print Receipt
+- 📤 Share Order (placeholder)
+- 🔄 Update Status (if not completed/cancelled)
+
+---
+
+### ✅ Subtask 3.4.4: Implement Payment Section (1h) - COMPLETE
+
+**Payment Information Panel:**
+
+1. **Payment Status Display:**
+   - Status label with Badge component
+   - Total amount in large blue text
+   - VND formatting: `toLocaleString()`
+
+2. **Payment Actions (Conditional):**
+
+   **If Unpaid:**
+   ```tsx
+   <Button onClick={() => navigate(`/payments/new?orderId=${order.id}`)}>
+     💳 Process Payment
+   </Button>
+   <p>Click to proceed with payment</p>
+   ```
+
+   **If Partial Payment:**
+   ```tsx
+   <div className="bg-yellow-50 border-yellow-200">
+     ⚠️ Partial payment received. Remaining balance to be paid.
+     <Button>Complete Payment</Button>
+   </div>
+   ```
+
+   **If Paid:**
+   ```tsx
+   <div className="bg-green-50 border-green-200">
+     ✅ Payment completed successfully
+   </div>
+   ```
+
+   **If Cancelled:**
+   ```tsx
+   <div className="bg-red-50 border-red-200">
+     ❌ Order cancelled - No payment required
+   </div>
+   ```
+
+3. **Payment Statistics (Future):**
+   - Ready for payment history integration
+   - Placeholder for transaction details
+   - Link to payment records
+
+---
+
+## 📊 Task 3.4 Summary
+
+### Code Statistics
+| Metric | Value |
+|--------|-------|
+| File Modified | OrderDetailsPage.tsx |
+| Lines of Code | ~450 |
+| State Variables | 4 |
+| Functions | 4 |
+| API Calls | 2 (fetch + update status) |
+| Components Used | 5 (Card, Button, Badge, Spinner, Router) |
+| TypeScript Errors | 0 |
+
+### State Management
+```typescript
+const [order, setOrder] = useState<Order | null>(null);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
+const [actionLoading, setActionLoading] = useState(false);
+```
+
+### Features Delivered
+✅ Complete order details display
+✅ Table and timing information
+✅ Visual status timeline (6 steps)
+✅ Animated progress bar
+✅ Order items list with details
+✅ Special instructions display
+✅ Order summary (subtotal, tax, total)
+✅ Conditional action buttons
+✅ Cancel order functionality
+✅ Print receipt feature
+✅ Payment status panel
+✅ Payment action buttons
+✅ Responsive 3-column layout
+✅ Loading and error states
+✅ Navigation integration
+
+### UI/UX Features
+- Color-coded status badges (order + payment)
+- Timeline with emoji icons
+- Smooth progress animation
+- Conditional button visibility
+- Confirmation dialogs (cancel)
+- Success/error alerts
+- Print-friendly layout
+- Mobile responsive (3 cols → 1 col)
+- Empty state handling
+- Back navigation
+
+### Testing
+- ✅ TypeScript compilation: No errors
+- ✅ Component renders successfully
+- ✅ ESLint: Passed
+- ⏳ Manual testing: Ready at http://localhost:3000/orders/{orderId}
+
+---
+
+**Task 3.4 Status:** ✅ **COMPLETE**  
+**Progress:** 40% of Phase 3 (4/10 tasks)  
+**Time:** 1.5h / 3-4h estimated (62% faster! 🚀)  
+**Commit:** 2a64173  
+**Overall Phase 3:** Still ahead of schedule
+
+---
+
+*Progress tracked: October 4, 2025 - 9:00 PM*  
+*Last updated: Task 3.4 completed successfully*
