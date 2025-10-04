@@ -65,8 +65,16 @@ const NewOrderPage: React.FC = () => {
       setMenuItems(menuData.items);
       setFilteredItems(menuData.items);
     } catch (err: any) {
-      setError(err.message || 'Failed to load data');
+      const errorMsg = err.response?.status === 429 
+        ? 'Too many requests. Please wait a moment and refresh the page.'
+        : err.message || 'Failed to load data';
+      setError(errorMsg);
       console.error('Error fetching data:', err);
+      
+      // Log detailed error for debugging
+      if (err.response?.status === 429) {
+        console.error('Rate limit exceeded. Please wait before retrying.');
+      }
     } finally {
       setLoading(false);
     }
@@ -189,8 +197,15 @@ const NewOrderPage: React.FC = () => {
       // Create order
       const response = await orderService.createOrder(orderData);
 
+      console.log('Order created successfully:', response.data);
+
       // Success! Navigate to order details
-      navigate(`/orders/${response.data.id}`);
+      if (response.data && response.data.id) {
+        navigate(`/orders/${response.data.id}`);
+      } else {
+        console.error('Order created but no ID returned:', response);
+        setError('Order created but unable to view details');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Failed to create order');
       console.error('Error creating order:', err);
@@ -318,7 +333,9 @@ const NewOrderPage: React.FC = () => {
 
           {/* Menu Items */}
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">3. Select Menu Items</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {orderType === 'dine_in' ? '3' : '2'}. Select Menu Items
+            </h2>
 
             {/* Search & Category Filter */}
             <div className="mb-4 space-y-3">
