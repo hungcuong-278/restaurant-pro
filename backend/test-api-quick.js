@@ -154,7 +154,7 @@ async function runTests() {
   await testEndpoint(
     'Get Menu Items',
     'GET',
-    `${BASE_URL}/restaurants/${RESTAURANT_ID}/menu/items`
+    `${BASE_URL}/menu/items`
   );
 
   // Test 10: Get Tables
