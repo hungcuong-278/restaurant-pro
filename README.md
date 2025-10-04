@@ -259,8 +259,9 @@ railway up
 docker-compose -f docker-compose.prod.yml up --build
 ```
 
-## 📖 API Documentation
+## 📖 Documentation
 
+### API Documentation
 The API documentation is available at `/api-docs` when running the backend server. It includes:
 
 - 🔐 Authentication endpoints
@@ -270,6 +271,26 @@ The API documentation is available at `/api-docs` when running the backend serve
 - 📅 Reservation system
 - 🛒 Order processing
 - 📊 Analytics and reports
+
+### Project Reports
+Comprehensive documentation organized by category:
+
+- **📊 [All Reports](./docs/reports/)** - Complete project documentation hub
+  - **Week 4-6 Reports** - Historical development (Authentication, Reservations)
+  - **Week 7 Reports** - Current work (Order Management, Payment System)
+  - **Bug Fixes** - Login, Logout, Reservation fixes and improvements
+  - **Setup Guides** - Database, GitHub, Testing guides
+
+**Quick Access:**
+- [Phase 2 Completion](./docs/reports/week-7/WEEK_7_PHASE_2_COMPLETION.md) - Payment System ✅ 100%
+- [Phase 3 Plan](./docs/reports/week-7/WEEK_7_PHASE_3_PLAN.md) - Order Frontend 🔄 10%
+- [Phase 3 Progress](./docs/reports/week-7/WEEK_7_PHASE_3_PROGRESS.md) - Real-time tracking
+
+### Additional Guides
+- **[Quick Start Guide](./QUICK_START.md)** - Get up and running quickly
+- **[Development Guide](./docs/DEVELOPMENT.md)** - Detailed development instructions
+- **[Deployment Guide](./docs/DEPLOYMENT.md)** - Production deployment steps
+- **[Contributing Guide](./CONTRIBUTING.md)** - How to contribute to the project
 
 ## 🤝 Contributing
 
