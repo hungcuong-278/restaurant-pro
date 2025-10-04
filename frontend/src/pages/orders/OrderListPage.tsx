@@ -20,6 +20,11 @@ const OrderListPage: React.FC = () => {
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 12;
+  
+  // Bulk selection state
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<string>('');
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   // Fetch orders
   useEffect(() => {
@@ -70,6 +75,61 @@ const OrderListPage: React.FC = () => {
     setStatusFilter('all');
     setPaymentFilter('all');
     setCurrentPage(1);
+    setSelectedOrders(new Set());
+  };
+
+  // Bulk selection handlers
+  const handleSelectAll = () => {
+    if (selectedOrders.size === currentOrders.length) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(currentOrders.map(order => order.id)));
+    }
+  };
+
+  const handleSelectOrder = (orderId: string) => {
+    const newSelected = new Set(selectedOrders);
+    if (newSelected.has(orderId)) {
+      newSelected.delete(orderId);
+    } else {
+      newSelected.add(orderId);
+    }
+    setSelectedOrders(newSelected);
+  };
+
+  // Bulk status update
+  const handleBulkStatusUpdate = async () => {
+    if (!bulkStatus || selectedOrders.size === 0) {
+      alert('Please select orders and a status');
+      return;
+    }
+
+    const confirmMessage = `Update ${selectedOrders.size} order(s) to status "${bulkStatus}"?`;
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      setBulkLoading(true);
+      
+      // Update each order
+      const promises = Array.from(selectedOrders).map(orderId =>
+        orderService.updateOrderStatus(orderId, bulkStatus)
+      );
+      
+      await Promise.all(promises);
+      
+      // Refresh orders
+      await fetchOrders();
+      
+      // Clear selection
+      setSelectedOrders(new Set());
+      setBulkStatus('');
+      
+      alert(`Successfully updated ${selectedOrders.size} order(s)`);
+    } catch (err: any) {
+      alert(err.message || 'Failed to update orders');
+    } finally {
+      setBulkLoading(false);
+    }
   };
 
   // Format currency
@@ -126,6 +186,52 @@ const OrderListPage: React.FC = () => {
           New Order
         </Button>
       </div>
+
+      {/* Bulk Actions Bar */}
+      {selectedOrders.size > 0 && (
+        <Card className="mb-4 bg-blue-50 border-2 border-blue-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="font-semibold text-blue-900">
+                ✓ {selectedOrders.size} order{selectedOrders.size !== 1 ? 's' : ''} selected
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setSelectedOrders(new Set())}
+              >
+                Clear Selection
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <select
+                value={bulkStatus}
+                onChange={(e) => setBulkStatus(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select Status</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="preparing">Preparing</option>
+                <option value="ready">Ready</option>
+                <option value="served">Served</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              
+              <Button
+                variant="primary"
+                onClick={handleBulkStatusUpdate}
+                disabled={!bulkStatus || bulkLoading}
+                loading={bulkLoading}
+              >
+                Update Status
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card className="mb-6">
@@ -222,50 +328,82 @@ const OrderListPage: React.FC = () => {
       {/* Orders Grid */}
       {currentOrders.length > 0 && (
         <>
+          {/* Select All / Deselect All */}
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAll}
+            >
+              {selectedOrders.size === currentOrders.length ? '☐ Deselect All' : '☑ Select All'}
+            </Button>
+            <p className="text-sm text-gray-600">
+              Showing {currentOrders.length} of {filteredOrders.length} orders
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
             {currentOrders.map((order) => (
               <Card
                 key={order.id}
                 hoverable
-                onClick={() => navigate(`/orders/${order.id}`)}
-                className="cursor-pointer transition-all hover:shadow-lg"
+                className={`cursor-pointer transition-all hover:shadow-lg ${
+                  selectedOrders.has(order.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                }`}
               >
                 {/* Order Header */}
                 <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-900">
-                      Order #{order.id}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Table {order.table?.table_number || 'N/A'}
-                    </p>
+                  {/* Checkbox */}
+                  <input
+                    type="checkbox"
+                    checked={selectedOrders.has(order.id)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleSelectOrder(order.id);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  />
+                  
+                  {/* Order Info */}
+                  <div className="flex-1 flex items-start justify-between ml-3" onClick={() => navigate(`/orders/${order.id}`)}>
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-900">
+                        Order #{order.id}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Table {order.table?.table_number || 'N/A'}
+                      </p>
+                    </div>
+                    <Badge status={order?.status || 'pending'} />
                   </div>
-                  <Badge status={order?.status || 'pending'} />
                 </div>
 
                 {/* Order Details */}
-                <div className="space-y-2 mb-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Items:</span>
-                    <span className="font-medium">{order.items?.length || 0}</span>
+                <div onClick={() => navigate(`/orders/${order.id}`)}>
+                  <div className="space-y-2 mb-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Items:</span>
+                      <span className="font-medium">{order.items?.length || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Total:</span>
+                      <span className="font-semibold text-gray-900">
+                        {formatCurrency(order.total_amount)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Total:</span>
-                    <span className="font-semibold text-gray-900">
-                      {formatCurrency(order.total_amount)}
-                    </span>
+
+                  {/* Payment Status */}
+                  <div className="mb-3">
+                    <Badge status={order?.payment_status || 'unpaid'} size="sm" />
                   </div>
-                </div>
 
-                {/* Payment Status */}
-                <div className="mb-3">
-                  <Badge status={order?.payment_status || 'unpaid'} size="sm" />
-                </div>
-
-                {/* Order Time */}
-                <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-                  <span>📅 {formatDate(order.created_at)}</span>
-                  <span>🕐 {formatTime(order.created_at)}</span>
+                  {/* Order Time */}
+                  <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                    <span>📅 {formatDate(order.created_at)}</span>
+                    <span>🕐 {formatTime(order.created_at)}</span>
+                  </div>
                 </div>
               </Card>
             ))}
