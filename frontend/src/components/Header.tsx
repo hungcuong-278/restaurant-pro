@@ -17,8 +17,12 @@ const Header: React.FC = () => {
     { name: 'Menu', href: '/menu' },
     { name: 'Book Table', href: '/reservations/new' },
     { name: 'Orders', href: '/orders' },
-    { name: 'Kitchen', href: '/kitchen' },
     { name: 'Contact', href: '/contact' },
+  ];
+
+  // Staff/Admin only navigation
+  const staffNavigation = [
+    { name: 'Kitchen', href: '/kitchen', roles: ['admin', 'staff', 'kitchen'] },
   ];
 
   const handleLogout = () => {
@@ -55,6 +59,21 @@ const Header: React.FC = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`px-3 py-2 text-sm font-medium transition-all duration-300 ${
+                  isActive(item.href)
+                    ? 'text-gr-gold border-b-2 border-gr-gold'
+                    : 'text-white hover:text-gr-gold hover:border-b-2 hover:border-gr-gold'
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
+            
+            {/* Staff/Admin only links */}
+            {user && ['admin', 'staff', 'kitchen'].includes(user.role) && staffNavigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
