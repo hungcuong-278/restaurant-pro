@@ -60,7 +60,7 @@ class ReceiptService {
           'restaurants.address as restaurant_address',
           'restaurants.phone as restaurant_phone',
           'restaurants.email as restaurant_email',
-          'tables.table_number'
+          'tables.number as table_number'
         )
         .leftJoin('restaurants', 'orders.restaurant_id', 'restaurants.id')
         .leftJoin('tables', 'orders.table_id', 'tables.id')
