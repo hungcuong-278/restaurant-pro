@@ -39,6 +39,14 @@ import {
 
 const logger = createLogger('PaymentService');
 
+/**
+ * Helper function to round money amounts to 2 decimal places
+ * Fixes floating point arithmetic issues
+ */
+function roundMoney(amount: number): number {
+  return Math.round(amount * 100) / 100;
+}
+
 class PaymentService {
   /**
    * Process a payment for an order
@@ -64,8 +72,9 @@ class PaymentService {
         throw new BusinessLogicError('Cannot process payment for cancelled order', 'ORDER_CANCELLED');
       }
 
-      if (order.status === 'completed' && order.payment_status === 'paid') {
-        throw new BusinessLogicError('Order is already paid', 'ORDER_ALREADY_PAID');
+      // Check if order is already fully paid
+      if (order.payment_status === 'paid') {
+        throw new BusinessLogicError('Order is already fully paid', 'ORDER_ALREADY_PAID');
       }
 
       // 3. Validate payment amount
@@ -283,16 +292,17 @@ class PaymentService {
       .where({ order_id: orderId })
       .whereIn('status', ['completed', 'processing']);
 
-    const totalPaid = existingPayments.reduce((sum: number, p: any) => sum + parseFloat(p.amount), 0);
-    const remainingAmount = parseFloat(order.total_amount) - totalPaid;
+    const totalPaid = roundMoney(existingPayments.reduce((sum: number, p: any) => sum + parseFloat(p.amount), 0));
+    const orderTotal = roundMoney(parseFloat(order.total_amount));
+    const remainingAmount = roundMoney(orderTotal - totalPaid);
 
     // Check if overpaying
-    if (amount > remainingAmount) {
-      warnings.push(`Payment amount (${amount}) exceeds remaining balance (${remainingAmount})`);
+    if (amount > remainingAmount + 0.01) { // Allow 1 cent tolerance
+      warnings.push(`Payment amount ($${amount}) exceeds remaining balance ($${remainingAmount})`);
     }
 
     // Check if underpaying when trying to complete
-    if (amount < remainingAmount && amount < parseFloat(order.total_amount) * 0.99) {
+    if (amount < remainingAmount - 0.01 && amount < orderTotal * 0.99) { // Allow 1 cent tolerance
       warnings.push('Partial payment - order will not be marked as fully paid');
     }
 
@@ -300,7 +310,7 @@ class PaymentService {
       is_valid: errors.length === 0,
       errors,
       warnings,
-      order_total: parseFloat(order.total_amount),
+      order_total: orderTotal,
       amount_paid: totalPaid,
       remaining_amount: remainingAmount
     };
@@ -327,16 +337,16 @@ class PaymentService {
       .orderBy('created_at', 'desc');
 
     // Calculate totals
-    const totalPaid = payments
+    const totalPaid = roundMoney(payments
       .filter((p: any) => p.status === 'completed')
-      .reduce((sum: number, p: any) => sum + parseFloat(p.amount), 0);
+      .reduce((sum: number, p: any) => sum + parseFloat(p.amount), 0));
 
-    const totalRefunded = payments
+    const totalRefunded = roundMoney(payments
       .filter((p: any) => p.status === 'refunded')
-      .reduce((sum: number, p: any) => sum + parseFloat(p.amount), 0);
+      .reduce((sum: number, p: any) => sum + parseFloat(p.amount), 0));
 
-    const orderTotal = parseFloat(order.total_amount);
-    const remainingAmount = orderTotal - totalPaid + totalRefunded;
+    const orderTotal = roundMoney(parseFloat(order.total_amount));
+    const remainingAmount = roundMoney(orderTotal - totalPaid + totalRefunded);
 
     return {
       order_id: orderId,
