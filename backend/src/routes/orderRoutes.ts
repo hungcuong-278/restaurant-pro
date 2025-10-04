@@ -11,6 +11,11 @@ import {
   updateOrder
 } from '../controllers/orderController';
 import { orderPaymentRoutes } from './paymentRoutes';
+import {
+  generateHTMLReceipt,
+  generateTextReceipt,
+  getReceiptData
+} from '../controllers/receiptController';
 
 const router = express.Router({ mergeParams: true });
 
@@ -45,6 +50,11 @@ router.patch('/:orderId/items/:itemId', updateOrderItem);
 
 // Remove item from order
 router.delete('/:orderId/items/:itemId', removeItemFromOrder);
+
+// Receipt routes
+router.get('/:orderId/receipt', generateHTMLReceipt);
+router.get('/:orderId/receipt/text', generateTextReceipt);
+router.get('/:orderId/receipt/data', getReceiptData);
 
 // Mount payment routes under /orders/:orderId
 router.use('/:orderId', orderPaymentRoutes);

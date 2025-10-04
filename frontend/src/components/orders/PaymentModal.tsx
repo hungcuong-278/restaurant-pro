@@ -129,9 +129,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   // Generate receipt
   const handleGenerateReceipt = () => {
-    // TODO: Implement receipt generation
+    // Open receipt in new window
+    const receiptUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/restaurants/64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5/orders/${orderId}/receipt`;
+    window.open(receiptUrl, '_blank', 'width=500,height=800');
     setReceiptGenerated(true);
-    alert('Receipt generated! (Feature coming soon)');
   };
 
   const getMethodLabel = (method: PaymentMethod): string => {
