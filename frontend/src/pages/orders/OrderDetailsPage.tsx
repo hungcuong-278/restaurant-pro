@@ -190,15 +190,13 @@ const OrderDetailsPage: React.FC = () => {
                   {order.updated_at && (
                     <p><span className="font-medium">Updated:</span> {formatDate(order.updated_at)}</p>
                   )}
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <Badge status={order.status} size="lg" />
-                <Badge status={order.payment_status} size="lg" />
               </div>
             </div>
-
-            {/* Status Timeline */}
+            <div className="flex flex-col items-end gap-2">
+              <Badge status={order?.status || 'pending'} size="lg" />
+              <Badge status={order?.payment_status || 'unpaid'} size="lg" />
+            </div>
+          </div>            {/* Status Timeline */}
             <div className="mb-6">
               <h3 className="font-semibold text-gray-900 mb-4">Order Progress</h3>
               <div className="relative">
@@ -328,7 +326,7 @@ const OrderDetailsPage: React.FC = () => {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-gray-600">Status:</span>
-                <Badge status={order.payment_status} size="md" />
+                <Badge status={order?.payment_status || 'unpaid'} size="md" />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Total Amount:</span>

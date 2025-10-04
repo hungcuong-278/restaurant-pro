@@ -80,6 +80,18 @@ const Badge: React.FC<BadgeProps> = ({ status, size = 'md', className = '' }) =>
 
   const config = statusConfig[status];
 
+  // Handle undefined or invalid status
+  if (!config) {
+    return (
+      <span
+        className={`inline-flex items-center font-medium rounded-full bg-gray-100 text-gray-800 ${sizeStyles[size]} ${className}`}
+      >
+        <span className="mr-1">❓</span>
+        Unknown
+      </span>
+    );
+  }
+
   return (
     <span
       className={`inline-flex items-center font-medium rounded-full ${config.bg} ${config.text} ${sizeStyles[size]} ${className}`}

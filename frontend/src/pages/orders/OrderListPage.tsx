@@ -238,7 +238,7 @@ const OrderListPage: React.FC = () => {
                       Table {order.table?.table_number || 'N/A'}
                     </p>
                   </div>
-                  <Badge status={order.status} />
+                  <Badge status={order?.status || 'pending'} />
                 </div>
 
                 {/* Order Details */}
@@ -257,7 +257,7 @@ const OrderListPage: React.FC = () => {
 
                 {/* Payment Status */}
                 <div className="mb-3">
-                  <Badge status={order.payment_status} size="sm" />
+                  <Badge status={order?.payment_status || 'unpaid'} size="sm" />
                 </div>
 
                 {/* Order Time */}

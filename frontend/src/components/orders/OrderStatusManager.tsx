@@ -159,7 +159,7 @@ const OrderStatusManager: React.FC<OrderStatusManagerProps> = ({
               </div>
             </div>
           </div>
-          <Badge status={currentStatusInfo?.color as any} />
+          <Badge status={(currentStatus || 'pending') as any} />
         </div>
       </div>
 
