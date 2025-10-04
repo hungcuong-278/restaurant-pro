@@ -10,6 +10,7 @@ import {
   cancelOrder,
   updateOrder
 } from '../controllers/orderController';
+import { orderPaymentRoutes } from './paymentRoutes';
 
 const router = express.Router({ mergeParams: true });
 
@@ -44,5 +45,8 @@ router.patch('/:orderId/items/:itemId', updateOrderItem);
 
 // Remove item from order
 router.delete('/:orderId/items/:itemId', removeItemFromOrder);
+
+// Mount payment routes under /orders/:orderId
+router.use('/:orderId', orderPaymentRoutes);
 
 export default router;

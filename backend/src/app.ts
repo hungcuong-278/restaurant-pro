@@ -14,6 +14,7 @@ import tableRoutes from './routes/tableRoutes';
 import reservationRoutes from './routes/reservationRoutes';
 import globalReservationRoutes from './routes/globalReservationRoutes';
 import orderRoutes from './routes/orderRoutes';
+import { paymentRouter } from './routes/paymentRoutes';
 import debugRoutes from './routes/debugRoutes';
 
 // Load environment variables
@@ -70,6 +71,7 @@ app.use('/api/reservations', globalReservationRoutes);
 app.use('/api/restaurants/:restaurantId/tables', tableRoutes);
 app.use('/api/restaurants/:restaurantId/reservations', reservationRoutes);
 app.use('/api/restaurants/:restaurantId/orders', orderRoutes);
+app.use('/api/restaurants/:restaurantId/payments', paymentRouter);
 
 // Error handling middleware
 app.use(notFound);
