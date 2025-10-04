@@ -43,12 +43,17 @@ async function generateOrderNumber(): Promise<string> {
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
   
-  // Get today's order count
-  const todayStart = new Date(now.setHours(0, 0, 0, 0));
-  const todayEnd = new Date(now.setHours(23, 59, 59, 999));
+  // Get today's order count - ordered_at is stored as millisecond timestamp
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayStartMs = todayStart.getTime();
+  
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
+  const todayEndMs = todayEnd.getTime();
   
   const count = await db('orders')
-    .whereBetween('ordered_at', [todayStart, todayEnd])
+    .whereBetween('ordered_at', [todayStartMs, todayEndMs])
     .count('id as count')
     .first();
   

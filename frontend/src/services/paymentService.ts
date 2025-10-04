@@ -1,6 +1,6 @@
 import api from './api';
 
-const RESTAURANT_ID = '64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5'; // Golden Fork Restaurant UUID
+const RESTAURANT_ID = '2c88c32a-03ba-4ef3-96e4-f37cf4b165de'; // Golden Fork Restaurant UUID
 
 // Payment Types
 export interface Payment {

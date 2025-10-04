@@ -35,7 +35,7 @@ import ReservationForm from '../../components/reservations/ReservationForm';
 import ReservationSummary from '../../components/reservations/ReservationSummary';
 
 // Restaurant ID (Golden Fork Restaurant)
-const RESTAURANT_ID = '64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5';
+const RESTAURANT_ID = '2c88c32a-03ba-4ef3-96e4-f37cf4b165de';
 const RESTAURANT_NAME = 'Golden Fork Restaurant';
 
 interface FormData {

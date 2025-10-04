@@ -65,7 +65,7 @@ class MenuService {
   // Categories
   async getCategories(): Promise<MenuCategory[]> {
     try {
-      const response = await api.get<APIResponse<MenuCategory[]>>('/menu/categories?restaurant_id=64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5');
+      const response = await api.get<APIResponse<MenuCategory[]>>('/menu/categories?restaurant_id=2c88c32a-03ba-4ef3-96e4-f37cf4b165de');
       return response.data.data;
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -118,7 +118,7 @@ class MenuService {
       const params = new URLSearchParams();
       
       // Add restaurant_id - Required by backend API
-      params.append('restaurant_id', '64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5');
+      params.append('restaurant_id', '2c88c32a-03ba-4ef3-96e4-f37cf4b165de');
       
       if (filters.categoryId) params.append('category_id', filters.categoryId);
       if (typeof filters.available === 'boolean') params.append('available', filters.available.toString());

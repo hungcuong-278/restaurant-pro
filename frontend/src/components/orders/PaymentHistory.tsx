@@ -22,10 +22,14 @@ const PaymentHistory: React.FC<PaymentHistoryProps> = ({ orderId }) => {
       setLoading(true);
       setError(null);
       const response = await paymentService.getOrderPayments(orderId);
-      setPayments(response.data || []);
+      // Axios response: response.data contains PaymentListResponse
+      // PaymentListResponse.data contains Payment[]
+      const paymentsData = (response as any).data?.data || (response as any).data || [];
+      setPayments(Array.isArray(paymentsData) ? paymentsData : []);
     } catch (err: any) {
       setError(err.message || 'Failed to load payment history');
       console.error('Error fetching payments:', err);
+      setPayments([]); // Set empty array on error
     } finally {
       setLoading(false);
     }

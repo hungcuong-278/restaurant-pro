@@ -19,7 +19,7 @@ interface CartItem {
 }
 
 // Constants
-const RESTAURANT_ID = '64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5'; // Golden Fork Restaurant UUID
+const RESTAURANT_ID = '2c88c32a-03ba-4ef3-96e4-f37cf4b165de'; // Golden Fork Restaurant UUID
 
 const NewOrderPage: React.FC = () => {
   const navigate = useNavigate();
@@ -197,13 +197,18 @@ const NewOrderPage: React.FC = () => {
       // Create order
       const response = await orderService.createOrder(orderData);
 
-      console.log('Order created successfully:', response.data);
+      console.log('Order created successfully:', response);
 
       // Success! Navigate to order details
-      if (response.data && response.data.id) {
-        navigate(`/orders/${response.data.id}`);
+      // Axios AxiosResponse<OrderResponse> -> response.data = OrderResponse -> response.data.data = Order
+      const orderResponse = response as any; // Type assertion to handle axios response
+      if (orderResponse.data?.data?.id) {
+        navigate(`/orders/${orderResponse.data.data.id}`);
+      } else if (orderResponse.data?.id) {
+        // Fallback if response structure is different
+        navigate(`/orders/${orderResponse.data.id}`);
       } else {
-        console.error('Order created but no ID returned:', response);
+        console.error('Order created but no ID returned:', orderResponse);
         setError('Order created but unable to view details');
       }
     } catch (err: any) {
