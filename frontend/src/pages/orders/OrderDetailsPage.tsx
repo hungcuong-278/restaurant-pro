@@ -143,7 +143,7 @@ const OrderDetailsPage: React.FC = () => {
             ← Back to Orders
           </Button>
           <h1 className="text-3xl font-bold text-gray-900">
-            Order #{order.id.slice(0, 8)}
+            Order #{order?.id?.slice(0, 8) || 'N/A'}
           </h1>
         </div>
 
