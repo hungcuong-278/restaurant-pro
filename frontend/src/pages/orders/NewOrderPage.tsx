@@ -18,7 +18,8 @@ interface CartItem {
   subtotal: number;
 }
 
-const RESTAURANT_ID = '1'; // Default restaurant from seed data
+// Constants
+const RESTAURANT_ID = '64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5'; // Golden Fork Restaurant UUID
 
 const NewOrderPage: React.FC = () => {
   const navigate = useNavigate();
