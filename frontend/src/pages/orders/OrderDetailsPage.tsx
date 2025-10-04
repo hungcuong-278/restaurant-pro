@@ -5,6 +5,8 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import OrderStatusManager from '../../components/orders/OrderStatusManager';
+import PaymentModal from '../../components/orders/PaymentModal';
+import PaymentHistory from '../../components/orders/PaymentHistory';
 import { orderService } from '../../services/orderService';
 import type { Order } from '../../services/orderService';
 
@@ -17,6 +19,7 @@ const OrderDetailsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Fetch order details
   useEffect(() => {
@@ -340,7 +343,7 @@ const OrderDetailsPage: React.FC = () => {
             {order.payment_status === 'unpaid' && order.status !== 'cancelled' && (
               <div className="space-y-3">
                 <Button
-                  onClick={() => navigate(`/payments/new?orderId=${order.id}`)}
+                  onClick={() => setShowPaymentModal(true)}
                   className="w-full"
                 >
                   💳 Process Payment
@@ -357,7 +360,7 @@ const OrderDetailsPage: React.FC = () => {
                   ⚠️ Partial payment received. Remaining balance to be paid.
                 </p>
                 <Button
-                  onClick={() => navigate(`/payments/new?orderId=${order.id}`)}
+                  onClick={() => setShowPaymentModal(true)}
                   className="w-full mt-3"
                   size="sm"
                 >
@@ -379,6 +382,13 @@ const OrderDetailsPage: React.FC = () => {
                 <p className="text-sm text-red-700">
                   ❌ Order cancelled - No payment required
                 </p>
+              </div>
+            )}
+
+            {/* Payment History */}
+            {order.payment_status !== 'unpaid' && (
+              <div className="mt-6">
+                <PaymentHistory orderId={order.id} />
               </div>
             )}
 
@@ -415,6 +425,21 @@ const OrderDetailsPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && order && (
+        <PaymentModal
+          orderId={order.id}
+          totalAmount={order.total_amount || 0}
+          paidAmount={0} // TODO: Get from payment history
+          paymentStatus={order.payment_status}
+          onClose={() => setShowPaymentModal(false)}
+          onPaymentComplete={() => {
+            setShowPaymentModal(false);
+            fetchOrderDetails(); // Refresh order data
+          }}
+        />
+      )}
     </div>
   );
 };
