@@ -515,5 +515,409 @@ const filteredOrders = orders.filter(order => {
 
 ---
 
-*Progress tracked: October 4, 2025 - 4:30 PM*  
-*Last updated: Task 3.2 completed successfully*
+## ⏳ Task 3.3: Order Creation Form (4-5 hours) - COMPLETED ✅
+
+**Start Time:** October 4, 2025 - 5:00 PM  
+**End Time:** October 4, 2025 - 7:00 PM  
+**Status:** ✅ Complete  
+**Time Spent:** 2h / 4-5h estimated (Excellent efficiency! 60% faster)
+
+### ✅ Subtask 3.3.1: Create NewOrder Page Layout (0.5h) - COMPLETE
+
+**What was done:**
+- ✅ Complete full-page layout with responsive grid
+- ✅ Header with title and back button
+- ✅ Error message display area
+- ✅ 3-column layout (lg:grid-cols-3): 2 columns left + 1 column right
+- ✅ Left column: Table selection + Menu browser
+- ✅ Right column: Sticky cart sidebar (top-4)
+- ✅ Loading state with full-page spinner
+
+**File Created:**
+- `frontend/src/pages/orders/NewOrderPage.tsx` (514 lines)
+
+---
+
+### ✅ Subtask 3.3.2: Build Table Selection Component (0.5h) - COMPLETE
+
+**Features Implemented:**
+- ✅ Card container with "1. Select Table" heading
+- ✅ Grid display: 2-4 columns (responsive: sm:grid-cols-3 md:grid-cols-4)
+- ✅ Visual table cards with:
+  - Table emoji 🪑
+  - Table number display
+  - Capacity (seats)
+  - Selected state (blue border + blue background)
+  - Hover effects
+- ✅ Click to select table
+- ✅ Only shows 'available' status tables
+- ✅ Empty state: "No available tables"
+
+**API Integration:**
+```typescript
+const tablesData = await tableService.getTables(RESTAURANT_ID, 'available');
+setTables(tablesData);
+```
+
+**UI Design:**
+```
+┌─────────────────────────────────────┐
+│  1. Select Table                   │
+├─────────────────────────────────────┤
+│  [🪑 T1] [🪑 T2] [🪑 T3] [🪑 T4]  │
+│  [🪑 T5] [🪑 T6] ...               │
+└─────────────────────────────────────┘
+```
+
+---
+
+### ✅ Subtask 3.3.3: Create Menu Item Selector (2h) - COMPLETE
+
+**Features Implemented:**
+
+1. **Search Bar:**
+   - Input field with placeholder "🔍 Search menu items..."
+   - Real-time filtering by name and description
+   - Case-insensitive search
+
+2. **Category Tabs:**
+   - Horizontal scrollable tabs
+   - "All Items" + dynamic categories from API
+   - Selected category highlighted (blue background)
+   - Overflow-x-auto for mobile
+
+3. **Menu Items Grid:**
+   - Responsive: 1-2 columns (sm:grid-cols-2)
+   - Each card shows:
+     - Item name (bold)
+     - Description (2 lines max with line-clamp-2)
+     - Price (blue, bold, VND format)
+     - Featured badge (⭐ Featured) if applicable
+     - Add button OR quantity controls
+   - In-cart items: Blue border + blue background
+   - Hover effects on cards
+
+4. **Add to Cart Flow:**
+   - Click "➕ Add" → Item added with quantity 1
+   - Shows quantity controls (+/-) when in cart
+   - Quantity controls: [−] quantity [+]
+   - Decrease to 0 → Remove from cart
+
+**Filtering Logic:**
+```typescript
+useEffect(() => {
+  let filtered = menuItems;
+  
+  // Filter by category
+  if (selectedCategory !== 'all') {
+    filtered = filtered.filter(item => item.category_id === selectedCategory);
+  }
+  
+  // Filter by search query
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    filtered = filtered.filter(item =>
+      item.name.toLowerCase().includes(query) ||
+      item.description?.toLowerCase().includes(query)
+    );
+  }
+  
+  setFilteredItems(filtered);
+}, [selectedCategory, searchQuery, menuItems]);
+```
+
+**API Integration:**
+```typescript
+const [categoriesData, menuData] = await Promise.all([
+  menuService.getCategories(),
+  menuService.getMenuItems({ available: true })
+]);
+```
+
+---
+
+### ✅ Subtask 3.3.4: Build Order Cart Component (1h) - COMPLETE
+
+**Cart Features:**
+
+1. **Cart Header:**
+   - Title: "Your Order"
+   - "Clear All" button (text-red-600)
+
+2. **Selected Table Display:**
+   - Shows selected table in blue badge
+   - Format: "Table {number}"
+
+3. **Empty State:**
+   - Cart emoji 🛒
+   - Message: "Cart is empty"
+   - Subtext: "Add items from menu"
+
+4. **Cart Items List:**
+   - Each item shows:
+     - Item name (bold)
+     - Unit price × quantity
+     - Remove button (🗑️)
+     - Quantity controls: [−] qty [+]
+     - Subtotal (bold)
+     - Special instructions input
+
+5. **Cart Operations:**
+```typescript
+const addToCart = (menuItem: MenuItem) => {
+  const existingItem = cart.find(item => item.menu_item_id === menuItem.id);
+  if (existingItem) {
+    updateQuantity(menuItem.id, existingItem.quantity + 1);
+  } else {
+    const newItem: CartItem = {
+      menu_item_id: menuItem.id,
+      menu_item: menuItem,
+      quantity: 1,
+      special_instructions: '',
+      subtotal: menuItem.price
+    };
+    setCart([...cart, newItem]);
+  }
+};
+
+const updateQuantity = (menuItemId: string, newQuantity: number) => {
+  if (newQuantity < 1) {
+    removeFromCart(menuItemId);
+    return;
+  }
+  setCart(cart.map(item =>
+    item.menu_item_id === menuItemId
+      ? { ...item, quantity: newQuantity, subtotal: item.menu_item.price * newQuantity }
+      : item
+  ));
+};
+
+const removeFromCart = (menuItemId: string) => {
+  setCart(cart.filter(item => item.menu_item_id !== menuItemId));
+};
+
+const clearCart = () => setCart([]);
+```
+
+6. **Price Calculator:**
+```typescript
+const calculateSubtotal = () => {
+  return cart.reduce((sum, item) => sum + item.subtotal, 0);
+};
+
+const calculateTax = (subtotal: number) => {
+  return subtotal * 0.1; // 10% tax
+};
+
+const calculateTotal = () => {
+  const subtotal = calculateSubtotal();
+  const tax = calculateTax(subtotal);
+  return subtotal + tax;
+};
+```
+
+7. **Order Summary Display:**
+```
+─────────────────────────────
+Subtotal:        330,000đ
+Tax (10%):        33,000đ
+─────────────────────────────
+TOTAL:           363,000đ (blue, large)
+```
+
+---
+
+### ✅ Subtask 3.3.5: Add Special Instructions Field (0.5h) - COMPLETE
+
+**Two Types Implemented:**
+
+1. **Per-Item Instructions:**
+   - Input field under each cart item
+   - Placeholder: "Special instructions (optional)"
+   - Example: "No onions", "Extra cheese", "Well done"
+   - Saved in `cart[].special_instructions`
+   - Sent with order item to API
+
+```typescript
+const updateInstructions = (menuItemId: string, instructions: string) => {
+  setCart(cart.map(item =>
+    item.menu_item_id === menuItemId
+      ? { ...item, special_instructions: instructions }
+      : item
+  ));
+};
+```
+
+2. **Order-Level Notes:**
+   - Textarea below cart items (only when cart has items)
+   - Label: "Order Notes (optional)"
+   - Placeholder: "Any special requests for this order..."
+   - 3 rows, full width
+   - Example: "Bring cutlery", "Serve dessert last"
+   - Saved in `orderNotes` state
+   - Sent as order `special_instructions`
+
+```tsx
+<textarea
+  value={orderNotes}
+  onChange={(e) => setOrderNotes(e.target.value)}
+  placeholder="Any special requests for this order..."
+  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+  rows={3}
+/>
+```
+
+---
+
+### ✅ Subtask 3.3.6: Implement Order Submission (0.5h) - COMPLETE
+
+**Validation:**
+```typescript
+if (!selectedTable) {
+  setError('Please select a table');
+  return;
+}
+
+if (cart.length === 0) {
+  setError('Please add at least one item to the order');
+  return;
+}
+```
+
+**Order Data Preparation:**
+```typescript
+const orderData = {
+  table_id: selectedTable,
+  items: cart.map(item => ({
+    menu_item_id: item.menu_item_id,
+    quantity: item.quantity,
+    special_instructions: item.special_instructions || undefined
+  })),
+  special_instructions: orderNotes || undefined
+};
+```
+
+**Submission Flow:**
+```typescript
+const handleSubmitOrder = async () => {
+  try {
+    setSubmitting(true);
+    setError(null);
+    
+    // Create order via API
+    const response = await orderService.createOrder(orderData);
+    
+    // Navigate to order details on success
+    navigate(`/orders/${response.data.id}`);
+  } catch (err: any) {
+    setError(err.response?.data?.message || 'Failed to create order');
+  } finally {
+    setSubmitting(false);
+  }
+};
+```
+
+**Submit Button:**
+- Text: "✅ Place Order (363,000đ)"
+- Shows total amount
+- Disabled when: no table OR empty cart OR submitting
+- Loading state: Shows spinner + "Creating Order..."
+- Full width (w-full), large size (size="lg")
+- Located at bottom of cart
+
+---
+
+## 📊 Task 3.3 Summary
+
+### Code Statistics
+| Metric | Value |
+|--------|-------|
+| File Created | NewOrderPage.tsx |
+| Lines of Code | 514 |
+| State Variables | 10 |
+| Functions | 8 |
+| API Calls | 3 services |
+| Components Used | 5 (Card, Button, Spinner, Input, Badge) |
+| TypeScript Errors | 0 |
+
+### State Management
+```typescript
+// Loading & Error
+const [loading, setLoading] = useState(true);
+const [submitting, setSubmitting] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+// Data
+const [tables, setTables] = useState<Table[]>([]);
+const [categories, setCategories] = useState<MenuCategory[]>([]);
+const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
+
+// Form
+const [selectedTable, setSelectedTable] = useState<string>('');
+const [selectedCategory, setSelectedCategory] = useState<string>('all');
+const [searchQuery, setSearchQuery] = useState('');
+const [cart, setCart] = useState<CartItem[]>([]);
+const [orderNotes, setOrderNotes] = useState('');
+```
+
+### Cart Interface
+```typescript
+interface CartItem {
+  menu_item_id: string;
+  menu_item: MenuItem;
+  quantity: number;
+  special_instructions: string;
+  subtotal: number;
+}
+```
+
+### Features Delivered
+✅ Responsive 3-column layout
+✅ Table selection (visual cards)
+✅ Category-based menu browsing
+✅ Real-time search functionality
+✅ Shopping cart with CRUD operations
+✅ Quantity controls (increase/decrease)
+✅ Special instructions (per-item + order-level)
+✅ Real-time price calculations
+✅ Tax calculation (10%)
+✅ Form validation
+✅ Loading states
+✅ Error handling
+✅ Success navigation
+
+### API Integration
+1. **Table Service:**
+   ```typescript
+   tableService.getTables(RESTAURANT_ID, 'available')
+   ```
+
+2. **Menu Service:**
+   ```typescript
+   menuService.getCategories()
+   menuService.getMenuItems({ available: true })
+   ```
+
+3. **Order Service:**
+   ```typescript
+   orderService.createOrder(orderData)
+   ```
+
+### Testing
+- ✅ TypeScript compilation: No errors
+- ✅ Component renders without crashes
+- ⏳ Manual testing: Ready at http://localhost:3000/orders/new
+
+---
+
+**Task 3.3 Status:** ✅ **COMPLETE**  
+**Progress:** 30% of Phase 3 (3/10 tasks)  
+**Time:** 2h / 4-5h estimated (60% faster! 🚀)  
+**Commit:** 0f199a3  
+**Overall Phase 3:** Still ahead of schedule
+
+---
+
+*Progress tracked: October 4, 2025 - 7:00 PM*  
+*Last updated: Task 3.3 completed successfully*
