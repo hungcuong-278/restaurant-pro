@@ -36,6 +36,7 @@ const NewOrderPage: React.FC = () => {
   const [filteredItems, setFilteredItems] = useState<MenuItem[]>([]);
 
   // Form state
+  const [orderType, setOrderType] = useState<'dine_in' | 'takeout' | 'delivery'>('dine_in');
   const [selectedTable, setSelectedTable] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -159,8 +160,8 @@ const NewOrderPage: React.FC = () => {
   // Submit order
   const handleSubmitOrder = async () => {
     // Validation
-    if (!selectedTable) {
-      setError('Please select a table');
+    if (orderType === 'dine_in' && !selectedTable) {
+      setError('Please select a table for dine-in orders');
       return;
     }
 
@@ -175,7 +176,8 @@ const NewOrderPage: React.FC = () => {
 
       // Prepare order data
       const orderData = {
-        table_id: selectedTable,
+        order_type: orderType,
+        table_id: orderType === 'dine_in' ? selectedTable : undefined,
         items: cart.map(item => ({
           menu_item_id: item.menu_item_id,
           quantity: item.quantity,
@@ -230,17 +232,69 @@ const NewOrderPage: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Table Selection & Menu */}
+        {/* Left Column: Order Type, Table Selection & Menu */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Table Selection */}
+          {/* Order Type Selection */}
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">1. Select Table</h2>
-            
-            {tables.length === 0 ? (
-              <p className="text-gray-500">No available tables</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {tables.map((table) => (
+            <h2 className="text-xl font-bold text-gray-900 mb-4">1. Select Order Type</h2>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                onClick={() => setOrderType('dine_in')}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  orderType === 'dine_in'
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-blue-300 hover:shadow'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🍽️</div>
+                  <div className="font-semibold text-gray-900">Dine In</div>
+                  <div className="text-xs text-gray-500">Eat at restaurant</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setOrderType('takeout')}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  orderType === 'takeout'
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-blue-300 hover:shadow'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🥡</div>
+                  <div className="font-semibold text-gray-900">Takeout</div>
+                  <div className="text-xs text-gray-500">Take away</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => setOrderType('delivery')}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  orderType === 'delivery'
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 hover:border-blue-300 hover:shadow'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🚚</div>
+                  <div className="font-semibold text-gray-900">Delivery</div>
+                  <div className="text-xs text-gray-500">Deliver to address</div>
+                </div>
+              </button>
+            </div>
+          </Card>
+
+          {/* Table Selection - Only for Dine In */}
+          {orderType === 'dine_in' && (
+            <Card>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">2. Select Table</h2>
+              
+              {tables.length === 0 ? (
+                <p className="text-gray-500">No available tables</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {tables.map((table) => (
                   <button
                     key={table.id}
                     onClick={() => setSelectedTable(table.id)}
@@ -259,11 +313,12 @@ const NewOrderPage: React.FC = () => {
                 ))}
               </div>
             )}
-          </Card>
+            </Card>
+          )}
 
           {/* Menu Items */}
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">2. Select Menu Items</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">3. Select Menu Items</h2>
 
             {/* Search & Category Filter */}
             <div className="mb-4 space-y-3">

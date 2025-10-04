@@ -39,7 +39,8 @@ export interface Order {
 }
 
 export interface CreateOrderRequest {
-  table_id: string;
+  order_type: 'dine_in' | 'takeout' | 'delivery';
+  table_id?: string; // Optional for takeout/delivery
   items: {
     menu_item_id: string;
     quantity: number;
