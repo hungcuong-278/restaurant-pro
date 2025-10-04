@@ -26,8 +26,8 @@ interface ReceiptData {
   items: Array<{
     item_name: string;
     quantity: number;
-    unit_price: number;
-    subtotal: number;
+    item_price: number;
+    total_price: number;
     special_instructions?: string;
   }>;
   payments: Array<{
@@ -75,8 +75,8 @@ class ReceiptService {
       const items = await db('order_items')
         .select(
           'order_items.quantity',
-          'order_items.unit_price',
-          'order_items.subtotal',
+          'order_items.item_price',
+          'order_items.total_price',
           'order_items.special_instructions',
           'menu_items.name as item_name'
         )
@@ -87,7 +87,7 @@ class ReceiptService {
       const payments = await db('payments')
         .select('payment_method', 'amount', 'transaction_id', 'created_at')
         .where('order_id', orderId)
-        .where('payment_status', 'completed')
+        .where('status', 'completed')
         .orderBy('created_at', 'asc');
 
       return {
@@ -105,8 +105,8 @@ class ReceiptService {
         items: items.map(item => ({
           item_name: item.item_name || 'Unknown Item',
           quantity: item.quantity,
-          unit_price: item.unit_price,
-          subtotal: item.subtotal,
+          item_price: item.item_price,
+          total_price: item.total_price,
           special_instructions: item.special_instructions,
         })),
         payments: payments.map(p => ({
@@ -310,7 +310,7 @@ class ReceiptService {
         <div class="item-row">
           <span class="item-name">${item.item_name}</span>
           <span class="item-qty">×${item.quantity}</span>
-          <span class="item-price">${item.subtotal.toLocaleString()}đ</span>
+          <span class="item-price">${item.total_price.toLocaleString()}đ</span>
         </div>
         ${item.special_instructions ? `<div class="special-instructions">Note: ${item.special_instructions}</div>` : ''}
       `).join('')}
@@ -399,7 +399,7 @@ class ReceiptService {
     data.items.forEach(item => {
       lines.push(row(
         `${item.item_name} x${item.quantity}`,
-        `${item.subtotal.toLocaleString()}đ`
+        `${item.total_price.toLocaleString()}đ`
       ));
       if (item.special_instructions) {
         lines.push(`  Note: ${item.special_instructions}`);
