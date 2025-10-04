@@ -37,9 +37,11 @@ const OrderListPage: React.FC = () => {
       if (paymentFilter !== 'all') filters.paymentStatus = paymentFilter;
       
       const response = await orderService.getAllOrders(filters);
-      setOrders(response.data);
+      // Ensure we always set an array
+      setOrders(Array.isArray(response.data) ? response.data : []);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch orders');
+      setOrders([]); // Set empty array on error
       console.error('Error fetching orders:', err);
     } finally {
       setLoading(false);
@@ -47,12 +49,12 @@ const OrderListPage: React.FC = () => {
   };
 
   // Filter orders by search query
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = (Array.isArray(orders) ? orders : []).filter(order => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      order.id.toString().includes(query) ||
-      order.table?.table_number?.toLowerCase().includes(query)
+      order?.id?.toString().includes(query) ||
+      order?.table?.table_number?.toLowerCase().includes(query)
     );
   });
 
