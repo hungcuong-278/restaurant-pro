@@ -65,7 +65,7 @@ class MenuService {
   // Categories
   async getCategories(): Promise<MenuCategory[]> {
     try {
-      const response = await api.get<APIResponse<MenuCategory[]>>('/menu/categories');
+      const response = await api.get<APIResponse<MenuCategory[]>>('/menu/categories?restaurant_id=64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5');
       return response.data.data;
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -117,11 +117,17 @@ class MenuService {
     try {
       const params = new URLSearchParams();
       
+      // Add restaurant_id - Required by backend API
+      params.append('restaurant_id', '64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5');
+      
       if (filters.categoryId) params.append('category_id', filters.categoryId);
       if (typeof filters.available === 'boolean') params.append('available', filters.available.toString());
       if (typeof filters.featured === 'boolean') params.append('featured', filters.featured.toString());
       if (filters.page) params.append('page', filters.page.toString());
       if (filters.limit) params.append('limit', filters.limit.toString());
+      
+      // Set high limit to get all items
+      if (!filters.limit) params.append('limit', '100');
 
       const response = await api.get<APIResponse<MenuResponse>>(`/menu/items?${params}`);
       return response.data.data;
