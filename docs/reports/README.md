@@ -8,6 +8,10 @@ Thư mục này chứa tất cả báo cáo tiến độ, tài liệu hoàn thà
 
 ```
 docs/reports/
+├── README.md                        # 📄 File này (Main index)
+├── ORGANIZATION_RULES.md            # 📋 Quy tắc tổ chức (READ THIS!)
+├── DOCUMENTATION_REORGANIZATION_COMPLETE.md  # 📊 Lịch sử tổ chức
+│
 ├── week-4-6/                        # 📦 Báo Cáo Tuần 4-6 (Lịch Sử)
 │   ├── WEEK_4_COMPLETION.md
 │   ├── WEEK_5_PLAN.md
@@ -221,6 +225,7 @@ Hướng dẫn testing:
 5. **Fix login issues** → `fixes/LOGIN_*.md`
 6. **Setup database** → `guides/DATABASE_SETUP_COMPLETE.md`
 7. **Test hệ thống** → `guides/TESTING_COMPLETE.md`
+8. **🆕 Bắt đầu tuần mới** → **[ORGANIZATION_RULES.md](./ORGANIZATION_RULES.md)** ⭐
 
 ### 📊 Tracking Progress
 
@@ -249,17 +254,115 @@ Hướng dẫn testing:
 
 ---
 
-## 📦 Archive Policy
+## 📦 Archive Policy & Organization Rules
 
-### Khi nào Archive?
-- Sau 2 tuần từ khi hoàn thành
-- Khi bắt đầu tuần mới (Week 8+)
+### 🎯 Quy Tắc Tổ Chức (Organization Rules)
 
-### Cách Archive
-1. Tạo folder `archived/week-X/`
-2. Di chuyển tất cả tài liệu tuần đó
-3. Cập nhật README.md
-4. Commit với message: "docs: Archive week X reports"
+**Để tránh lộn xộn, MỖI TUẦN MỚI phải:**
+
+1. **Tạo thư mục riêng ngay từ đầu**
+   ```
+   docs/reports/week-X/    # X = số tuần
+   ```
+
+2. **Tất cả báo cáo tuần đó BẮT BUỘC vào đúng folder**
+   - ✅ ĐÚNG: `docs/reports/week-8/WEEK_8_PLAN.md`
+   - ❌ SAI: `docs/reports/WEEK_8_PLAN.md` (ngoài thư mục)
+
+3. **Naming convention nhất quán**
+   - Plan: `WEEK_X_PLAN.md`
+   - Progress: `WEEK_X_PHASE_Y_PROGRESS.md`
+   - Completion: `WEEK_X_PHASE_Y_COMPLETION.md`
+   - Fixes: `fixes/[FEATURE]_FIX_*.md`
+
+4. **Cập nhật README.md ngay khi bắt đầu tuần mới**
+   - Thêm section cho Week X
+   - Update "Trạng Thái Hiện Tại"
+   - Archive tuần cũ nếu cần
+
+### 📋 Checklist Bắt Đầu Tuần Mới
+
+Khi bắt đầu **Week X** (ví dụ: Week 8):
+
+```powershell
+# 1. Tạo thư mục cho tuần mới
+New-Item -Path "docs/reports/week-X" -ItemType Directory
+
+# 2. Tạo file plan đầu tiên
+New-Item -Path "docs/reports/week-X/WEEK_X_PLAN.md" -ItemType File
+
+# 3. Cập nhật README.md
+# Thêm section Week X vào cấu trúc
+# Update "Trạng Thái Hiện Tại"
+
+# 4. Commit
+git add docs/reports/
+git commit -m "docs: Initialize Week X documentation structure"
+```
+
+### ♻️ Khi Nào Archive?
+
+- **Sau 2 tuần** từ khi hoàn thành tuần đó
+- **Khi bắt đầu tuần mới** (Week X+2)
+- Ví dụ: Khi bắt đầu Week 9 → Archive Week 7
+
+### 📂 Cách Archive
+
+1. **Tạo archived folder** (nếu chưa có)
+   ```
+   docs/reports/archived/
+   ```
+
+2. **Di chuyển tuần cũ vào**
+   ```powershell
+   Move-Item "docs/reports/week-7" "docs/reports/archived/"
+   ```
+
+3. **Cập nhật README.md**
+   - Đánh dấu tuần đó là archived
+   - Thêm link đến archived folder
+
+4. **Commit**
+   ```
+   git commit -m "docs: Archive week X reports"
+   ```
+
+### 🎨 Cấu Trúc Lý Tưởng Cho Tương Lai
+
+```
+docs/reports/
+├── README.md
+├── archived/              # 🗄️ Các tuần đã hoàn thành lâu
+│   ├── week-4-6/
+│   ├── week-7/           # (sau 2 tuần)
+│   └── week-8/           # (sau 2 tuần)
+│
+├── week-9/               # 🚀 Tuần hiện tại
+│   ├── WEEK_9_PLAN.md
+│   ├── WEEK_9_PHASE_X_*.md
+│   └── ...
+│
+├── week-10/              # ⏳ Tuần tiếp theo (nếu đã bắt đầu)
+│
+├── fixes/                # 🔧 Bug fixes (tất cả các tuần)
+│   └── [FEATURE]_FIX_*.md
+│
+└── guides/               # 📖 Setup guides (permanent)
+    └── [TOPIC]_GUIDE.md
+```
+
+### ⚠️ LƯU Ý QUAN TRỌNG
+
+**KHÔNG BAO GIỜ:**
+- ❌ Bỏ file báo cáo ngoài thư mục tuần
+- ❌ Trộn lẫn files của nhiều tuần trong 1 folder
+- ❌ Quên cập nhật README.md khi thêm tuần mới
+
+**LUÔN LUÔN:**
+- ✅ Tạo folder `week-X/` TRƯỚC khi viết báo cáo
+- ✅ Đặt tên file theo convention
+- ✅ Cập nhật README.md đồng bộ
+- ✅ Commit với message rõ ràng
 
 ---
 
