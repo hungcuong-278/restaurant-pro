@@ -16,6 +16,9 @@ import DashboardPage from './pages/admin/DashboardPage';
 import ReservationPage from './pages/reservations/ReservationPage';
 import BookingConfirmationPage from './pages/reservations/BookingConfirmationPage';
 import MyReservationsPage from './pages/reservations/MyReservationsPage';
+import OrderListPage from './pages/orders/OrderListPage';
+import NewOrderPage from './pages/orders/NewOrderPage';
+import OrderDetailsPage from './pages/orders/OrderDetailsPage';
 
 import './styles/index.css';
 
@@ -46,6 +49,11 @@ const App: React.FC = () => {
               
               {/* Admin Routes */}
               <Route path="/dashboard" element={<DashboardPage />} />
+              
+              {/* Order Management Routes */}
+              <Route path="/orders" element={<OrderListPage />} />
+              <Route path="/orders/new" element={<NewOrderPage />} />
+              <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
             </Routes>
           </main>
           <Footer />
