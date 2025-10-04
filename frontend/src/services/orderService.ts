@@ -1,4 +1,4 @@
-import { api, API_BASE_URL } from './api';
+import api from './api';
 
 const RESTAURANT_ID = '64913af3-e39a-4dd0-ad21-c3bb4aa6e9a5'; // Golden Fork Restaurant UUID
 

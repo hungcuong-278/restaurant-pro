@@ -4,6 +4,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
+import OrderStatusManager from '../../components/orders/OrderStatusManager';
 import { orderService } from '../../services/orderService';
 import type { Order } from '../../services/orderService';
 
@@ -52,6 +53,16 @@ const OrderDetailsPage: React.FC = () => {
   // Get status index
   const getStatusIndex = (status: string) => {
     return statusFlow.findIndex(s => s.status === status);
+  };
+
+  // Handle status change
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      await orderService.updateOrderStatus(order!.id, newStatus);
+      await fetchOrderDetails(); // Refresh to get updated data
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || 'Failed to update order status');
+    }
   };
 
   // Handle cancel order
@@ -246,6 +257,13 @@ const OrderDetailsPage: React.FC = () => {
               </div>
             )}
           </Card>
+
+          {/* Order Status Management Card */}
+          <OrderStatusManager
+            currentStatus={order.status}
+            paymentStatus={order.payment_status}
+            onStatusChange={handleStatusChange}
+          />
 
           {/* Order Items Card */}
           <Card>
