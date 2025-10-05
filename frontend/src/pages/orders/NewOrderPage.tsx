@@ -43,14 +43,6 @@ const NewOrderPage: React.FC = () => {
       // Add new item to cart
       setCartItems([...cartItems, { menuItem: item, quantity: 1 }]);
     }
-
-    // Scroll to order summary after adding item so customer can see total and next button
-    setTimeout(() => {
-      const orderSummary = document.querySelector('.order-cart-summary');
-      if (orderSummary) {
-        orderSummary.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }, 100);
   };
 
   // Handle updating quantity
@@ -262,36 +254,49 @@ const NewOrderPage: React.FC = () => {
       {/* Step 2: Menu Item Selection */}
       {currentStep === 2 && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Menu Items (2/3 width) */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <MenuItemGrid onAddItem={handleAddItem} />
-              </div>
-            </div>
+          {/* Menu Items - Full Width */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <MenuItemGrid onAddItem={handleAddItem} />
+          </div>
 
-            {/* Cart (1/3 width - sticky) */}
-            <div className="lg:col-span-1">
-              <div className="lg:sticky lg:top-4">
-                <OrderCart
-                  items={cartItems}
-                  onUpdateQuantity={handleUpdateQuantity}
-                  onRemoveItem={handleRemoveItem}
-                  onUpdateInstructions={handleUpdateInstructions}
-                />
-              </div>
+          {/* Order Cart - Below Menu Items */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border-2 border-blue-200">
+            <div className="mb-3 text-center">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center justify-center gap-2">
+                <span>🛒</span>
+                <span>Giỏ hàng của bạn</span>
+                <span className="bg-blue-600 text-white text-sm px-3 py-1 rounded-full">
+                  {cartItems.length} món
+                </span>
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Kiểm tra lại đơn hàng trước khi tiếp tục
+              </p>
             </div>
+            <OrderCart
+              items={cartItems}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemoveItem={handleRemoveItem}
+              onUpdateInstructions={handleUpdateInstructions}
+            />
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center bg-white rounded-lg shadow-md p-4">
             <Button onClick={() => setCurrentStep(1)} variant="secondary">
               ← Back
             </Button>
+            <div className="text-center flex-1 mx-4">
+              <p className="text-sm text-gray-600">Đã chọn {cartItems.length} món</p>
+              <p className="text-lg font-bold text-blue-600">
+                Tổng: {Math.round(cartItems.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0) * 1.1).toLocaleString('vi-VN')}₫
+              </p>
+            </div>
             <Button
               onClick={() => setCurrentStep(3)}
               variant="primary"
               disabled={!canProceedToNextStep()}
+              className="text-lg px-8 py-3"
             >
               Review Order →
             </Button>
