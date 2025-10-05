@@ -8,7 +8,8 @@ export interface MenuItem {
   restaurant_id: string;
   name: string;
   description?: string;
-  category: string;
+  category: string | { name: string; slug: string };  // Backend returns object, but accept string for compatibility
+  category_name?: string;  // Direct category name from backend
   price: number;
   image_url?: string;
   is_available: boolean;
@@ -147,7 +148,10 @@ const menuService = {
   async getCategories(): Promise<string[]> {
     try {
       const items = await this.getMenuItems();
-      const categories = Array.from(new Set(items.map(item => item.category)));
+      // Extract category name from either string or object
+      const categories = Array.from(new Set(items.map(item => 
+        typeof item.category === 'string' ? item.category : item.category.name
+      )));
       return categories.sort();
     } catch (error) {
       console.error('Error fetching categories:', error);

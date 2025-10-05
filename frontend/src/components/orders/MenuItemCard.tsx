@@ -36,7 +36,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, onAdd, disabled = fal
 
         {/* Category Badge */}
         <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs font-medium px-2 py-1 rounded">
-          {item.category}
+          {typeof item.category === 'string' ? item.category : item.category.name}
         </div>
       </div>
 
