@@ -1,48 +1,89 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
-
-interface Order {
-  id: string;
-  order_number: string;
-  order_type: string;
-  table_number?: string;
-  customer_name?: string;
-  total_amount: number;
-  payment_status: string;
-  status: string;
-  created_at: string;
-  items?: any[];
-}
+import Button from '../../components/common/Button';
+import Spinner from '../../components/common/Spinner';
+import Badge from '../../components/common/Badge';
+import { orderService, Order } from '../../services/orderService';
 
 const OrderDetailsPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch order from API
   useEffect(() => {
-    // Mock order data for testing
-    // In production, fetch from API: await orderService.getOrder(orderId)
-    setTimeout(() => {
-      setOrder({
-        id: orderId || '15ec68bf',
-        order_number: 'ORD-20251005-001',
-        order_type: 'dine-in',
-        table_number: 'T001',
-        customer_name: 'Customer Name',
-        total_amount: 14.09,
-        payment_status: 'pending',
-        status: 'confirmed',
-        created_at: new Date().toISOString(),
-        items: [
-          { name: 'Pizza', quantity: 1, price: 12.00 },
-          { name: 'Drink', quantity: 1, price: 2.09 }
-        ]
-      });
-      setLoading(false);
-    }, 500);
+    const fetchOrder = async () => {
+      if (!orderId) {
+        setError('Order ID is missing');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await orderService.getOrder(orderId);
+        setOrder(data);
+      } catch (err: any) {
+        console.error('Error fetching order:', err);
+        setError(err.message || 'Failed to load order');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
   }, [orderId]);
+
+  // Handle status update
+  const handleStatusUpdate = async (newStatus: Order['status']) => {
+    if (!orderId) return;
+
+    try {
+      setUpdating(true);
+      await orderService.updateOrderStatus(orderId, newStatus);
+      setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+      // Show success message (you can add toast notification here)
+    } catch (err: any) {
+      console.error('Error updating status:', err);
+      setError(err.message || 'Failed to update status');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // Get next status and button style
+  const getStatusButton = () => {
+    if (!order) return null;
+
+    const statusConfig: Record<Order['status'], { next: Order['status']; label: string; variant: any }> = {
+      'pending': { next: 'confirmed', label: '✅ Confirm Order', variant: 'primary' },
+      'confirmed': { next: 'preparing', label: '👨‍🍳 Start Preparing', variant: 'success' },
+      'preparing': { next: 'ready', label: '🍽️ Mark Ready', variant: 'success' },
+      'ready': { next: 'served', label: '✔️ Mark Served', variant: 'primary' },
+      'served': { next: 'served', label: '✅ Served', variant: 'secondary' },
+      'cancelled': { next: 'cancelled', label: '❌ Cancelled', variant: 'danger' }
+    };
+
+    const config = statusConfig[order.status];
+    if (!config) return null;
+
+    return (
+      <Button
+        variant={config.variant}
+        size="lg"
+        onClick={() => handleStatusUpdate(config.next)}
+        disabled={updating || order.status === 'served' || order.status === 'cancelled'}
+        className="flex-1"
+      >
+        {updating ? 'Updating...' : config.label}
+      </Button>
+    );
+  };
 
   const handlePayNow = () => {
     if (!order) return;
@@ -60,25 +101,32 @@ const OrderDetailsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading order...</p>
-        </div>
+        <Spinner size="lg" text="Loading order details..." />
       </div>
     );
   }
 
-  if (!order) {
+  if (error || !order) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <p className="text-red-600 text-lg">Order not found</p>
-          <button
-            onClick={() => navigate('/orders')}
-            className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Back to Orders
-          </button>
+        <Card className="p-8 text-center max-w-md">
+          <p className="text-red-600 text-lg mb-4">
+            {error || 'Order not found'}
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/orders')}
+            >
+              Back to Orders
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </Button>
+          </div>
         </Card>
       </div>
     );
@@ -111,20 +159,20 @@ const OrderDetailsPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-600">Order Type</p>
                 <p className="font-semibold text-gray-800 capitalize">
-                  {order.order_type.replace('_', ' ')}
+                  {order.order_type.replace(/-/g, ' ')}
                 </p>
               </div>
 
-              {order.table_number && (
+              {order.table?.table_number && (
                 <div>
                   <p className="text-sm text-gray-600">Table</p>
-                  <p className="font-semibold text-gray-800">{order.table_number}</p>
+                  <p className="font-semibold text-gray-800">{order.table.table_number}</p>
                 </div>
               )}
 
               <div>
                 <p className="text-sm text-gray-600">Status</p>
-                <p className="font-semibold text-gray-800 capitalize">{order.status}</p>
+                <Badge status={order.status} size="lg" />
               </div>
 
               <div>
@@ -137,6 +185,32 @@ const OrderDetailsPage: React.FC = () => {
           </div>
         </Card>
 
+        {/* Status Update Actions */}
+        {order.status !== 'served' && order.status !== 'cancelled' && (
+          <Card className="mb-6">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Order Actions
+              </h2>
+              <div className="flex gap-3">
+                {getStatusButton()}
+                
+                {order.status === 'pending' && (
+                  <Button
+                    variant="danger"
+                    size="lg"
+                    onClick={() => handleStatusUpdate('cancelled')}
+                    disabled={updating}
+                    className="flex-1"
+                  >
+                    ❌ Cancel Order
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Order Items */}
         {order.items && order.items.length > 0 && (
           <Card className="mb-6">
@@ -147,16 +221,32 @@ const OrderDetailsPage: React.FC = () => {
               
               <div className="space-y-3">
                 {order.items.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b">
+                  <div key={item.id || index} className="flex justify-between items-center py-2 border-b last:border-b-0">
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-800">{item.name}</p>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className="font-semibold text-gray-800">
+                        {item.menu_item?.name || 'Unknown Item'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Qty: {item.quantity} × ${item.unit_price.toFixed(2)}
+                      </p>
+                      {item.special_instructions && (
+                        <p className="text-xs text-gray-500 italic mt-1">
+                          Note: {item.special_instructions}
+                        </p>
+                      )}
                     </div>
                     <p className="font-semibold text-gray-800">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${item.subtotal.toFixed(2)}
                     </p>
                   </div>
                 ))}
+                
+                <div className="pt-3 mt-3 border-t-2 flex justify-between items-center">
+                  <span className="text-lg font-bold text-gray-800">Total:</span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    ${order.total_amount.toFixed(2)}
+                  </span>
+                </div>
               </div>
             </div>
           </Card>
@@ -176,10 +266,13 @@ const OrderDetailsPage: React.FC = () => {
                   px-3 py-1 rounded-full text-sm font-semibold
                   ${order.payment_status === 'paid' 
                     ? 'bg-green-100 text-green-600' 
+                    : order.payment_status === 'partially_paid'
+                    ? 'bg-yellow-100 text-yellow-600'
                     : 'bg-orange-100 text-orange-600'
                   }
                 `}>
-                  {order.payment_status === 'paid' ? '✅ Paid' : '⏳ Unpaid'}
+                  {order.payment_status === 'paid' ? '✅ Paid' : 
+                   order.payment_status === 'partially_paid' ? '💵 Partially Paid' : '⏳ Unpaid'}
                 </span>
               </div>
 
@@ -192,15 +285,15 @@ const OrderDetailsPage: React.FC = () => {
             </div>
 
             {/* Payment Button */}
-            {order.payment_status === 'pending' && (
-              <button
+            {(order.payment_status === 'unpaid' || order.payment_status === 'partially_paid') && (
+              <Button
+                variant="primary"
+                size="lg"
                 onClick={handlePayNow}
-                className="w-full mt-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 
-                         hover:from-blue-600 hover:to-blue-700 text-white text-lg font-semibold 
-                         rounded-lg transition-all shadow-md hover:shadow-lg"
+                className="w-full mt-6"
               >
                 💳 Process Payment
-              </button>
+              </Button>
             )}
 
             {order.payment_status === 'paid' && (
@@ -214,21 +307,24 @@ const OrderDetailsPage: React.FC = () => {
         </Card>
 
         {/* Actions */}
-        <div className="flex space-x-4">
-          <button
+        <div className="flex gap-4">
+          <Button
+            variant="secondary"
+            size="lg"
             onClick={() => navigate('/orders')}
-            className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 
-                     font-semibold rounded-lg transition-colors"
+            className="flex-1"
           >
-            Back to Orders
-          </button>
+            ← Back to Orders
+          </Button>
 
-          <button
-            className="flex-1 py-3 bg-blue-100 hover:bg-blue-200 text-blue-600 
-                     font-semibold rounded-lg transition-colors"
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => window.print()}
+            className="flex-1"
           >
             🖨️ Print Receipt
-          </button>
+          </Button>
         </div>
       </div>
     </div>
