@@ -228,7 +228,7 @@ const KitchenViewPage: React.FC = () => {
       {/* Error Message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-          ⚠️ {error}
+          ⚠️ {String(error)}
         </div>
       )}
 
