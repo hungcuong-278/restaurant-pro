@@ -115,14 +115,14 @@ const PaymentPage: React.FC = () => {
                 {state.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between text-sm">
                     <span>{item.quantity}x {item.name}</span>
-                    <span className="font-medium">{Math.round(item.price * item.quantity * 100).toLocaleString('vi-VN')}₫</span>
+                    <span className="font-medium">{Math.round(item.price * item.quantity).toLocaleString('vi-VN')}₫</span>
                   </div>
                 ))}
               </div>
               <div className="pt-3 mt-3 border-t border-gray-200">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Tổng cộng:</span>
-                  <span className="text-green-600">{Math.round(amount * 100).toLocaleString('vi-VN')}₫</span>
+                  <span className="text-green-600">{Math.round(amount).toLocaleString('vi-VN')}₫</span>
                 </div>
               </div>
             </div>
@@ -134,14 +134,14 @@ const PaymentPage: React.FC = () => {
           <div id="payment-qr">
             <PaymentQR 
               orderNumber={orderNumber}
-              amount={Math.round(amount * 100)}
+              amount={Math.round(amount)}
             />
             
             {/* Copy All Payment Info Button */}
             <div className="mt-4 text-center">
               <button
                 onClick={() => {
-                  const paymentInfo = `Ngân hàng: Techcombank\nSố TK: 27080688888\nChủ TK: VU HUNG CUONG\nSố tiền: ${Math.round(amount * 100).toLocaleString('vi-VN')}₫\nNội dung: ${orderNumber}`;
+                  const paymentInfo = `Ngân hàng: Techcombank\nSố TK: 27080688888\nChủ TK: VU HUNG CUONG\nSố tiền: ${Math.round(amount).toLocaleString('vi-VN')}₫\nNội dung: ${orderNumber}`;
                   navigator.clipboard.writeText(paymentInfo);
                   alert('✅ Đã copy toàn bộ thông tin thanh toán!');
                 }}
@@ -162,7 +162,7 @@ const PaymentPage: React.FC = () => {
             <div className="space-y-3 text-gray-700">
               <p>✓ Vui lòng đến quầy thanh toán</p>
               <p>✓ Xuất trình mã đơn hàng: <span className="font-bold text-blue-600">{orderNumber}</span></p>
-              <p>✓ Số tiền cần thanh toán: <span className="font-bold text-green-600">{Math.round(amount * 100).toLocaleString('vi-VN')}₫</span></p>
+              <p>✓ Số tiền cần thanh toán: <span className="font-bold text-green-600">{Math.round(amount).toLocaleString('vi-VN')}₫</span></p>
               <p className="text-sm text-gray-500 mt-4">💡 Nhân viên sẽ xác nhận và xử lý đơn hàng của bạn</p>
             </div>
             <button

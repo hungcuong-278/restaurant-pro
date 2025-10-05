@@ -102,7 +102,7 @@ const NewOrderPage: React.FC = () => {
       const createdOrder = await orderService.createOrder(orderData);
 
       // Use total_amount from backend (includes tax, discounts, etc.)
-      // Backend already calculated the correct total with tax
+      // Backend already calculated the correct total with tax in VND
       const totalAmount = createdOrder.total_amount || 0;
 
       // Navigate to payment page with order info
@@ -110,7 +110,7 @@ const NewOrderPage: React.FC = () => {
         state: {
           orderId: createdOrder.id,
           orderNumber: createdOrder.order_number || (createdOrder.id ? `ORD-${createdOrder.id.slice(0, 8)}` : 'ORD-TEMP'),
-          amount: totalAmount, // Use backend calculated total (already in dollars)
+          amount: totalAmount, // Already in VND from backend
           tableNumber: selectedTableNumber,
           items: cartItems.map(item => ({
             name: item.menuItem.name,
