@@ -7,8 +7,12 @@ export interface Table {
   id: string;
   restaurant_id: string;
   number: string;
+  location?: string;  // Display name like "Le Château", "Roma Intima"
   capacity: number;
   status: 'available' | 'occupied' | 'reserved';
+  position?: string;
+  notes?: string;
+  is_active?: number;
   created_at: string;
   updated_at: string;
   current_order_id?: string;

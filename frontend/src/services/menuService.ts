@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api';
-const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
+// RESTAURANT_ID not needed - backend menu routes are global (/api/menu/items)
 
 export interface MenuItem {
   id: string;
@@ -65,7 +65,7 @@ const menuService = {
       if (filters?.search) params.append('search', filters.search);
 
       const queryString = params.toString();
-      const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items${queryString ? `?${queryString}` : ''}`;
+      const url = `${API_BASE_URL}/menu/items${queryString ? `?${queryString}` : ''}`;
       
       const response = await axios.get(url);
       // Backend returns { success: true, data: [...] }
@@ -80,7 +80,7 @@ const menuService = {
   async getMenuItem(itemId: string): Promise<MenuItem> {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items/${itemId}`
+        `${API_BASE_URL}/menu/items/${itemId}`
       );
       // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
@@ -94,7 +94,7 @@ const menuService = {
   async createMenuItem(itemData: CreateMenuItemData): Promise<MenuItem> {
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items`,
+        `${API_BASE_URL}/menu/items`,
         itemData
       );
       // Backend returns { success: true, data: {...} }
@@ -109,7 +109,7 @@ const menuService = {
   async updateMenuItem(itemId: string, itemData: UpdateMenuItemData): Promise<MenuItem> {
     try {
       const response = await axios.patch(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items/${itemId}`,
+        `${API_BASE_URL}/menu/items/${itemId}`,
         itemData
       );
       // Backend returns { success: true, data: {...} }
@@ -124,7 +124,7 @@ const menuService = {
   async deleteMenuItem(itemId: string): Promise<void> {
     try {
       await axios.delete(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items/${itemId}`
+        `${API_BASE_URL}/menu/items/${itemId}`
       );
     } catch (error) {
       console.error('Error deleting menu item:', error);

@@ -108,7 +108,7 @@ const TableSelector: React.FC<TableSelectorProps> = ({
               key={table.id}
               onClick={() => {
                 if (isAvailable) {
-                  onSelectTable(table.id, table.number);
+                  onSelectTable(table.id, table.location || table.number);
                 }
               }}
               disabled={!isAvailable}
@@ -119,10 +119,10 @@ const TableSelector: React.FC<TableSelectorProps> = ({
                 ${isAvailable ? 'hover:shadow-md' : ''}
               `}
             >
-              {/* Table Number */}
+              {/* Table Name/Location */}
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800 mb-1">
-                  {table.number}
+                <div className="text-lg font-bold text-gray-800 mb-1">
+                  {table.location || table.number}
                 </div>
                 <div className="text-lg mb-1">
                   {getTableStatusIcon(table.status)}
