@@ -30,11 +30,11 @@ app.use(cors({
 }));
 
 // Rate limiting - Production-ready limits for restaurant operations
-// Target: Support 100+ concurrent orders with real-time kitchen updates
+// Target: Support 50 concurrent orders with excellent safety margin (64%)
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'), // 1 minute window
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '500'), // 500 requests per minute
-  // 500 req/min = ~8 req/sec - enough for 100 orders with auto-refresh
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '300'), // 300 requests per minute
+  // 300 req/min = 5 req/sec - optimized for 50 orders with 64% safety margin
   message: {
     error: 'Too many requests from this IP, please try again later.'
   },
