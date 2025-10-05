@@ -159,7 +159,7 @@ const OrderDetailsPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-600">Order Type</p>
                 <p className="font-semibold text-gray-800 capitalize">
-                  {order.order_type.replace(/-/g, ' ')}
+                  {order.order_type.replace(/_/g, ' ')}
                 </p>
               </div>
 
@@ -224,10 +224,10 @@ const OrderDetailsPage: React.FC = () => {
                   <div key={item.id || index} className="flex justify-between items-center py-2 border-b last:border-b-0">
                     <div className="flex-1">
                       <p className="font-semibold text-gray-800">
-                        {item.menu_item?.name || 'Unknown Item'}
+                        {item.item_name}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Qty: {item.quantity} × ${item.unit_price.toFixed(2)}
+                        Qty: {item.quantity} × ${item.item_price.toFixed(2)}
                       </p>
                       {item.special_instructions && (
                         <p className="text-xs text-gray-500 italic mt-1">
@@ -236,7 +236,7 @@ const OrderDetailsPage: React.FC = () => {
                       )}
                     </div>
                     <p className="font-semibold text-gray-800">
-                      ${item.subtotal.toFixed(2)}
+                      ${item.total_price.toFixed(2)}
                     </p>
                   </div>
                 ))}

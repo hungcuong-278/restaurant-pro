@@ -7,17 +7,24 @@ const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
 
 export interface OrderItem {
   id: string;
+  order_id: string;
   menu_item_id: string;
-  menu_item_name?: string;
-  menu_item?: {
+  item_name: string;  // Backend returns this
+  item_price: number;  // Backend returns this
+  quantity: number;
+  total_price: number;  // Backend returns this
+  special_instructions?: string;
+  status?: string;
+  created_at: string;
+  updated_at: string;
+  // Helper properties for compatibility
+  unit_price?: number;  // Alias for item_price
+  subtotal?: number;  // Alias for total_price
+  menu_item?: {  // Optional nested object
     id: string;
     name: string;
     price: number;
   };
-  quantity: number;
-  unit_price: number;
-  subtotal: number;
-  special_instructions?: string;
 }
 
 export interface Order {
@@ -26,16 +33,29 @@ export interface Order {
   table_id?: string;
   table_number?: string;
   order_number: string;
-  order_type: 'dine-in' | 'takeout' | 'delivery';
+  order_type: 'dine_in' | 'takeout' | 'delivery';  // Backend uses underscore
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'cancelled';
   total_amount: number;
+  subtotal?: number;
+  tax_amount?: number;
+  discount_amount?: number;
+  tip_amount?: number;
   special_instructions?: string;
+  customer_notes?: string;
+  kitchen_notes?: string;
   created_at: string;
   updated_at: string;
+  ordered_at?: number;
+  confirmed_at?: number | null;
+  ready_at?: number | null;
+  served_at?: number | null;
+  completed_at?: number | null;
   items?: OrderItem[];
   payment_status?: 'unpaid' | 'paid' | 'partially_paid';
+  paid_at?: string | null;
   table?: {
     id: string;
+    number?: string;  // Backend returns this
     table_number: string;
     location?: string;
     capacity: number;
@@ -88,7 +108,8 @@ const orderService = {
       const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders${queryString ? `?${queryString}` : ''}`;
       
       const response = await axios.get(url);
-      return response.data;
+      // Backend returns { success: true, data: [...] }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw error;
@@ -101,7 +122,8 @@ const orderService = {
       const response = await axios.get(
         `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`
       );
-      return response.data;
+      // Backend returns { success: true, data: {...} }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error fetching order:', error);
       throw error;
