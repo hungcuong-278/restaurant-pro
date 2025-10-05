@@ -253,7 +253,7 @@ const KitchenViewPage: React.FC = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">
-                      {order.order_type === 'dine-in' ? `🍽️ ${order.table?.location || `Table ${order.table?.table_number}` || 'N/A'}` : 
+                      {order.order_type === 'dine_in' ? `🍽️ ${order.table?.location || `Table ${order.table?.table_number}` || 'N/A'}` : 
                        order.order_type === 'takeout' ? '🥡 Takeout' : 
                        order.order_type === 'delivery' ? '🚚 Delivery' : 
                        'Order'}
