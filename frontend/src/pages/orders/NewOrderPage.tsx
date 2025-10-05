@@ -4,10 +4,13 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Spinner from '../../components/common/Spinner';
 import Input from '../../components/common/Input';
+import TableListSkeleton from '../../components/common/TableListSkeleton';
+import MenuItemsSkeleton from '../../components/common/MenuItemsSkeleton';
 import { orderService } from '../../services/orderService';
 import { tableService } from '../../services/tableService';
 import menuService, { MenuItem, MenuCategory } from '../../services/menuService';
 import { Table } from '../../types/table';
+import { useToast } from '../../contexts/ToastContext';
 
 // Cart item type
 interface CartItem {
@@ -23,6 +26,7 @@ const RESTAURANT_ID = '2c88c32a-03ba-4ef3-96e4-f37cf4b165de'; // Golden Fork Res
 
 const NewOrderPage: React.FC = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning } = useToast();
 
   // State management
   const [loading, setLoading] = useState(true);
@@ -169,11 +173,13 @@ const NewOrderPage: React.FC = () => {
   const handleSubmitOrder = async () => {
     // Validation
     if (orderType === 'dine_in' && !selectedTable) {
+      showWarning('Please select a table for dine-in orders');
       setError('Please select a table for dine-in orders');
       return;
     }
 
     if (cart.length === 0) {
+      showWarning('Please add at least one item to the order');
       setError('Please add at least one item to the order');
       return;
     }
@@ -199,6 +205,9 @@ const NewOrderPage: React.FC = () => {
 
       console.log('Order created successfully:', response);
 
+      // Show success toast
+      showSuccess('Order created successfully! Redirecting to order details...');
+
       // Success! Navigate to order details
       // Axios AxiosResponse<OrderResponse> -> response.data = OrderResponse -> response.data.data = Order
       const orderResponse = response as any; // Type assertion to handle axios response
@@ -209,10 +218,13 @@ const NewOrderPage: React.FC = () => {
         navigate(`/orders/${orderResponse.data.id}`);
       } else {
         console.error('Order created but no ID returned:', orderResponse);
+        showError('Order created but unable to view details');
         setError('Order created but unable to view details');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to create order');
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to create order';
+      showError(errorMsg);
+      setError(errorMsg);
       console.error('Error creating order:', err);
     } finally {
       setSubmitting(false);
@@ -310,7 +322,9 @@ const NewOrderPage: React.FC = () => {
             <Card>
               <h2 className="text-xl font-bold text-gray-900 mb-4">2. Select Table</h2>
               
-              {tables.length === 0 ? (
+              {loading ? (
+                <TableListSkeleton />
+              ) : tables.length === 0 ? (
                 <p className="text-gray-500">No available tables</p>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -379,7 +393,9 @@ const NewOrderPage: React.FC = () => {
             </div>
 
             {/* Menu Items Grid */}
-            {filteredItems.length === 0 ? (
+            {loading ? (
+              <MenuItemsSkeleton />
+            ) : filteredItems.length === 0 ? (
               <p className="text-center text-gray-500 py-8">No items found</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -4,15 +4,18 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import OrderStatusManager from '../../components/orders/OrderStatusManager';
 import PaymentModal from '../../components/orders/PaymentModal';
 import PaymentHistory from '../../components/orders/PaymentHistory';
 import { orderService } from '../../services/orderService';
 import type { Order } from '../../services/orderService';
+import { useToast } from '../../contexts/ToastContext';
 
 const OrderDetailsPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning, showInfo } = useToast();
 
   // State
   const [order, setOrder] = useState<Order | null>(null);
@@ -20,6 +23,7 @@ const OrderDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   // Fetch order details
   useEffect(() => {
@@ -36,7 +40,9 @@ const OrderDetailsPage: React.FC = () => {
       const response = await orderService.getOrderById(orderId!);
       setOrder(response.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load order details');
+      const errorMsg = err.response?.data?.message || 'Failed to load order details';
+      setError(errorMsg);
+      showError(errorMsg);
       console.error('Error fetching order:', err);
     } finally {
       setLoading(false);
@@ -68,24 +74,28 @@ const OrderDetailsPage: React.FC = () => {
     }
   };
 
-  // Handle cancel order
-  const handleCancelOrder = async () => {
+  // Handle cancel order button click
+  const handleCancelOrderClick = () => {
     if (!order || order.payment_status === 'paid') {
-      alert('Cannot cancel a paid order');
+      showWarning('Cannot cancel a paid order');
       return;
     }
+    setShowCancelDialog(true);
+  };
 
-    if (!window.confirm('Are you sure you want to cancel this order?')) {
-      return;
-    }
+  // Confirm cancel order
+  const handleConfirmCancelOrder = async () => {
+
+    if (!order) return;
 
     try {
       setActionLoading(true);
       await orderService.updateOrderStatus(order.id, 'cancelled');
-      alert('Order cancelled successfully');
+      showSuccess('Order cancelled successfully');
+      setShowCancelDialog(false);
       fetchOrderDetails(); // Refresh
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to cancel order');
+      showError(err.response?.data?.message || 'Failed to cancel order');
     } finally {
       setActionLoading(false);
     }
@@ -155,7 +165,7 @@ const OrderDetailsPage: React.FC = () => {
           {canEdit && (
             <Button
               variant="secondary"
-              onClick={() => alert('Edit order feature coming soon')}
+              onClick={() => showInfo('Edit order feature coming soon')}
               disabled={actionLoading}
             >
               ✏️ Edit
@@ -164,7 +174,7 @@ const OrderDetailsPage: React.FC = () => {
           {canCancel && (
             <Button
               variant="danger"
-              onClick={handleCancelOrder}
+              onClick={handleCancelOrderClick}
               disabled={actionLoading}
             >
               ❌ Cancel
@@ -405,20 +415,21 @@ const OrderDetailsPage: React.FC = () => {
               </Button>
               <Button
                 variant="secondary"
-                onClick={() => alert('Share feature coming soon')}
+                onClick={() => showInfo('Share feature coming soon')}
                 className="w-full"
                 size="sm"
               >
                 📤 Share Order
               </Button>
+              {/* OrderStatusManager component already handles status updates */}
               {order.status !== 'completed' && order.status !== 'cancelled' && (
                 <Button
                   variant="secondary"
-                  onClick={() => alert('Update status feature - Task 3.5')}
+                  onClick={() => showInfo('Use the status manager above to update order status')}
                   className="w-full"
                   size="sm"
                 >
-                  🔄 Update Status
+                  🔄 Status Help
                 </Button>
               )}
             </div>
@@ -440,6 +451,19 @@ const OrderDetailsPage: React.FC = () => {
           }}
         />
       )}
+
+      {/* Cancel Order Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showCancelDialog}
+        title="Cancel Order"
+        message="Are you sure you want to cancel this order? This action cannot be undone."
+        confirmText="Yes, Cancel Order"
+        cancelText="No, Keep Order"
+        variant="danger"
+        onConfirm={handleConfirmCancelOrder}
+        onCancel={() => setShowCancelDialog(false)}
+        loading={actionLoading}
+      />
     </div>
   );
 };

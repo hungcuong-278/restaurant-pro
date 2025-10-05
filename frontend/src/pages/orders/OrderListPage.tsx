@@ -5,11 +5,14 @@ import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import Input from '../../components/common/Input';
+import OrderListSkeleton from '../../components/common/OrderListSkeleton';
 import { orderService } from '../../services/orderService';
 import type { Order } from '../../services/orderService';
+import { useToast } from '../../contexts/ToastContext';
 
 const OrderListPage: React.FC = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning } = useToast();
 
   // State
   const [orders, setOrders] = useState<Order[]>([]);
@@ -45,7 +48,9 @@ const OrderListPage: React.FC = () => {
       // Ensure we always set an array
       setOrders(Array.isArray(response.data) ? response.data : []);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch orders');
+      const errorMsg = err.message || 'Failed to fetch orders';
+      setError(errorMsg);
+      showError(errorMsg);
       setOrders([]); // Set empty array on error
       console.error('Error fetching orders:', err);
     } finally {
@@ -100,7 +105,7 @@ const OrderListPage: React.FC = () => {
   // Bulk status update
   const handleBulkStatusUpdate = async () => {
     if (!bulkStatus || selectedOrders.size === 0) {
-      alert('Please select orders and a status');
+      showWarning('Please select orders and a status');
       return;
     }
 
@@ -124,9 +129,9 @@ const OrderListPage: React.FC = () => {
       setSelectedOrders(new Set());
       setBulkStatus('');
       
-      alert(`Successfully updated ${selectedOrders.size} order(s)`);
+      showSuccess(`Successfully updated ${selectedOrders.size} order(s)`);
     } catch (err: any) {
-      alert(err.message || 'Failed to update orders');
+      showError(err.message || 'Failed to update orders');
     } finally {
       setBulkLoading(false);
     }
@@ -301,6 +306,9 @@ const OrderListPage: React.FC = () => {
           <p>{error}</p>
         </div>
       )}
+
+      {/* Loading State */}
+      {loading && <OrderListSkeleton />}
 
       {/* Empty State */}
       {!loading && filteredOrders.length === 0 && (
