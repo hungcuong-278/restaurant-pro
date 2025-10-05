@@ -20,8 +20,9 @@ const PaymentQR: React.FC<PaymentQRProps> = ({ orderNumber, amount, className = 
 
   const handleCopyAmount = () => {
     if (amount) {
-      navigator.clipboard.writeText(amount.toString());
-      alert('✅ Đã copy số tiền!');
+      const amountToCopy = Math.round(amount).toString();
+      navigator.clipboard.writeText(amountToCopy);
+      alert('✅ Đã copy số tiền: ' + Math.round(amount).toLocaleString('vi-VN') + '₫');
     }
   };
 
@@ -112,7 +113,7 @@ const PaymentQR: React.FC<PaymentQRProps> = ({ orderNumber, amount, className = 
                 <div className="flex-1">
                   <p className="text-xs text-white/80 mb-1">Số tiền cần chuyển</p>
                   <p className="font-mono text-2xl font-bold text-white">
-                    {amount.toLocaleString('vi-VN')} ₫
+                    {Math.round(amount).toLocaleString('vi-VN')} ₫
                   </p>
                 </div>
                 <button
@@ -138,6 +139,15 @@ const PaymentQR: React.FC<PaymentQRProps> = ({ orderNumber, amount, className = 
                     ⚠️ Vui lòng ghi đúng nội dung để xác nhận thanh toán
                   </p>
                 </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(orderNumber);
+                    alert('✅ Đã copy nội dung chuyển khoản!');
+                  }}
+                  className="ml-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium whitespace-nowrap"
+                >
+                  📋 Copy
+                </button>
               </div>
             </div>
           )}
