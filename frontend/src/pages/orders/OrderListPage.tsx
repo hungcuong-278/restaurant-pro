@@ -53,7 +53,7 @@ const OrderListPage: React.FC = () => {
       
       const response = await orderService.getOrders(filters);
       console.log('Fetched orders:', response);
-      console.log('Orders data:', response.data);
+      
       // Ensure we always set an array
       setOrders(Array.isArray(response) ? response : []);
     } catch (err: any) {
@@ -475,5 +475,6 @@ const OrderListPage: React.FC = () => {
 };
 
 export default OrderListPage;
+
 
 

@@ -314,7 +314,7 @@ const KitchenViewPage: React.FC = () => {
                     <Button
                       variant="primary"
                       className="w-full"
-                      onClick={() => handleStatusUpdate(order.id, nextStatus)}
+                      onClick={() => handleStatusUpdate(order.id, nextStatus as Order['status'])}
                       size="sm"
                     >
                       ➡️ Mark as {nextStatus.charAt(0).toUpperCase() + nextStatus.slice(1)}
@@ -364,5 +364,6 @@ const KitchenViewPage: React.FC = () => {
 };
 
 export default KitchenViewPage;
+
 
 
