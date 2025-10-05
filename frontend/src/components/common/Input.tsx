@@ -28,7 +28,9 @@ const Input: React.FC<InputProps> = ({
         )}
         <input
           className={`
-            block w-full px-3 py-2 border rounded-lg shadow-sm
+            block w-full px-3 py-3 sm:py-2 border rounded-lg shadow-sm
+            min-h-[48px] sm:min-h-[40px]
+            text-base
             focus:ring-2 focus:ring-blue-500 focus:border-blue-500
             ${error ? 'border-red-500' : 'border-gray-300'}
             ${icon ? 'pl-10' : ''}

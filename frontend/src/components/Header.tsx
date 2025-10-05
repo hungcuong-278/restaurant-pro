@@ -168,33 +168,41 @@ const Header: React.FC = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-900 border-t border-gray-700">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`block px-3 py-2 text-base font-medium transition-colors duration-300 ${
-                    isActive(item.href)
-                      ? 'text-gr-gold bg-gray-800'
-                      : 'text-white hover:text-gr-gold hover:bg-gray-800'
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+              onClick={() => setIsMenuOpen(false)}
+            />
+            
+            {/* Slide-in Menu */}
+            <div className="md:hidden fixed inset-x-0 top-20 z-50 animate-slide-in">
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-900 border-t border-gray-700 shadow-2xl">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`block px-4 py-3 text-base font-medium transition-colors duration-300 rounded-lg min-h-[48px] flex items-center ${
+                      isActive(item.href)
+                        ? 'text-gr-gold bg-gray-800'
+                        : 'text-white hover:text-gr-gold hover:bg-gray-800'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
               
               {/* Mobile Auth */}
-              <div className="border-t border-gray-700 pt-4">
+              <div className="border-t border-gray-700 pt-4 mt-4">
                 {user ? (
                   <div className="space-y-2">
-                    <div className="px-3 py-2 text-white text-sm">
+                    <div className="px-4 py-3 text-white text-sm min-h-[48px] flex items-center">
                       Welcome, {user.firstName}
                     </div>
                     <Link
                       to="/reservations/my-reservations"
-                      className="block px-3 py-2 text-white hover:text-gr-gold hover:bg-gray-800"
+                      className="block px-4 py-3 text-white hover:text-gr-gold hover:bg-gray-800 rounded-lg min-h-[48px] flex items-center"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       My Reservations
@@ -202,7 +210,7 @@ const Header: React.FC = () => {
                     {user.role === 'admin' && (
                       <Link
                         to="/dashboard"
-                        className="block px-3 py-2 text-gr-gold hover:bg-gray-800"
+                        className="block px-4 py-3 text-gr-gold hover:bg-gray-800 rounded-lg min-h-[48px] flex items-center"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Dashboard
@@ -210,7 +218,7 @@ const Header: React.FC = () => {
                     )}
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-3 py-2 text-white hover:text-gr-gold hover:bg-gray-800"
+                      className="block w-full text-left px-4 py-3 text-white hover:text-gr-gold hover:bg-gray-800 rounded-lg min-h-[48px] flex items-center"
                     >
                       Logout
                     </button>
@@ -219,14 +227,14 @@ const Header: React.FC = () => {
                   <div className="space-y-2">
                     <Link
                       to="/login"
-                      className="block px-3 py-2 text-white hover:text-gr-gold hover:bg-gray-800"
+                      className="block px-4 py-3 text-white hover:text-gr-gold hover:bg-gray-800 rounded-lg min-h-[48px] flex items-center"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Login
                     </Link>
                     <Link
                       to="/register"
-                      className="block px-3 py-2 text-gr-gold hover:bg-gray-800"
+                      className="block px-4 py-3 text-gr-gold hover:bg-gray-800 rounded-lg min-h-[48px] flex items-center"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Sign Up
@@ -235,7 +243,8 @@ const Header: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </header>
