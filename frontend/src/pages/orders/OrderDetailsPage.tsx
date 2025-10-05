@@ -287,30 +287,31 @@ const OrderDetailsPage: React.FC = () => {
 
           {/* Order Items Card */}
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Order Items</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Order Items</h2>
             
             {order.items && order.items.length > 0 ? (
               <div className="space-y-3">
                 {order.items.map((item, index) => (
-                  <div key={item.id || index} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
-                    <div className="flex-1">
+                  <div key={item.id || index} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <div className="flex-1 w-full sm:w-auto">
                       <div className="flex items-start justify-between mb-1">
-                        <h4 className="font-semibold text-gray-900">
+                        <h4 className="font-semibold text-gray-900 text-sm sm:text-base">
                           {index + 1}. {item.item_name || item.menu_item?.name || 'Item'}
                         </h4>
-                        <span className="text-gray-600 ml-2">× {item.quantity}</span>
+                        <span className="text-gray-600 ml-2 text-sm sm:text-base">× {item.quantity}</span>
                       </div>
                       {item.special_instructions && (
                         <p className="text-sm text-gray-600 italic">
                           💬 {item.special_instructions}
                         </p>
                       )}
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-xs sm:text-sm text-gray-500 mt-1">
                         {(item.item_price || item.unit_price || 0).toLocaleString()}đ each
                       </p>
                     </div>
-                    <div className="text-right ml-4">
-                      <p className="font-bold text-gray-900">
+                    <div className="text-right sm:ml-4 w-full sm:w-auto flex justify-between sm:block">
+                      <span className="text-gray-600 sm:hidden text-sm">Total:</span>
+                      <p className="font-bold text-gray-900 text-base sm:text-lg">
                         {(item.total_price || (item.item_price || item.unit_price || 0) * item.quantity).toLocaleString()}đ
                       </p>
                     </div>
@@ -342,7 +343,7 @@ const OrderDetailsPage: React.FC = () => {
         {/* Right Column - Payment Info */}
         <div className="lg:col-span-1">
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Information</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Payment Information</h2>
 
             {/* Payment Status */}
             <div className="mb-6">

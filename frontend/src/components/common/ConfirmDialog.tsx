@@ -87,28 +87,29 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         </span>
 
         {/* Modal panel */}
-        <div className="relative inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+        <div className="relative inline-block w-full transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               {getIcon()}
-              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <h3 className="text-lg font-semibold leading-6 text-gray-900" id="modal-title">
+              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
+                <h3 className="text-base sm:text-lg font-semibold leading-6 text-gray-900" id="modal-title">
                   {title}
                 </h3>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-500">{message}</p>
+                  <p className="text-sm sm:text-base text-gray-500">{message}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+          <div className="bg-gray-50 px-4 py-3 flex flex-col-reverse sm:flex-row sm:flex-row-reverse sm:px-6 gap-3">
             <Button
               variant={getButtonVariant()}
               onClick={onConfirm}
               disabled={loading}
               loading={loading}
+              className="w-full sm:w-auto"
             >
               {confirmText}
             </Button>
@@ -116,6 +117,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               variant="outline"
               onClick={onCancel}
               disabled={loading}
+              className="w-full sm:w-auto"
             >
               {cancelText}
             </Button>
