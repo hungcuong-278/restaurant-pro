@@ -125,7 +125,7 @@ const menuService = {
   async getCategories(): Promise<string[]> {
     try {
       const items = await this.getMenuItems();
-      const categories = [...new Set(items.map(item => item.category))];
+      const categories = Array.from(new Set(items.map(item => item.category)));
       return categories.sort();
     } catch (error) {
       console.error('Error fetching categories:', error);

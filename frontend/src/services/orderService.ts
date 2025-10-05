@@ -29,6 +29,13 @@ export interface Order {
   updated_at: string;
   items?: OrderItem[];
   payment_status?: 'unpaid' | 'paid' | 'partially_paid';
+  table?: {
+    id: string;
+    table_number: string;
+    location?: string;
+    capacity: number;
+    status: string;
+  };
 }
 
 export interface CreateOrderData {
@@ -198,4 +205,5 @@ const orderService = {
   },
 };
 
+export { orderService };
 export default orderService;

@@ -1,16 +1,21 @@
 import React from 'react';
 
 interface SpinnerProps {
-  size?: 'small' | 'medium' | 'large' | 'xlarge';
+  size?: 'small' | 'medium' | 'large' | 'xlarge' | 'sm' | 'md' | 'lg';
   className?: string;
   color?: string;
+  text?: string;
 }
 
 const Spinner: React.FC<SpinnerProps> = ({ 
   size = 'medium', 
   className = '',
-  color = 'text-blue-600'
+  color = 'text-blue-600',
+  text
 }) => {
+  // Normalize size (support both full names and abbreviations)
+  const normalizedSize = size === 'sm' ? 'small' : size === 'md' ? 'medium' : size === 'lg' ? 'large' : size;
+
   const sizeStyles = {
     small: 'h-4 w-4',
     medium: 'h-8 w-8',
@@ -19,9 +24,9 @@ const Spinner: React.FC<SpinnerProps> = ({
   };
 
   return (
-    <div className={`flex justify-center items-center ${className}`}>
+    <div className={`flex flex-col justify-center items-center ${className}`}>
       <svg
-        className={`animate-spin ${sizeStyles[size]} ${color}`}
+        className={`animate-spin ${sizeStyles[normalizedSize as 'small' | 'medium' | 'large' | 'xlarge']} ${color}`}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

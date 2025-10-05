@@ -3,9 +3,15 @@ import React from 'react';
 interface BadgeProps {
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'cancelled' | string;
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const Badge: React.FC<BadgeProps> = ({ status, className = '' }) => {
+const Badge: React.FC<BadgeProps> = ({ status, className = '', size = 'md' }) => {
+  const sizeStyles = {
+    sm: 'px-2 py-0.5 text-xs',
+    md: 'px-2.5 py-0.5 text-xs',
+    lg: 'px-3 py-1 text-sm',
+  };
   const getStatusStyles = () => {
     switch (status) {
       case 'pending':
@@ -38,7 +44,7 @@ const Badge: React.FC<BadgeProps> = ({ status, className = '' }) => {
   };
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusStyles()} ${className}`}>
+    <span className={`inline-flex items-center rounded-full font-medium border ${getStatusStyles()} ${sizeStyles[size]} ${className}`}>
       <span className="mr-1">{getStatusIcon()}</span>
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
