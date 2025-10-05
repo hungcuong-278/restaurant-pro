@@ -180,10 +180,10 @@ const OrderListPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Orders</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
             {filteredOrders.length} order{filteredOrders.length !== 1 ? 's' : ''} found
           </p>
         </div>
@@ -191,6 +191,7 @@ const OrderListPage: React.FC = () => {
           variant="primary"
           onClick={() => navigate('/orders/new')}
           icon="+"
+          className="w-full sm:w-auto"
         >
           New Order
         </Button>
@@ -199,8 +200,8 @@ const OrderListPage: React.FC = () => {
       {/* Bulk Actions Bar */}
       {selectedOrders.size > 0 && (
         <Card className="mb-4 bg-blue-50 border-2 border-blue-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <span className="font-semibold text-blue-900">
                 ✓ {selectedOrders.size} order{selectedOrders.size !== 1 ? 's' : ''} selected
               </span>
@@ -213,7 +214,7 @@ const OrderListPage: React.FC = () => {
               </Button>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
               <select
                 value={bulkStatus}
                 onChange={(e) => setBulkStatus(e.target.value)}

@@ -157,18 +157,19 @@ const OrderDetailsPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <Button variant="secondary" onClick={() => navigate('/orders')} className="mb-2">
-            ← Back to Orders
-          </Button>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Order #{order?.id?.slice(0, 8) || 'N/A'}
-          </h1>
-        </div>
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="w-full sm:w-auto">
+            <Button variant="secondary" onClick={() => navigate('/orders')} className="mb-2 w-full sm:w-auto">
+              ← Back to Orders
+            </Button>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Order #{order?.id?.slice(0, 8) || 'N/A'}
+            </h1>
+          </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           {canEdit && (
             <Button
               variant="secondary"
@@ -193,6 +194,7 @@ const OrderDetailsPage: React.FC = () => {
           >
             🖨️ Print
           </Button>
+          </div>
         </div>
       </div>
 

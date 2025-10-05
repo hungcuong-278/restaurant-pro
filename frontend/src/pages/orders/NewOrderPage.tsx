@@ -248,9 +248,9 @@ const NewOrderPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Create New Order</h1>
-        <Button variant="secondary" onClick={() => navigate('/orders')}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Create New Order</h1>
+        <Button variant="secondary" onClick={() => navigate('/orders')} className="w-full sm:w-auto">
           ← Back to Orders
         </Button>
       </div>
@@ -267,8 +267,8 @@ const NewOrderPage: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* Order Type Selection */}
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">1. Select Order Type</h2>
-            <div className="grid grid-cols-3 gap-3">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">1. Select Order Type</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 onClick={() => setOrderType('dine_in')}
                 className={`p-4 rounded-lg border-2 transition-all ${
@@ -319,14 +319,14 @@ const NewOrderPage: React.FC = () => {
           {/* Table Selection - Only for Dine In */}
           {orderType === 'dine_in' && (
             <Card>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">2. Select Table</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">2. Select Table</h2>
               
               {loading ? (
                 <TableListSkeleton />
               ) : tables.length === 0 ? (
                 <p className="text-gray-500">No available tables</p>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {tables.map((table) => (
                   <button
                     key={table.id}
@@ -351,7 +351,7 @@ const NewOrderPage: React.FC = () => {
 
           {/* Menu Items */}
           <Card>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
               {orderType === 'dine_in' ? '3' : '2'}. Select Menu Items
             </h2>
 
@@ -462,7 +462,7 @@ const NewOrderPage: React.FC = () => {
           <div className="sticky top-4">
             <Card>
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Your Order</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Your Order</h2>
                 {cart.length > 0 && (
                   <button
                     onClick={clearCart}
