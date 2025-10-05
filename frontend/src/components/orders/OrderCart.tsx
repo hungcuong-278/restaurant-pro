@@ -45,7 +45,7 @@ const OrderCart: React.FC<OrderCartProps> = ({
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 ${className}`}>
+    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 order-cart-summary ${className}`}>
       {/* Header */}
       <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg">
         <h3 className="text-xl font-bold">Order Summary</h3>

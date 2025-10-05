@@ -43,6 +43,14 @@ const NewOrderPage: React.FC = () => {
       // Add new item to cart
       setCartItems([...cartItems, { menuItem: item, quantity: 1 }]);
     }
+
+    // Scroll to order summary after adding item so customer can see total and next button
+    setTimeout(() => {
+      const orderSummary = document.querySelector('.order-cart-summary');
+      if (orderSummary) {
+        orderSummary.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 100);
   };
 
   // Handle updating quantity
