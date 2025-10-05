@@ -236,7 +236,7 @@ async function getOrderById(orderId: string): Promise<OrderWithItems | null> {
   if (order.table_id) {
     table = await db('tables')
       .where({ id: order.table_id })
-      .select('id', 'number', 'location')
+      .select('id', 'number', 'number as table_number', 'location', 'capacity', 'status')
       .first();
   }
   
@@ -322,14 +322,23 @@ async function getOrdersByRestaurant(
     .limit(limit)
     .offset(offset);
   
-  // Get items for each order
+  // Get items and table info for each order
   const ordersWithItems = await Promise.all(
     orders.map(async (order) => {
       const items = await db('order_items')
         .where({ order_id: order.id })
         .orderBy('created_at', 'asc');
       
-      return { ...order, items };
+      // Get table info if table_id exists
+      let table = null;
+      if (order.table_id) {
+        table = await db('tables')
+          .where({ id: order.table_id })
+          .select('id', 'number', 'number as table_number', 'location', 'capacity', 'status')
+          .first();
+      }
+      
+      return { ...order, items, table };
     })
   );
   
