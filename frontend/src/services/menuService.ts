@@ -148,10 +148,15 @@ const menuService = {
   async getCategories(): Promise<string[]> {
     try {
       const items = await this.getMenuItems();
-      // Extract category name from either string or object
-      const categories = Array.from(new Set(items.map(item => 
-        typeof item.category === 'string' ? item.category : item.category.name
-      )));
+      // Extract category name from either string or object, with null safety
+      const categories = Array.from(new Set(
+        items
+          .map(item => {
+            if (!item.category) return null;
+            return typeof item.category === 'string' ? item.category : item.category.name;
+          })
+          .filter((cat): cat is string => cat !== null)
+      ));
       return categories.sort();
     } catch (error) {
       console.error('Error fetching categories:', error);
