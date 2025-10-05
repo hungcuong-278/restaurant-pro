@@ -23,6 +23,7 @@ import NewOrderPage from './pages/orders/NewOrderPage';
 import OrderDetailsPage from './pages/orders/OrderDetailsPage';
 import KitchenViewPage from './pages/orders/KitchenViewPage';
 import PaymentPage from './pages/PaymentPage';
+import PaymentProcessingPage from './pages/PaymentProcessingPage';
 
 import './styles/index.css';
 
@@ -60,7 +61,7 @@ const App: React.FC = () => {
               <Route path="/orders" element={<OrderListPage />} />
               <Route path="/orders/new" element={<NewOrderPage />} />
               <Route path="/orders/:orderId" element={<OrderDetailsPage />} />
-              <Route path="/kitchen" element={<KitchenViewPage />} />`n              `n              {/* Payment Route */}`n              <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/kitchen" element={<KitchenViewPage />} />`n              `n              {/* Payment Route */}`n              <Route path="/payment" element={<PaymentPage />} />`n              <Route path="/payment/process" element={<PaymentProcessingPage />} />
             </Routes>
           </main>
           <Footer />
@@ -73,3 +74,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

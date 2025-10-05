@@ -9,7 +9,7 @@ interface PaymentQRProps {
 
 const PaymentQR: React.FC<PaymentQRProps> = ({ orderNumber, amount, className = '' }) => {
   const accountNumber = '9724 2220 3982 1491';
-  const bankName = 'Techcombank';
+  const bankName = 'MB Bank';
   const accountHolder = 'Restaurant Pro';
 
   const handleCopyAccount = () => {
@@ -191,3 +191,4 @@ const PaymentQR: React.FC<PaymentQRProps> = ({ orderNumber, amount, className = 
 };
 
 export default PaymentQR;
+
