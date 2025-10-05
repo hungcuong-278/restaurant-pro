@@ -62,11 +62,16 @@ const TableCard: React.FC<TableCardProps> = ({
       onClick={handleClick}
       style={style}
     >
-      {/* Table Number */}
+      {/* Table Name */}
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-bold text-gray-800">
-          {table.number}
-        </h3>
+        <div className="flex-1">
+          <h3 className="text-lg font-bold text-gray-800">
+            {table.location || table.number}
+          </h3>
+          {table.location && (
+            <p className="text-xs text-gray-500">({table.number})</p>
+          )}
+        </div>
         <div className={`w-3 h-3 rounded-full ${getStatusColor(table.status)}`} />
       </div>
 

@@ -59,7 +59,7 @@ const TableManagementPage: React.FC = () => {
   };
 
   const handleDeleteTable = async () => {
-    if (selectedTable && window.confirm(`Delete table ${selectedTable.number}?`)) {
+    if (selectedTable && window.confirm(`Delete table ${selectedTable.location || selectedTable.number}?`)) {
       await dispatch(deleteTable({ restaurantId, id: selectedTable.id }));
       dispatch(selectTable(null));
     }
@@ -140,7 +140,7 @@ const TableManagementPage: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-2">
-                    Table {selectedTable.number}
+                    {selectedTable.location || `Table ${selectedTable.number}`}
                   </h3>
                   <div className="space-y-1 text-sm text-gray-600">
                     <p>Capacity: {selectedTable.capacity} seats</p>

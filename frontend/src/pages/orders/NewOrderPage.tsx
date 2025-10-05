@@ -339,7 +339,12 @@ const NewOrderPage: React.FC = () => {
                   >
                     <div className="text-center">
                       <div className="text-2xl mb-1">🪑</div>
-                      <div className="font-semibold text-gray-900">Table {table.number}</div>
+                      <div className="font-semibold text-gray-900">
+                        {table.location || `Table ${table.number}`}
+                      </div>
+                      {table.location && (
+                        <div className="text-xs text-gray-400">({table.number})</div>
+                      )}
                       <div className="text-sm text-gray-500">{table.capacity} seats</div>
                     </div>
                   </button>

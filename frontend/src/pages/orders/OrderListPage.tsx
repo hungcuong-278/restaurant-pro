@@ -79,7 +79,8 @@ const OrderListPage: React.FC = () => {
     const query = searchQuery.toLowerCase();
     return (
       order?.id?.toString().includes(query) ||
-      order?.table?.table_number?.toLowerCase().includes(query)
+      order?.table?.table_number?.toLowerCase().includes(query) ||
+      order?.table?.location?.toLowerCase().includes(query)
     );
   });
 
@@ -393,7 +394,7 @@ const OrderListPage: React.FC = () => {
                          order.order_type === 'takeout' ? '🥡 Takeout' : 
                          order.order_type === 'delivery' ? '🚚 Delivery' : 
                          'Order'}
-                        {order.order_type === 'dine_in' && ` - Table ${order.table?.table_number || 'N/A'}`}
+                        {order.order_type === 'dine_in' && ` - ${order.table?.location || `Table ${order.table?.table_number}` || 'N/A'}`}
                       </p>
                     </div>
                     <Badge status={order?.status || 'pending'} />

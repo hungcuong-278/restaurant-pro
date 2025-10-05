@@ -146,7 +146,10 @@ const TableLayout: React.FC<TableLayoutProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {unpositionedTables.map((table) => (
               <div key={table.id} className="text-xs bg-white p-2 rounded border border-yellow-300">
-                <div className="font-medium">{table.number}</div>
+                <div className="font-medium">{table.location || table.number}</div>
+                {table.location && (
+                  <div className="text-xs text-gray-400">({table.number})</div>
+                )}
                 <div className="text-gray-600">{table.capacity} seats</div>
               </div>
             ))}

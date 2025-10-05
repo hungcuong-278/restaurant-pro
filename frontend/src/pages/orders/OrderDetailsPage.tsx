@@ -217,7 +217,13 @@ const OrderDetailsPage: React.FC = () => {
                     </span>
                   </p>
                   {order.order_type === 'dine_in' && (
-                    <p><span className="font-medium">Table:</span> {order.table?.table_number || 'N/A'}</p>
+                    <p>
+                      <span className="font-medium">Table:</span>{' '}
+                      {order.table?.location || order.table?.table_number || 'N/A'}
+                      {order.table?.location && order.table?.table_number && (
+                        <span className="text-sm text-gray-500"> ({order.table.table_number})</span>
+                      )}
+                    </p>
                   )}
                   <p><span className="font-medium">Created:</span> {formatDate(order.created_at)}</p>
                   {order.updated_at && (
