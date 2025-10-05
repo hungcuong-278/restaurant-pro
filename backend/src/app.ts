@@ -29,16 +29,18 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
+// Rate limiting - Generous limits for development/testing
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '1000'), // limit each IP to 1000 requests per windowMs (increased for development)
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'), // 1 minute (reduced window)
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '200'), // 200 requests per minute (more generous)
   message: {
     error: 'Too many requests from this IP, please try again later.'
   },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skip: (req) => {
-    // Skip rate limiting for health checks
-    return req.path === '/api/health';
+    // Skip rate limiting for health checks and static assets
+    return req.path === '/api/health' || req.path.startsWith('/static');
   }
 });
 app.use('/api', limiter);

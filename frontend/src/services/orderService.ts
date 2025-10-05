@@ -1,4 +1,5 @@
 import api from './api';
+import { requestOptimizer } from '../utils/requestOptimizer';
 
 const RESTAURANT_ID = '2c88c32a-03ba-4ef3-96e4-f37cf4b165de'; // Golden Fork Restaurant UUID
 
@@ -86,7 +87,7 @@ export interface OrderResponse {
 
 // Order Service API
 export const orderService = {
-  // Get all orders for the restaurant
+  // Get all orders for the restaurant (with caching)
   getAllOrders: async (filters?: {
     status?: string;
     payment_status?: string;
@@ -101,8 +102,17 @@ export const orderService = {
       });
     }
     const url = `/restaurants/${RESTAURANT_ID}/orders${params.toString() ? `?${params.toString()}` : ''}`;
-    const response = await api.get(url);
-    return response.data;
+    
+    // Use cache with 3 second TTL to reduce API calls
+    const cacheKey = `orders-${params.toString()}`;
+    return requestOptimizer.withCache(
+      cacheKey,
+      async () => {
+        const response = await api.get(url);
+        return response.data;
+      },
+      3000 // 3 seconds cache
+    );
   },
 
   // Get single order by ID
@@ -116,6 +126,10 @@ export const orderService = {
   createOrder: async (orderData: CreateOrderRequest): Promise<OrderResponse> => {
     const url = `/restaurants/${RESTAURANT_ID}/orders`;
     const response = await api.post(url, orderData);
+    
+    // Invalidate cache after creating order
+    requestOptimizer.clearCache();
+    
     return response.data;
   },
 
@@ -130,6 +144,10 @@ export const orderService = {
   updateOrderStatus: async (orderId: string, status: string): Promise<OrderResponse> => {
     const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}/status`;
     const response = await api.patch(url, { status });
+    
+    // Invalidate cache after status update
+    requestOptimizer.clearCache(); // Clear all order caches
+    
     return response.data;
   },
 

@@ -87,13 +87,27 @@ const KitchenViewPage: React.FC = () => {
     );
   };
 
-  // Update order status
+  // Update order status - Optimized to update local state instead of refetching
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
       await orderService.updateOrderStatus(orderId, newStatus);
-      await fetchOrders(); // Refresh list
+      
+      // Optimistic update: Update local state instead of refetching all orders
+      setAllOrders(prev => 
+        prev.map(order => 
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+      
+      setOrders(prev => 
+        prev.map(order => 
+          order.id === orderId ? { ...order, status: newStatus } : order
+        ).filter(order => selectedStatuses.includes(order.status))
+      );
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to update order status');
+      // On error, refetch to ensure data consistency
+      fetchOrders();
     }
   };
 

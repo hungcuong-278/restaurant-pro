@@ -31,9 +31,14 @@ const OrderListPage: React.FC = () => {
   const [bulkStatus, setBulkStatus] = useState<string>('');
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  // Fetch orders
+  // Fetch orders with debounce
   useEffect(() => {
-    fetchOrders();
+    // Debounce to avoid multiple rapid calls
+    const timeoutId = setTimeout(() => {
+      fetchOrders();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, paymentFilter]);
 
@@ -52,9 +57,15 @@ const OrderListPage: React.FC = () => {
       // Ensure we always set an array
       setOrders(Array.isArray(response.data) ? response.data : []);
     } catch (err: any) {
-      const errorMsg = err.message || 'Failed to fetch orders';
-      setError(errorMsg);
-      showError(errorMsg);
+      // Graceful handling of rate limiting
+      if (err.response?.status === 429) {
+        setError('Too many requests. Please wait a moment before refreshing.');
+        showWarning('Please wait a moment before refreshing.');
+      } else {
+        const errorMsg = err.message || 'Failed to fetch orders';
+        setError(errorMsg);
+        showError(errorMsg);
+      }
       setOrders([]); // Set empty array on error
       console.error('Error fetching orders:', err);
     } finally {
