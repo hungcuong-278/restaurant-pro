@@ -68,7 +68,8 @@ const menuService = {
       const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items${queryString ? `?${queryString}` : ''}`;
       
       const response = await axios.get(url);
-      return response.data;
+      // Backend returns { success: true, data: [...] }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error fetching menu items:', error);
       throw error;
@@ -81,7 +82,8 @@ const menuService = {
       const response = await axios.get(
         `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items/${itemId}`
       );
-      return response.data;
+      // Backend returns { success: true, data: {...} }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error fetching menu item:', error);
       throw error;
@@ -95,7 +97,8 @@ const menuService = {
         `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items`,
         itemData
       );
-      return response.data;
+      // Backend returns { success: true, data: {...} }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error creating menu item:', error);
       throw error;
@@ -109,7 +112,8 @@ const menuService = {
         `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/menu-items/${itemId}`,
         itemData
       );
-      return response.data;
+      // Backend returns { success: true, data: {...} }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error updating menu item:', error);
       throw error;

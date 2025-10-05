@@ -32,7 +32,8 @@ const tableService = {
     try {
       const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables${status ? `?status=${status}` : ''}`;
       const response = await axios.get(url);
-      return response.data;
+      // Backend returns { success: true, data: [...] }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error fetching tables:', error);
       throw error;
@@ -45,7 +46,8 @@ const tableService = {
       const response = await axios.get(
         `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables/${tableId}`
       );
-      return response.data;
+      // Backend returns { success: true, data: {...} }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error fetching table:', error);
       throw error;
