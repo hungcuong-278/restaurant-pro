@@ -1,23 +1,36 @@
 import React from 'react';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps {
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
   label?: string;
   error?: string;
+  disabled?: boolean;
+  required?: boolean;
+  className?: string;
   icon?: React.ReactNode;
 }
 
-const Input: React.FC<InputProps> = ({ 
-  label, 
-  error, 
-  icon, 
-  className = '', 
-  ...props 
+const Input: React.FC<InputProps> = ({
+  type = 'text',
+  value,
+  onChange,
+  placeholder,
+  label,
+  error,
+  disabled = false,
+  required = false,
+  className = '',
+  icon,
 }) => {
   return (
-    <div className="w-full">
+    <div className={className}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       <div className="relative">
@@ -27,16 +40,20 @@ const Input: React.FC<InputProps> = ({
           </div>
         )}
         <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          disabled={disabled}
+          required={required}
           className={`
-            block w-full px-3 py-3 sm:py-2 border rounded-lg shadow-sm
-            min-h-[48px] sm:min-h-[40px]
-            text-base
-            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            ${error ? 'border-red-500' : 'border-gray-300'}
+            w-full px-4 py-2 border rounded-lg
             ${icon ? 'pl-10' : ''}
-            ${className}
+            ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}
+            ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
+            focus:ring-2 focus:outline-none
+            transition-colors duration-200
           `}
-          {...props}
         />
       </div>
       {error && (

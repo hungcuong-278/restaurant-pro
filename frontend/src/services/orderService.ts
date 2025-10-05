@@ -1,66 +1,39 @@
-import api from './api';
-import { requestOptimizer } from '../utils/requestOptimizer';
+import axios from 'axios';
 
-const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3'; // Golden Fork Restaurant UUID
+const API_BASE_URL = 'http://localhost:5000/api';
 
-// Order Types
+// Restaurant ID - In production, this would come from auth context
+const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
+
 export interface OrderItem {
-  id?: string;
-  order_id?: string;
+  id: string;
   menu_item_id: string;
-  item_name: string;
-  item_price: number;
+  menu_item_name?: string;
   quantity: number;
-  total_price: number;
+  unit_price: number;
+  subtotal: number;
   special_instructions?: string;
-  status?: string;
-  // Legacy fields (for backward compatibility)
-  unit_price?: number;
-  subtotal?: number;
-  menu_item?: {
-    id: string;
-    name: string;
-    price: number;
-    category: string;
-    available: boolean;
-  };
 }
 
 export interface Order {
   id: string;
   restaurant_id: string;
   table_id?: string;
-  customer_id?: string;
-  staff_id?: string;
+  table_number?: string;
   order_number: string;
-  order_type: 'dine_in' | 'takeout' | 'delivery';
-  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
-  subtotal: number;
-  tax_amount: number;
-  discount_amount?: number;
-  tip_amount?: number;
+  order_type: 'dine-in' | 'takeout' | 'delivery';
+  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'cancelled';
   total_amount: number;
-  payment_status: 'unpaid' | 'partial' | 'paid';
-  customer_notes?: string;
-  kitchen_notes?: string;
   special_instructions?: string;
-  ordered_at: string;
   created_at: string;
   updated_at: string;
-  items: OrderItem[];
-  table?: {
-    id: string;
-    number?: string;
-    table_number?: string;
-    location?: string;
-    capacity?: number;
-    status?: string;
-  };
+  items?: OrderItem[];
+  payment_status?: 'unpaid' | 'paid' | 'partially_paid';
 }
 
-export interface CreateOrderRequest {
-  order_type: 'dine_in' | 'takeout' | 'delivery';
-  table_id?: string; // Optional for takeout/delivery
+export interface CreateOrderData {
+  table_id?: string;
+  order_type: 'dine-in' | 'takeout' | 'delivery';
   items: {
     menu_item_id: string;
     quantity: number;
@@ -69,125 +42,159 @@ export interface CreateOrderRequest {
   special_instructions?: string;
 }
 
-export interface UpdateOrderStatusRequest {
-  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
+export interface UpdateOrderData {
+  table_id?: string;
+  order_type?: 'dine-in' | 'takeout' | 'delivery';
+  status?: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'cancelled';
+  special_instructions?: string;
 }
 
-export interface OrderListResponse {
-  success: boolean;
-  data: Order[];
-  message?: string;
+export interface OrderFilters {
+  status?: string;
+  order_type?: string;
+  start_date?: string;
+  end_date?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
-export interface OrderResponse {
-  success: boolean;
-  data: Order;
-  message?: string;
-}
+const orderService = {
+  // Get all orders
+  async getOrders(filters?: OrderFilters): Promise<Order[]> {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.status && filters.status !== 'all') params.append('status', filters.status);
+      if (filters?.order_type) params.append('order_type', filters.order_type);
+      if (filters?.start_date) params.append('start_date', filters.start_date);
+      if (filters?.end_date) params.append('end_date', filters.end_date);
+      if (filters?.search) params.append('search', filters.search);
+      if (filters?.page) params.append('page', filters.page.toString());
+      if (filters?.limit) params.append('limit', filters.limit.toString());
 
-// Order Service API
-export const orderService = {
-  // Get all orders for the restaurant (with smart caching)
-  getAllOrders: async (filters?: {
-    status?: string;
-    payment_status?: string;
-    table_id?: string;
-    date_from?: string;
-    date_to?: string;
-  }, options?: { skipCache?: boolean }): Promise<OrderListResponse> => {
-    const params = new URLSearchParams();
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
-    }
-    const url = `/restaurants/${RESTAURANT_ID}/orders${params.toString() ? `?${params.toString()}` : ''}`;
-    
-    // Skip cache if requested (for kitchen view real-time updates)
-    if (options?.skipCache) {
-      const response = await api.get(url);
+      const queryString = params.toString();
+      const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await axios.get(url);
       return response.data;
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      throw error;
     }
-    
-    // Use cache with 2 second TTL to reduce API calls while staying fresh
-    // Kitchen view: 30s auto-refresh ensures updates within acceptable window
-    const cacheKey = `orders-${params.toString()}`;
-    return requestOptimizer.withCache(
-      cacheKey,
-      async () => {
-        const response = await api.get(url);
-        return response.data;
-      },
-      2000 // 2 seconds cache - shorter for better real-time feel
-    );
   },
 
-  // Get single order by ID
-  getOrderById: async (orderId: string): Promise<OrderResponse> => {
-    const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}`;
-    const response = await api.get(url);
-    return response.data;
+  // Get single order
+  async getOrder(orderId: string): Promise<Order> {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      throw error;
+    }
   },
 
   // Create new order
-  createOrder: async (orderData: CreateOrderRequest): Promise<OrderResponse> => {
-    const url = `/restaurants/${RESTAURANT_ID}/orders`;
-    const response = await api.post(url, orderData);
-    
-    // Invalidate cache after creating order
-    requestOptimizer.clearCache();
-    
-    return response.data;
+  async createOrder(orderData: CreateOrderData): Promise<Order> {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders`,
+        orderData
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      throw error;
+    }
   },
 
   // Update order
-  updateOrder: async (orderId: string, orderData: Partial<CreateOrderRequest>): Promise<OrderResponse> => {
-    const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}`;
-    const response = await api.patch(url, orderData);
-    return response.data;
+  async updateOrder(orderId: string, orderData: UpdateOrderData): Promise<Order> {
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`,
+        orderData
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error updating order:', error);
+      throw error;
+    }
   },
 
   // Update order status
-  updateOrderStatus: async (orderId: string, status: string): Promise<OrderResponse> => {
-    const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}/status`;
-    const response = await api.patch(url, { status });
-    
-    // Invalidate cache after status update
-    requestOptimizer.clearCache(); // Clear all order caches
-    
-    return response.data;
+  async updateOrderStatus(orderId: string, status: Order['status']): Promise<Order> {
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/status`,
+        { status }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      throw error;
+    }
   },
 
   // Delete order
-  deleteOrder: async (orderId: string): Promise<{ success: boolean; message: string }> => {
-    const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}`;
-    const response = await api.delete(url);
-    return response.data;
+  async deleteOrder(orderId: string): Promise<void> {
+    try {
+      await axios.delete(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`
+      );
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      throw error;
+    }
   },
 
   // Add item to order
-  addOrderItem: async (
-    orderId: string,
-    item: { menu_item_id: string; quantity: number; special_instructions?: string }
-  ): Promise<OrderResponse> => {
-    const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}/items`;
-    return api.post(url, item);
+  async addOrderItem(orderId: string, item: {
+    menu_item_id: string;
+    quantity: number;
+    special_instructions?: string;
+  }): Promise<OrderItem> {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items`,
+        item
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error adding order item:', error);
+      throw error;
+    }
   },
 
   // Update order item
-  updateOrderItem: async (
-    orderId: string,
-    itemId: string,
-    updates: { quantity?: number; special_instructions?: string }
-  ): Promise<OrderResponse> => {
-    const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}/items/${itemId}`;
-    return api.patch(url, updates);
+  async updateOrderItem(orderId: string, itemId: string, updates: {
+    quantity?: number;
+    special_instructions?: string;
+  }): Promise<OrderItem> {
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items/${itemId}`,
+        updates
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error updating order item:', error);
+      throw error;
+    }
   },
 
-  // Remove item from order
-  removeOrderItem: async (orderId: string, itemId: string): Promise<OrderResponse> => {
-    const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}/items/${itemId}`;
-    return api.delete(url);
+  // Remove order item
+  async removeOrderItem(orderId: string, itemId: string): Promise<void> {
+    try {
+      await axios.delete(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items/${itemId}`
+      );
+    } catch (error) {
+      console.error('Error removing order item:', error);
+      throw error;
+    }
   },
 };
 

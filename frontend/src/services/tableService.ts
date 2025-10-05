@@ -1,90 +1,100 @@
 import axios from 'axios';
-import { Table, TableAvailability, TableAnalytics } from '../types/table';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api';
+const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
 
-export const tableService = {
-  // Get all tables for a restaurant
-  getTables: async (restaurantId: string, status?: string): Promise<Table[]> => {
-    const url = status 
-      ? `${API_URL}/restaurants/${restaurantId}/tables?status=${status}`
-      : `${API_URL}/restaurants/${restaurantId}/tables`;
-    const response = await axios.get(url);
-    return response.data.data;
+export interface Table {
+  id: string;
+  restaurant_id: string;
+  number: string;
+  capacity: number;
+  status: 'available' | 'occupied' | 'reserved';
+  created_at: string;
+  updated_at: string;
+  current_order_id?: string;
+}
+
+export interface CreateTableData {
+  number: string;
+  capacity: number;
+  status?: 'available' | 'occupied' | 'reserved';
+}
+
+export interface UpdateTableData {
+  number?: string;
+  capacity?: number;
+  status?: 'available' | 'occupied' | 'reserved';
+}
+
+const tableService = {
+  // Get all tables
+  async getTables(status?: string): Promise<Table[]> {
+    try {
+      const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables${status ? `?status=${status}` : ''}`;
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching tables:', error);
+      throw error;
+    }
   },
 
   // Get single table
-  getTable: async (restaurantId: string, tableId: string): Promise<Table> => {
-    const response = await axios.get(`${API_URL}/restaurants/${restaurantId}/tables/${tableId}`);
-    return response.data.data;
+  async getTable(tableId: string): Promise<Table> {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables/${tableId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching table:', error);
+      throw error;
+    }
   },
 
-  // Create new table
-  createTable: async (restaurantId: string, tableData: Partial<Table>): Promise<Table> => {
-    const response = await axios.post(`${API_URL}/restaurants/${restaurantId}/tables`, tableData);
-    return response.data.data;
+  // Create table
+  async createTable(tableData: CreateTableData): Promise<Table> {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables`,
+        tableData
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error creating table:', error);
+      throw error;
+    }
   },
 
   // Update table
-  updateTable: async (restaurantId: string, tableId: string, updates: Partial<Table>): Promise<Table> => {
-    const response = await axios.put(`${API_URL}/restaurants/${restaurantId}/tables/${tableId}`, updates);
-    return response.data.data;
+  async updateTable(tableId: string, tableData: UpdateTableData): Promise<Table> {
+    try {
+      const response = await axios.patch(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables/${tableId}`,
+        tableData
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error updating table:', error);
+      throw error;
+    }
   },
 
   // Delete table
-  deleteTable: async (restaurantId: string, tableId: string): Promise<void> => {
-    await axios.delete(`${API_URL}/restaurants/${restaurantId}/tables/${tableId}`);
+  async deleteTable(tableId: string): Promise<void> {
+    try {
+      await axios.delete(
+        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables/${tableId}`
+      );
+    } catch (error) {
+      console.error('Error deleting table:', error);
+      throw error;
+    }
   },
 
-  // Update table status
-  updateStatus: async (restaurantId: string, tableId: string, status: Table['status']): Promise<Table> => {
-    const response = await axios.patch(`${API_URL}/restaurants/${restaurantId}/tables/${tableId}/status`, { status });
-    return response.data.data;
-  },
-
-  // Update table position
-  updatePosition: async (restaurantId: string, tableId: string, position: { x: number; y: number }): Promise<Table> => {
-    const response = await axios.patch(`${API_URL}/restaurants/${restaurantId}/tables/${tableId}/position`, { position });
-    return response.data.data;
-  },
-
-  // Get table layout
-  getLayout: async (restaurantId: string): Promise<Table[]> => {
-    const response = await axios.get(`${API_URL}/restaurants/${restaurantId}/tables/layout`);
-    return response.data.data;
-  },
-
-  // Bulk update positions
-  bulkUpdatePositions: async (
-    restaurantId: string, 
-    positions: Array<{ id: string; position: { x: number; y: number } }>
-  ): Promise<Table[]> => {
-    const response = await axios.patch(`${API_URL}/restaurants/${restaurantId}/tables/positions/bulk`, { positions });
-    return response.data.data;
-  },
-
-  // Check table availability
-  checkAvailability: async (
-    restaurantId: string, 
-    date: string, 
-    time: string
-  ): Promise<TableAvailability> => {
-    const response = await axios.get(
-      `${API_URL}/restaurants/${restaurantId}/tables/availability/check?date=${date}&time=${time}`
-    );
-    return response.data.data;
-  },
-
-  // Get table analytics
-  getAnalytics: async (
-    restaurantId: string, 
-    startDate: string, 
-    endDate: string
-  ): Promise<TableAnalytics> => {
-    const response = await axios.get(
-      `${API_URL}/restaurants/${restaurantId}/tables/analytics/stats?start_date=${startDate}&end_date=${endDate}`
-    );
-    return response.data.data;
+  // Get available tables
+  async getAvailableTables(): Promise<Table[]> {
+    return this.getTables('available');
   },
 };
 
