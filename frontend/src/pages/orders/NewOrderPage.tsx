@@ -86,10 +86,10 @@ const NewOrderPage: React.FC = () => {
       setIsSubmitting(true);
       setError(null);
 
-      // Prepare order data
+      // Prepare order data - convert order_type to backend format
       const orderData = {
         table_id: orderType === 'dine-in' ? selectedTableId : undefined,
-        order_type: orderType,
+        order_type: orderType.replace('-', '_') as 'dine_in' | 'takeout' | 'delivery', // Convert 'dine-in' to 'dine_in'
         items: cartItems.map(item => ({
           menu_item_id: item.menuItem.id,
           quantity: item.quantity,
@@ -101,11 +101,25 @@ const NewOrderPage: React.FC = () => {
       // Create order
       const createdOrder = await orderService.createOrder(orderData);
 
-      // Show success notification
-      alert(`✅ Order ${createdOrder.order_number} created successfully!`);
+      // Calculate total amount
+      const totalAmount = cartItems.reduce((sum, item) => 
+        sum + (item.menuItem.price * item.quantity), 0
+      );
 
-      // Redirect to order details
-      navigate(`/orders/${createdOrder.id}`);
+      // Navigate to payment page with order info
+      navigate('/payment', {
+        state: {
+          orderId: createdOrder.id,
+          orderNumber: createdOrder.order_number || `ORD-${createdOrder.id.slice(0, 8)}`,
+          amount: Math.round(totalAmount * 100), // Convert to cents/đồng
+          tableNumber: selectedTableNumber,
+          items: cartItems.map(item => ({
+            name: item.menuItem.name,
+            quantity: item.quantity,
+            price: item.menuItem.price
+          }))
+        }
+      });
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Failed to create order');
       console.error('Error creating order:', err);

@@ -65,7 +65,7 @@ export interface Order {
 
 export interface CreateOrderData {
   table_id?: string;
-  order_type: 'dine-in' | 'takeout' | 'delivery';
+  order_type: 'dine_in' | 'takeout' | 'delivery';  // Match backend format (underscore)
   items: {
     menu_item_id: string;
     quantity: number;
@@ -76,7 +76,7 @@ export interface CreateOrderData {
 
 export interface UpdateOrderData {
   table_id?: string;
-  order_type?: 'dine-in' | 'takeout' | 'delivery';
+  order_type?: 'dine_in' | 'takeout' | 'delivery';  // Match backend format (underscore)
   status?: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'cancelled';
   special_instructions?: string;
 }
