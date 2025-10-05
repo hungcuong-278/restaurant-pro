@@ -364,7 +364,6 @@ const OrderListPage: React.FC = () => {
             {currentOrders.map((order) => (
               <Card
                 key={order.id}
-                hoverable
                 className={`cursor-pointer transition-all hover:shadow-lg ${
                   selectedOrders.has(order.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
                 }`}
@@ -476,3 +475,4 @@ const OrderListPage: React.FC = () => {
 };
 
 export default OrderListPage;
+
