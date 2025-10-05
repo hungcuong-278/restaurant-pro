@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import PaymentQR from '../components/PaymentQR';
+import PaymentMethodSelector, { PaymentMethod } from '../components/payment/PaymentMethodSelector';
 
 interface PaymentLocationState {
   orderId?: string;
@@ -18,10 +19,45 @@ const PaymentPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as PaymentLocationState;
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Use real order data from navigation state or fallback to example
   const orderNumber = state?.orderNumber || 'ORD-EXAMPLE-001';
-  const amount = state?.amount || 285000;
+  const amount = state?.amount || 285.00;
+
+  // Handle payment confirmation
+  const handlePayment = async () => {
+    if (!selectedMethod) return;
+
+    try {
+      setIsProcessing(true);
+
+      // For in-store payments (cash/credit card)
+      if (selectedMethod === 'cash' || selectedMethod === 'credit_card') {
+        const confirmMsg = 
+          `✅ Xác nhận thanh toán ${selectedMethod === 'cash' ? 'tiền mặt' : 'thẻ tín dụng'}\n\n` +
+          `Mã đơn: ${orderNumber}\n` +
+          `Số tiền: $${amount.toFixed(2)}\n\n` +
+          `Nhân viên sẽ xử lý thanh toán tại quầy.`;
+        
+        if (window.confirm(confirmMsg)) {
+          alert('✅ Đã ghi nhận! Vui lòng thanh toán tại quầy.');
+          navigate('/orders');
+        }
+      }
+      // For online payments - show QR or payment instructions
+      else {
+        // Already showing QR code below, just scroll to it
+        document.getElementById('payment-qr')?.scrollIntoView({ behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('❌ Có lỗi xảy ra. Vui lòng thử lại.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // If no order data, show error
   if (!state?.orderId) {
@@ -50,8 +86,16 @@ const PaymentPage: React.FC = () => {
             💳 Thanh Toán
           </h1>
           <p className="text-gray-600">
-            Chuyển khoản qua QR Code hoặc thông tin tài khoản
+            Chọn phương thức thanh toán phù hợp với bạn
           </p>
+        </div>
+
+        {/* Payment Method Selector */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <PaymentMethodSelector
+            selectedMethod={selectedMethod}
+            onSelect={setSelectedMethod}
+          />
         </div>
 
         {/* Order Info */}
@@ -71,25 +115,58 @@ const PaymentPage: React.FC = () => {
                 {state.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between text-sm">
                     <span>{item.quantity}x {item.name}</span>
-                    <span className="font-medium">{(item.price * item.quantity).toLocaleString('vi-VN')}₫</span>
+                    <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
               <div className="pt-3 mt-3 border-t border-gray-200">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Tổng cộng:</span>
-                  <span className="text-green-600">{amount.toLocaleString('vi-VN')}₫</span>
+                  <span className="text-green-600">${amount.toFixed(2)}</span>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Payment QR Component */}
-        <PaymentQR 
-          orderNumber={orderNumber}
-          amount={amount}
-        />
+        {/* Payment QR Component - Only for online methods */}
+        {selectedMethod && (selectedMethod === 'bank_transfer' || selectedMethod === 'e_wallet') && (
+          <div id="payment-qr">
+            <PaymentQR 
+              orderNumber={orderNumber}
+              amount={Math.round(amount * 100)}
+            />
+          </div>
+        )}
+
+        {/* In-store Payment Instructions */}
+        {selectedMethod && (selectedMethod === 'cash' || selectedMethod === 'credit_card') && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              {selectedMethod === 'cash' ? '💵 Thanh Toán Tiền Mặt' : '💳 Thanh Toán Thẻ'}
+            </h2>
+            <div className="space-y-3 text-gray-700">
+              <p>✓ Vui lòng đến quầy thanh toán</p>
+              <p>✓ Xuất trình mã đơn hàng: <span className="font-bold text-blue-600">{orderNumber}</span></p>
+              <p>✓ Số tiền cần thanh toán: <span className="font-bold text-green-600">${amount.toFixed(2)}</span></p>
+              <p className="text-sm text-gray-500 mt-4">💡 Nhân viên sẽ xác nhận và xử lý đơn hàng của bạn</p>
+            </div>
+            <button
+              onClick={handlePayment}
+              disabled={isProcessing}
+              className="w-full mt-6 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-400"
+            >
+              {isProcessing ? '⏳ Đang xử lý...' : '✅ Xác Nhận Thanh Toán'}
+            </button>
+          </div>
+        )}
+
+        {/* Select Method Prompt */}
+        {!selectedMethod && (
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 text-center">
+            <p className="text-blue-800 font-medium">👆 Vui lòng chọn phương thức thanh toán ở trên</p>
+          </div>
+        )}
 
         {/* Additional Info */}
         <div className="mt-6 text-center">

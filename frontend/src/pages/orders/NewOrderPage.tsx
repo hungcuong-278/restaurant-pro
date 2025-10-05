@@ -111,7 +111,7 @@ const NewOrderPage: React.FC = () => {
         state: {
           orderId: createdOrder.id,
           orderNumber: createdOrder.order_number || (createdOrder.id ? `ORD-${createdOrder.id.slice(0, 8)}` : 'ORD-TEMP'),
-          amount: Math.round(totalAmount * 100), // Convert to cents/đồng
+          amount: Math.round(totalAmount * 100) / 100, // Keep in dollars, round to 2 decimals
           tableNumber: selectedTableNumber,
           items: cartItems.map(item => ({
             name: item.menuItem.name,
