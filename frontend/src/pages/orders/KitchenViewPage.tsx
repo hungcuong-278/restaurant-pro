@@ -67,13 +67,14 @@ const KitchenViewPage: React.FC = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Auto-refresh every 60 seconds (increased to avoid rate limiting)
+  // Auto-refresh with smart interval for real-time kitchen updates
+  // 30 seconds is optimal: fast enough for kitchen staff, slow enough to avoid rate limits
   useEffect(() => {
     if (!autoRefresh) return;
 
     const interval = setInterval(() => {
       fetchOrders();
-    }, 60000); // 60 seconds
+    }, 30000); // 30 seconds - balanced for real-time updates
 
     return () => clearInterval(interval);
   }, [autoRefresh, fetchOrders]);
@@ -93,15 +94,16 @@ const KitchenViewPage: React.FC = () => {
       await orderService.updateOrderStatus(orderId, newStatus);
       
       // Optimistic update: Update local state instead of refetching all orders
+      const typedStatus = newStatus as Order['status'];
       setAllOrders(prev => 
         prev.map(order => 
-          order.id === orderId ? { ...order, status: newStatus } : order
+          order.id === orderId ? { ...order, status: typedStatus } : order
         )
       );
       
       setOrders(prev => 
         prev.map(order => 
-          order.id === orderId ? { ...order, status: newStatus } : order
+          order.id === orderId ? { ...order, status: typedStatus } : order
         ).filter(order => selectedStatuses.includes(order.status))
       );
     } catch (err: any) {

@@ -87,14 +87,14 @@ export interface OrderResponse {
 
 // Order Service API
 export const orderService = {
-  // Get all orders for the restaurant (with caching)
+  // Get all orders for the restaurant (with smart caching)
   getAllOrders: async (filters?: {
     status?: string;
     payment_status?: string;
     table_id?: string;
     date_from?: string;
     date_to?: string;
-  }): Promise<OrderListResponse> => {
+  }, options?: { skipCache?: boolean }): Promise<OrderListResponse> => {
     const params = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -103,7 +103,14 @@ export const orderService = {
     }
     const url = `/restaurants/${RESTAURANT_ID}/orders${params.toString() ? `?${params.toString()}` : ''}`;
     
-    // Use cache with 3 second TTL to reduce API calls
+    // Skip cache if requested (for kitchen view real-time updates)
+    if (options?.skipCache) {
+      const response = await api.get(url);
+      return response.data;
+    }
+    
+    // Use cache with 2 second TTL to reduce API calls while staying fresh
+    // Kitchen view: 30s auto-refresh ensures updates within acceptable window
     const cacheKey = `orders-${params.toString()}`;
     return requestOptimizer.withCache(
       cacheKey,
@@ -111,7 +118,7 @@ export const orderService = {
         const response = await api.get(url);
         return response.data;
       },
-      3000 // 3 seconds cache
+      2000 // 2 seconds cache - shorter for better real-time feel
     );
   },
 
