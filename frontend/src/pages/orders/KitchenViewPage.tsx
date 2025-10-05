@@ -8,7 +8,8 @@ import type { Order } from '../../services/orderService';
 
 const KitchenViewPage: React.FC = () => {
   // State
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]); // Filtered orders to display
+  const [allOrders, setAllOrders] = useState<Order[]>([]); // All orders for counting
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(['pending', 'confirmed', 'preparing']);
@@ -31,10 +32,13 @@ const KitchenViewPage: React.FC = () => {
       
       // Fetch all orders and filter client-side for multiple statuses
       const response = await orderService.getAllOrders({});
-      const allOrders = Array.isArray(response.data) ? response.data : [];
+      const fetchedOrders = Array.isArray(response.data) ? response.data : [];
+      
+      // Store all orders for counting
+      setAllOrders(fetchedOrders);
       
       // Filter by selected statuses
-      const filteredOrders = allOrders.filter(order => 
+      const filteredOrders = fetchedOrders.filter(order => 
         selectedStatuses.includes(order.status)
       );
       
@@ -46,8 +50,12 @@ const KitchenViewPage: React.FC = () => {
       setOrders(sortedOrders);
       setLastUpdate(new Date());
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch orders');
-      setOrders([]);
+      // Handle rate limiting gracefully
+      if (err.response?.status === 429) {
+        setError('Too many requests. Please wait a moment before refreshing.');
+      } else {
+        setError(err.message || 'Failed to fetch orders');
+      }
       console.error('Error fetching orders:', err);
     } finally {
       setLoading(false);
@@ -59,13 +67,13 @@ const KitchenViewPage: React.FC = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh every 60 seconds (increased to avoid rate limiting)
   useEffect(() => {
     if (!autoRefresh) return;
 
     const interval = setInterval(() => {
       fetchOrders();
-    }, 30000); // 30 seconds
+    }, 60000); // 60 seconds
 
     return () => clearInterval(interval);
   }, [autoRefresh, fetchOrders]);
@@ -194,7 +202,7 @@ const KitchenViewPage: React.FC = () => {
               <span className="mr-2">{status.icon}</span>
               {status.label}
               <span className="ml-2 font-bold">
-                ({orders.filter(o => o.status === status.value).length})
+                ({allOrders.filter(o => o.status === status.value).length})
               </span>
             </button>
           ))}
@@ -325,7 +333,7 @@ const KitchenViewPage: React.FC = () => {
       {/* Stats Footer */}
       <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
         {kitchenStatuses.map(status => {
-          const count = orders.filter(o => o.status === status.value).length;
+          const count = allOrders.filter(o => o.status === status.value).length;
           return (
             <Card key={status.value} className="text-center">
               <div className="text-3xl mb-1">{status.icon}</div>
