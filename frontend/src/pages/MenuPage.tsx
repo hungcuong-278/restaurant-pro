@@ -74,16 +74,14 @@ const MenuPage: React.FC = () => {
             All Items
           </button>
           {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => handleCategoryClick(category.id)}
+           <button key={category} onClick={() => handleCategoryClick(category)}
               className={`px-6 py-2 rounded-full transition-colors ${
-                selectedCategory === category.id
+                selectedCategory === category
                   ? 'bg-gr-gold text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
-              {category.name}
+              {category}
             </button>
           ))}
         </div>
@@ -100,7 +98,7 @@ const MenuPage: React.FC = () => {
               )}
               
               <div className="grid gap-6 md:grid-cols-2">
-                {section.items.map((item) => (
+                {section.items.map((item: any) => (
                   <div key={item.id} className="border-b border-gray-200 pb-6 last:border-b-0">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -126,12 +124,12 @@ const MenuPage: React.FC = () => {
                         
                         {/* Allergens & Dietary Info */}
                         <div className="flex flex-wrap gap-2 mb-2">
-                          {item.dietary_info?.map((diet) => (
+                          {item.dietary_info?.map((diet: string) => (
                             <span key={diet} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
                               {diet}
                             </span>
                           ))}
-                          {item.allergens?.map((allergen) => (
+                          {item.allergens?.map((allergen: string) => (
                             <span key={allergen} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">
                               Contains {allergen}
                             </span>
@@ -178,3 +176,4 @@ const MenuPage: React.FC = () => {
 };
 
 export default MenuPage;
+
