@@ -47,6 +47,8 @@ const OrderListPage: React.FC = () => {
       if (paymentFilter !== 'all') filters.paymentStatus = paymentFilter;
       
       const response = await orderService.getAllOrders(filters);
+      console.log('Fetched orders:', response);
+      console.log('Orders data:', response.data);
       // Ensure we always set an array
       setOrders(Array.isArray(response.data) ? response.data : []);
     } catch (err: any) {

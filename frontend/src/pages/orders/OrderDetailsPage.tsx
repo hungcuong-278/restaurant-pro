@@ -39,6 +39,8 @@ const OrderDetailsPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await orderService.getOrderById(orderId!);
+      console.log('Fetched order:', response);
+      console.log('Order items:', response.data?.items);
       setOrder(response.data);
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || 'Failed to load order details';
@@ -292,7 +294,7 @@ const OrderDetailsPage: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
                         <h4 className="font-semibold text-gray-900">
-                          {index + 1}. {item.menu_item?.name || 'Item'}
+                          {index + 1}. {item.item_name || item.menu_item?.name || 'Item'}
                         </h4>
                         <span className="text-gray-600 ml-2">× {item.quantity}</span>
                       </div>
@@ -302,12 +304,12 @@ const OrderDetailsPage: React.FC = () => {
                         </p>
                       )}
                       <p className="text-sm text-gray-500 mt-1">
-                        {(item.unit_price || 0).toLocaleString()}đ each
+                        {(item.item_price || item.unit_price || 0).toLocaleString()}đ each
                       </p>
                     </div>
                     <div className="text-right ml-4">
                       <p className="font-bold text-gray-900">
-                        {((item.unit_price || 0) * item.quantity).toLocaleString()}đ
+                        {(item.total_price || (item.item_price || item.unit_price || 0) * item.quantity).toLocaleString()}đ
                       </p>
                     </div>
                   </div>

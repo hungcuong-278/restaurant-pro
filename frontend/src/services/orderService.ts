@@ -5,11 +5,17 @@ const RESTAURANT_ID = '2c88c32a-03ba-4ef3-96e4-f37cf4b165de'; // Golden Fork Res
 // Order Types
 export interface OrderItem {
   id?: string;
+  order_id?: string;
   menu_item_id: string;
+  item_name: string;
+  item_price: number;
   quantity: number;
-  unit_price: number;
-  subtotal?: number;
+  total_price: number;
   special_instructions?: string;
+  status?: string;
+  // Legacy fields (for backward compatibility)
+  unit_price?: number;
+  subtotal?: number;
   menu_item?: {
     id: string;
     name: string;
@@ -22,19 +28,32 @@ export interface OrderItem {
 export interface Order {
   id: string;
   restaurant_id: string;
-  table_id: string;
+  table_id?: string;
+  customer_id?: string;
+  staff_id?: string;
+  order_number: string;
+  order_type: 'dine_in' | 'takeout' | 'delivery';
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
+  subtotal: number;
+  tax_amount: number;
+  discount_amount?: number;
+  tip_amount?: number;
   total_amount: number;
   payment_status: 'unpaid' | 'partial' | 'paid';
+  customer_notes?: string;
+  kitchen_notes?: string;
   special_instructions?: string;
+  ordered_at: string;
   created_at: string;
   updated_at: string;
   items: OrderItem[];
   table?: {
     id: string;
-    table_number: string;
-    capacity: number;
-    status: string;
+    number?: string;
+    table_number?: string;
+    location?: string;
+    capacity?: number;
+    status?: string;
   };
 }
 
@@ -82,37 +101,43 @@ export const orderService = {
       });
     }
     const url = `/restaurants/${RESTAURANT_ID}/orders${params.toString() ? `?${params.toString()}` : ''}`;
-    return api.get(url);
+    const response = await api.get(url);
+    return response.data;
   },
 
   // Get single order by ID
   getOrderById: async (orderId: string): Promise<OrderResponse> => {
     const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}`;
-    return api.get(url);
+    const response = await api.get(url);
+    return response.data;
   },
 
   // Create new order
   createOrder: async (orderData: CreateOrderRequest): Promise<OrderResponse> => {
     const url = `/restaurants/${RESTAURANT_ID}/orders`;
-    return api.post(url, orderData);
+    const response = await api.post(url, orderData);
+    return response.data;
   },
 
   // Update order
   updateOrder: async (orderId: string, orderData: Partial<CreateOrderRequest>): Promise<OrderResponse> => {
     const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}`;
-    return api.patch(url, orderData);
+    const response = await api.patch(url, orderData);
+    return response.data;
   },
 
   // Update order status
   updateOrderStatus: async (orderId: string, status: string): Promise<OrderResponse> => {
     const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}/status`;
-    return api.patch(url, { status });
+    const response = await api.patch(url, { status });
+    return response.data;
   },
 
   // Delete order
   deleteOrder: async (orderId: string): Promise<{ success: boolean; message: string }> => {
     const url = `/restaurants/${RESTAURANT_ID}/orders/${orderId}`;
-    return api.delete(url);
+    const response = await api.delete(url);
+    return response.data;
   },
 
   // Add item to order

@@ -205,20 +205,18 @@ const NewOrderPage: React.FC = () => {
       const response = await orderService.createOrder(orderData);
 
       console.log('Order created successfully:', response);
+      console.log('Order data:', response.data);
+      console.log('Order items:', response.data?.items);
 
       // Show success toast
       showSuccess('Order created successfully! Redirecting to order details...');
 
       // Success! Navigate to order details
-      // Axios AxiosResponse<OrderResponse> -> response.data = OrderResponse -> response.data.data = Order
-      const orderResponse = response as any; // Type assertion to handle axios response
-      if (orderResponse.data?.data?.id) {
-        navigate(`/orders/${orderResponse.data.data.id}`);
-      } else if (orderResponse.data?.id) {
-        // Fallback if response structure is different
-        navigate(`/orders/${orderResponse.data.id}`);
+      // response = OrderResponse { success: true, data: Order }
+      if (response.data?.id) {
+        navigate(`/orders/${response.data.id}`);
       } else {
-        console.error('Order created but no ID returned:', orderResponse);
+        console.error('Order created but no ID returned:', response);
         showError('Order created but unable to view details');
         setError('Order created but unable to view details');
       }
