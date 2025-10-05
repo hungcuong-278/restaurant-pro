@@ -378,7 +378,11 @@ const OrderListPage: React.FC = () => {
                         Order #{order.id}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Table {order.table?.table_number || 'N/A'}
+                        {order.order_type === 'dine_in' ? '🍽️ Dine In' : 
+                         order.order_type === 'takeout' ? '🥡 Takeout' : 
+                         order.order_type === 'delivery' ? '🚚 Delivery' : 
+                         'Order'}
+                        {order.order_type === 'dine_in' && ` - Table ${order.table?.table_number || 'N/A'}`}
                       </p>
                     </div>
                     <Badge status={order?.status || 'pending'} />

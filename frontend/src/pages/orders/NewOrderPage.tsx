@@ -580,7 +580,7 @@ const NewOrderPage: React.FC = () => {
                   {/* Submit Button */}
                   <Button
                     onClick={handleSubmitOrder}
-                    disabled={!selectedTable || cart.length === 0 || submitting}
+                    disabled={(orderType === 'dine_in' && !selectedTable) || cart.length === 0 || submitting}
                     className="w-full mt-6"
                     size="lg"
                   >
