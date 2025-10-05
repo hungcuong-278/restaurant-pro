@@ -1,6 +1,5 @@
 // Payment Methods Component - Select Cash/Card (at store) or Bank Transfer/E-wallet (online)
 import React from 'react';
-import Card from '../common/Card';
 
 export type PaymentMethod = 'cash' | 'credit_card' | 'bank_transfer' | 'e_wallet';
 
