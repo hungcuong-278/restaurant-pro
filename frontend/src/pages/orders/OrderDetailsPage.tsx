@@ -5,6 +5,7 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import ErrorState from '../../components/common/ErrorState';
 import OrderStatusManager from '../../components/orders/OrderStatusManager';
 import PaymentModal from '../../components/orders/PaymentModal';
 import PaymentHistory from '../../components/orders/PaymentHistory';
@@ -133,12 +134,16 @@ const OrderDetailsPage: React.FC = () => {
   if (error || !order) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error || 'Order not found'}
+        <ErrorState
+          title={error ? 'Failed to load order' : 'Order not found'}
+          message={error || 'The requested order could not be found'}
+          onRetry={error ? fetchOrderDetails : undefined}
+        />
+        <div className="mt-6">
+          <Button onClick={() => navigate('/orders')}>
+            ← Back to Orders
+          </Button>
         </div>
-        <Button onClick={() => navigate('/orders')}>
-          ← Back to Orders
-        </Button>
       </div>
     );
   }

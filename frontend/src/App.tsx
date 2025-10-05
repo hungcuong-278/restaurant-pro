@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
 import { ToastProvider } from './contexts/ToastContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LoginNotification from './components/LoginNotification';
@@ -26,13 +27,14 @@ import './styles/index.css';
 
 const App: React.FC = () => {
   return (
-    <Provider store={store}>
-      <ToastProvider>
-        <Router>
-          <div className="min-h-screen bg-white">
-            <Header />
-            <LoginNotification />
-            <main className="flex-1">
+    <ErrorBoundary>
+      <Provider store={store}>
+        <ToastProvider>
+          <Router>
+            <div className="min-h-screen bg-white">
+              <Header />
+              <LoginNotification />
+              <main className="flex-1">
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<HomePage />} />
@@ -63,8 +65,9 @@ const App: React.FC = () => {
           <Footer />
         </div>
       </Router>
-      </ToastProvider>
-    </Provider>
+        </ToastProvider>
+      </Provider>
+    </ErrorBoundary>
   );
 };
 

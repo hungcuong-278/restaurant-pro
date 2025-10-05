@@ -6,6 +6,8 @@ import Badge from '../../components/common/Badge';
 import Spinner from '../../components/common/Spinner';
 import Input from '../../components/common/Input';
 import OrderListSkeleton from '../../components/common/OrderListSkeleton';
+import ErrorState from '../../components/common/ErrorState';
+import EmptyState from '../../components/common/EmptyState';
 import { orderService } from '../../services/orderService';
 import type { Order } from '../../services/orderService';
 import { useToast } from '../../contexts/ToastContext';
@@ -299,38 +301,31 @@ const OrderListPage: React.FC = () => {
         )}
       </Card>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-          <p className="font-semibold">Error</p>
-          <p>{error}</p>
-        </div>
+      {/* Error State */}
+      {error && !loading && (
+        <ErrorState
+          message={error}
+          onRetry={fetchOrders}
+        />
       )}
 
       {/* Loading State */}
       {loading && <OrderListSkeleton />}
 
       {/* Empty State */}
-      {!loading && filteredOrders.length === 0 && (
-        <Card>
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders found</h3>
-            <p className="text-gray-600 mb-4">
-              {searchQuery || statusFilter !== 'all' || paymentFilter !== 'all'
-                ? 'Try adjusting your filters'
-                : 'Create your first order to get started'}
-            </p>
-            {!searchQuery && statusFilter === 'all' && paymentFilter === 'all' && (
-              <Button 
-                variant="primary"
-                onClick={() => navigate('/orders/new')}
-              >
-                + Create First Order
-              </Button>
-            )}
-          </div>
-        </Card>
+      {!loading && !error && filteredOrders.length === 0 && (
+        <EmptyState
+          icon="📋"
+          title="No orders found"
+          description={
+            searchQuery || statusFilter !== 'all' || paymentFilter !== 'all'
+              ? 'Try adjusting your filters to see more results'
+              : 'Create your first order to get started'
+          }
+          actionText={(!searchQuery && statusFilter === 'all' && paymentFilter === 'all') ? '+ Create First Order' : undefined}
+          onAction={(!searchQuery && statusFilter === 'all' && paymentFilter === 'all') ? () => navigate('/orders/new') : undefined}
+          variant={searchQuery || statusFilter !== 'all' || paymentFilter !== 'all' ? 'search' : 'default'}
+        />
       )}
 
       {/* Orders Grid */}

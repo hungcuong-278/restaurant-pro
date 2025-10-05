@@ -4,6 +4,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Spinner from '../../components/common/Spinner';
 import Input from '../../components/common/Input';
+import EmptyState from '../../components/common/EmptyState';
 import TableListSkeleton from '../../components/common/TableListSkeleton';
 import MenuItemsSkeleton from '../../components/common/MenuItemsSkeleton';
 import { orderService } from '../../services/orderService';
@@ -486,11 +487,11 @@ const NewOrderPage: React.FC = () => {
 
               {/* Cart Items */}
               {cart.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-2">🛒</div>
-                  <p className="text-gray-500">Cart is empty</p>
-                  <p className="text-sm text-gray-400 mt-1">Add items from menu</p>
-                </div>
+                <EmptyState
+                  icon="🛒"
+                  title="Cart is Empty"
+                  description="Browse the menu and add items to your cart to get started"
+                />
               ) : (
                 <div className="space-y-4">
                   {cart.map((item) => (

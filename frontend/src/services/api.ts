@@ -1,4 +1,5 @@
 import axios, { AxiosResponse, AxiosError } from 'axios';
+import { setupAxiosRetry } from '../utils/retry';
 
 // API Base configuration
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -9,6 +10,20 @@ const api = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+  },
+});
+
+// Setup automatic retry with exponential backoff
+setupAxiosRetry(api, {
+  maxRetries: 2,
+  retryDelay: 1000,
+  shouldRetry: (error) => {
+    // Retry on network errors or 5xx server errors
+    if (!error.response) return true; // Network error
+    const status = error.response.status;
+    // Don't retry on 4xx errors (client errors) except 429 (rate limit)
+    if (status >= 400 && status < 500 && status !== 429) return false;
+    return status >= 500 || status === 429;
   },
 });
 
