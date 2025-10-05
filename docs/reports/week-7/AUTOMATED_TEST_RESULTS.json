@@ -1,0 +1,67 @@
+{
+  "timestamp": "2025-10-05T11:09:57.432Z",
+  "duration": "60 minutes",
+  "results": {
+    "total": 10,
+    "passed": 6,
+    "failed": 4,
+    "tests": [
+      {
+        "name": "Health Check",
+        "status": "PASS",
+        "message": "Server is undefined"
+      },
+      {
+        "name": "Get Tables",
+        "status": "PASS",
+        "message": "Found 4 tables",
+        "data": [
+          "P001: undefined",
+          "T001: undefined",
+          "T002: undefined",
+          "T003: undefined"
+        ]
+      },
+      {
+        "name": "Get Menu",
+        "status": "FAIL",
+        "error": "items.slice is not a function"
+      },
+      {
+        "name": "Get Orders",
+        "status": "PASS",
+        "message": "Found 20 orders"
+      },
+      {
+        "name": "Create Dine-in Order (Professional Table Name)",
+        "status": "FAIL",
+        "error": "Cannot read properties of undefined (reading 'id')"
+      },
+      {
+        "name": "Create Takeout Order (No \"undefined\")",
+        "status": "FAIL",
+        "error": "Cannot read properties of undefined (reading 'id')"
+      },
+      {
+        "name": "Update Order Status (Kitchen Workflow)",
+        "status": "FAIL",
+        "error": "Cannot read properties of undefined (reading 'id')"
+      },
+      {
+        "name": "Search Orders by Table Name",
+        "status": "PASS",
+        "message": "Search \"Château\" found 20 orders"
+      },
+      {
+        "name": "Verify Professional Table Names",
+        "status": "PASS",
+        "message": "All 4 professional table names verified: Le Château, Roma Intima, The Velvet Rose, The Windsor Room"
+      },
+      {
+        "name": "No \"undefined\" in Order Responses",
+        "status": "PASS",
+        "message": "Checked 20 orders - No \"undefined\" strings found ✅"
+      }
+    ]
+  }
+}
