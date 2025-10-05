@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000/api';
-// RESTAURANT_ID not needed - backend menu routes are global (/api/menu/items)
+const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
 
 export interface MenuItem {
   id: string;
@@ -60,16 +60,22 @@ const menuService = {
   async getMenuItems(filters?: MenuFilters): Promise<MenuItem[]> {
     try {
       const params = new URLSearchParams();
+      // Always include restaurant_id
+      params.append('restaurant_id', RESTAURANT_ID);
+      // Add high limit to get all items
+      params.append('limit', '100');
+      
       if (filters?.category) params.append('category', filters.category);
-      if (filters?.is_available !== undefined) params.append('is_available', filters.is_available.toString());
+      if (filters?.is_available !== undefined) params.append('available', filters.is_available.toString());
       if (filters?.search) params.append('search', filters.search);
 
-      const queryString = params.toString();
-      const url = `${API_BASE_URL}/menu/items${queryString ? `?${queryString}` : ''}`;
+      const url = `${API_BASE_URL}/menu/items?${params.toString()}`;
       
       const response = await axios.get(url);
-      // Backend returns { success: true, data: [...] }
-      return response.data.data || response.data;
+      // Backend returns { success: true, data: { items: [...], pagination: {...} } }
+      const data = response.data.data || response.data;
+      // Extract items array from nested structure
+      return data.items || data;
     } catch (error) {
       console.error('Error fetching menu items:', error);
       throw error;
