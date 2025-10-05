@@ -9,6 +9,11 @@ export interface OrderItem {
   id: string;
   menu_item_id: string;
   menu_item_name?: string;
+  menu_item?: {
+    id: string;
+    name: string;
+    price: number;
+  };
   quantity: number;
   unit_price: number;
   subtotal: number;

@@ -12,6 +12,9 @@ export interface MenuItem {
   price: number;
   image_url?: string;
   is_available: boolean;
+  is_featured?: boolean;
+  dietary_info?: string[];
+  allergens?: string[];
   preparation_time?: number;
   created_at: string;
   updated_at: string;
