@@ -110,7 +110,7 @@ const NewOrderPage: React.FC = () => {
       navigate('/payment', {
         state: {
           orderId: createdOrder.id,
-          orderNumber: createdOrder.order_number || `ORD-${createdOrder.id.slice(0, 8)}`,
+          orderNumber: createdOrder.order_number || (createdOrder.id ? `ORD-${createdOrder.id.slice(0, 8)}` : 'ORD-TEMP'),
           amount: Math.round(totalAmount * 100), // Convert to cents/đồng
           tableNumber: selectedTableNumber,
           items: cartItems.map(item => ({

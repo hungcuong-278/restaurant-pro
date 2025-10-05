@@ -137,7 +137,8 @@ const orderService = {
         `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders`,
         orderData
       );
-      return response.data;
+      // Backend returns { success: true, data: {...} }
+      return response.data.data || response.data;
     } catch (error) {
       console.error('Error creating order:', error);
       throw error;
