@@ -31,19 +31,19 @@ const KitchenViewPage: React.FC = () => {
       setError(null);
       
       // Fetch all orders and filter client-side for multiple statuses
-      const response = await orderService.getAllOrders({});
-      const fetchedOrders = Array.isArray(response.data) ? response.data : [];
+      const response = await orderService.getOrders({});
+      const fetchedOrders = Array.isArray(response) ? response : [];
       
       // Store all orders for counting
       setAllOrders(fetchedOrders);
       
       // Filter by selected statuses
-      const filteredOrders = fetchedOrders.filter(order => 
+      const filteredOrders = fetchedOrders.filter((order: Order) => 
         selectedStatuses.includes(order.status)
       );
       
       // Sort by created_at (oldest first - most urgent)
-      const sortedOrders = filteredOrders.sort((a, b) => 
+      const sortedOrders = filteredOrders.sort((a: Order, b: Order) => 
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
       
@@ -89,7 +89,7 @@ const KitchenViewPage: React.FC = () => {
   };
 
   // Update order status - Optimized to update local state instead of refetching
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     try {
       await orderService.updateOrderStatus(orderId, newStatus);
       
@@ -253,7 +253,7 @@ const KitchenViewPage: React.FC = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900">
-                      {order.order_type === 'dine_in' ? `🍽️ ${order.table?.location || `Table ${order.table?.table_number}` || 'N/A'}` : 
+                      {order.order_type === 'dine-in' ? `🍽️ ${order.table?.location || `Table ${order.table?.table_number}` || 'N/A'}` : 
                        order.order_type === 'takeout' ? '🥡 Takeout' : 
                        order.order_type === 'delivery' ? '🚚 Delivery' : 
                        'Order'}
@@ -364,3 +364,5 @@ const KitchenViewPage: React.FC = () => {
 };
 
 export default KitchenViewPage;
+
+

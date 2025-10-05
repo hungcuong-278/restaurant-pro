@@ -82,7 +82,7 @@ export const deleteCategory = createAsyncThunk(
 
 export const createMenuItem = createAsyncThunk(
   'menu/createMenuItem',
-  async (item: Omit<MenuItem, 'id' | 'created_at' | 'updated_at' | 'category'>, { rejectWithValue }) => {
+  async (item: Omit<MenuItem, 'id' | 'created_at' | 'updated_at'> & { category: string }), { rejectWithValue }) => {
     try {
       return await menuService.createMenuItem(item);
     } catch (error: any) {
@@ -154,8 +154,6 @@ const initialState: MenuState = {
   currentMenuItem: null,
   pagination: null,
   filters: {
-    page: 1,
-    limit: 10,
     available: true
   },
   isLoading: false,
@@ -208,8 +206,8 @@ const menuSlice = createSlice({
       })
       .addCase(fetchMenuItems.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.menuItems = action.payload.items;
-        state.pagination = action.payload.pagination;
+        state.menuItems = action.payload;
+        // state.pagination = action.payload;
       })
       .addCase(fetchMenuItems.rejected, (state, action) => {
         state.isLoading = false;
@@ -269,7 +267,7 @@ const menuSlice = createSlice({
       })
       .addCase(updateCategory.fulfilled, (state, action) => {
         state.isSaving = false;
-        const index = state.categories.findIndex(cat => cat.id === action.payload.id);
+        const index = state.categories.findIndex((cat: any) => cat.id === action.payload.id);
         if (index !== -1) {
           state.categories[index] = action.payload;
         }
@@ -287,7 +285,7 @@ const menuSlice = createSlice({
       })
       .addCase(deleteCategory.fulfilled, (state, action) => {
         state.isSaving = false;
-        state.categories = state.categories.filter(cat => cat.id !== action.payload);
+        state.categories = state.categories.filter((cat: any) => cat.id !== action.payload);
       })
       .addCase(deleteCategory.rejected, (state, action) => {
         state.isSaving = false;
@@ -371,3 +369,6 @@ export const {
 } = menuSlice.actions;
 
 export default menuSlice.reducer;
+
+
+

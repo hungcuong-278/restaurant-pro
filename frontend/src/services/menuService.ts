@@ -46,6 +46,14 @@ export interface MenuFilters {
   search?: string;
 }
 
+// Stub type for Redux compatibility (not used in Phase 3)
+export interface MenuCategory {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const menuService = {
   // Get all menu items
   async getMenuItems(filters?: MenuFilters): Promise<MenuItem[]> {
@@ -134,6 +142,32 @@ const menuService = {
       console.error('Error fetching categories:', error);
       throw error;
     }
+  },
+
+  // Stub methods for Redux compatibility (not fully implemented in Phase 3)
+  async getFullMenu(): Promise<any> {
+    return this.getMenuItems();
+  },
+
+  async getFeaturedItems(limit: number = 6): Promise<MenuItem[]> {
+    const items = await this.getMenuItems({ is_available: true });
+    return items.filter(item => item.is_featured).slice(0, limit);
+  },
+
+  async createCategory(category: Omit<MenuCategory, 'id' | 'created_at' | 'updated_at'>): Promise<MenuCategory> {
+    throw new Error('Category management not implemented');
+  },
+
+  async updateCategory(id: string, updates: Partial<MenuCategory>): Promise<MenuCategory> {
+    throw new Error('Category management not implemented');
+  },
+
+  async deleteCategory(id: string): Promise<void> {
+    throw new Error('Category management not implemented');
+  },
+
+  async toggleItemAvailability(id: string): Promise<MenuItem> {
+    return this.updateMenuItem(id, { is_available: true });
   },
 };
 

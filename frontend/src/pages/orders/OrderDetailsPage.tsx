@@ -28,7 +28,7 @@ const OrderDetailsPage: React.FC = () => {
       setOrder({
         id: orderId || '15ec68bf',
         order_number: 'ORD-20251005-001',
-        order_type: 'dine_in',
+        order_type: 'dine-in',
         table_number: 'T001',
         customer_name: 'Customer Name',
         total_amount: 14.09,

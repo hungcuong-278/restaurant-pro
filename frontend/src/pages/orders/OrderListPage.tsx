@@ -51,11 +51,11 @@ const OrderListPage: React.FC = () => {
       if (statusFilter !== 'all') filters.status = statusFilter;
       if (paymentFilter !== 'all') filters.paymentStatus = paymentFilter;
       
-      const response = await orderService.getAllOrders(filters);
+      const response = await orderService.getOrders(filters);
       console.log('Fetched orders:', response);
       console.log('Orders data:', response.data);
       // Ensure we always set an array
-      setOrders(Array.isArray(response.data) ? response.data : []);
+      setOrders(Array.isArray(response) ? response : []);
     } catch (err: any) {
       // Graceful handling of rate limiting
       if (err.response?.status === 429) {
@@ -133,7 +133,7 @@ const OrderListPage: React.FC = () => {
       
       // Update each order
       const promises = Array.from(selectedOrders).map(orderId =>
-        orderService.updateOrderStatus(orderId, bulkStatus)
+        orderService.updateOrderStatus(orderId, bulkStatus as Order['status'])
       );
       
       await Promise.all(promises);
@@ -202,7 +202,7 @@ const OrderListPage: React.FC = () => {
         <Button 
           variant="primary"
           onClick={() => navigate('/orders/new')}
-          icon="+"
+          
           className="w-full sm:w-auto"
         >
           New Order
@@ -389,11 +389,11 @@ const OrderListPage: React.FC = () => {
                         Order #{order.id}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        {order.order_type === 'dine_in' ? '🍽️ Dine In' : 
+                        {order.order_type === 'dine-in' ? '🍽️ Dine In' : 
                          order.order_type === 'takeout' ? '🥡 Takeout' : 
                          order.order_type === 'delivery' ? '🚚 Delivery' : 
                          'Order'}
-                        {order.order_type === 'dine_in' && ` - ${order.table?.location || `Table ${order.table?.table_number}` || 'N/A'}`}
+                        {order.order_type === 'dine-in' && ` - ${order.table?.location || `Table ${order.table?.table_number}` || 'N/A'}`}
                       </p>
                     </div>
                     <Badge status={order?.status || 'pending'} />
@@ -475,4 +475,5 @@ const OrderListPage: React.FC = () => {
 };
 
 export default OrderListPage;
+
 
