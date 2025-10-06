@@ -1,19 +1,13 @@
 // Export all services
-export { default as api, API_BASE_URL } from './api';
-export * from './authService';
-export * from './restaurantService';
-export * from './healthService';
+export { default as authService } from './authService';
 
-// Re-export commonly used interfaces
+// Export types from auth
 export type {
   User,
-  LoginCredentials,
-  RegisterData,
   AuthResponse,
-} from './authService';
-
-export type {
-  Restaurant,
-  MenuItem,
-  Reservation,
-} from './restaurantService';
+  AuthState,
+  AuthContextType,
+  LoginFormData,
+  RegisterFormData,
+  FormErrors
+} from '../types/auth';
