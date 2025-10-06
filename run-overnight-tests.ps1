@@ -59,17 +59,17 @@ function Run-TestSuite {
         $output | ForEach-Object { Add-Content -Path $logFile -Value $_ }
         
         if ($exitCode -eq 0) {
-            Log-Message "✅ $Name PASSED (${duration}s)" "Green"
+            Log-Message "$Name PASSED (${duration}s)" "Green"
             return @{ Success = $true; Duration = $duration; Name = $Name }
         } else {
-            Log-Message "❌ $Name FAILED (${duration}s) - Exit Code: $exitCode" "Red"
+            Log-Message "$Name FAILED (${duration}s) - Exit Code: $exitCode" "Red"
             return @{ Success = $false; Duration = $duration; Name = $Name; ExitCode = $exitCode }
         }
     }
     catch {
         $testEnd = Get-Date
         $duration = ($testEnd - $testStart).TotalSeconds
-        Log-Message "❌ $Name ERRORED (${duration}s) - $_" "Red"
+        Log-Message "$Name ERRORED (${duration}s) - $_" "Red"
         return @{ Success = $false; Duration = $duration; Name = $Name; Error = $_.Exception.Message }
     }
     finally {
@@ -81,45 +81,45 @@ function Run-TestSuite {
 $results = @()
 
 # 1. Backend Service Unit Tests
-Log-Message "`n🔬 Phase 1: Backend Service Unit Tests" "Yellow"
+Log-Message "`nPhase 1: Backend Service Unit Tests" "Yellow"
 $results += Run-TestSuite `
     -Name "Backend Service Tests" `
     -Command "npm test -- --testPathPattern=services --coverage --coverageDirectory=coverage/services" `
     -WorkDir "backend"
 
 # 2. Backend API Integration Tests
-Log-Message "`n🌐 Phase 2: Backend API Integration Tests" "Yellow"
+Log-Message "`nPhase 2: Backend API Integration Tests" "Yellow"
 $results += Run-TestSuite `
     -Name "Backend API Tests" `
     -Command "npm test -- --testPathPattern=api --coverage --coverageDirectory=coverage/api" `
     -WorkDir "backend"
 
 # 3. Backend All Tests with Full Coverage
-Log-Message "`n📊 Phase 3: Backend Full Test Suite" "Yellow"
+Log-Message "`nPhase 3: Backend Full Test Suite" "Yellow"
 $results += Run-TestSuite `
     -Name "Backend All Tests" `
     -Command "npm test -- --coverage --coverageDirectory=coverage/all" `
     -WorkDir "backend"
 
 # 4. Frontend Component Tests
-Log-Message "`n⚛️ Phase 4: Frontend Component Tests" "Yellow"
+Log-Message "`nPhase 4: Frontend Component Tests" "Yellow"
 $results += Run-TestSuite `
     -Name "Frontend Component Tests" `
     -Command "npm test -- --coverage --watchAll=false" `
     -WorkDir "frontend"
 
 # 5. Database Verification
-Log-Message "`n🗄️ Phase 5: Database Schema Verification" "Yellow"
+Log-Message "`nPhase 5: Database Schema Verification" "Yellow"
 try {
     Push-Location backend
     $dbOutput = npx ts-node verify-database-schema.ts 2>&1
     $dbOutput | ForEach-Object { Add-Content -Path $logFile -Value $_ }
-    Log-Message "✅ Database schema verified" "Green"
+    Log-Message "Database schema verified" "Green"
     $results += @{ Success = $true; Name = "Database Schema Check"; Duration = 2 }
     Pop-Location
 }
 catch {
-    Log-Message "⚠️ Database schema check skipped or failed: $_" "Yellow"
+    Log-Message "Database schema check skipped or failed: $_" "Yellow"
     $results += @{ Success = $false; Name = "Database Schema Check"; Duration = 0; Error = $_.Exception.Message }
 }
 
