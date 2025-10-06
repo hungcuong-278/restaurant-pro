@@ -77,7 +77,7 @@ export interface TableAvailability {
 export type ReservationStatus = 'pending' | 'confirmed' | 'seated' | 'completed' | 'cancelled' | 'no_show';
 
 // Booking steps for multi-step form
-export type BookingStep = 'datetime' | 'table' | 'details' | 'confirmation';
+export type BookingStep = 'datetime' | 'table' | 'details' | 'review' | 'confirmation';
 
 // Reservation constraints
 export const RESERVATION_CONSTRAINTS = {
@@ -87,6 +87,8 @@ export const RESERVATION_CONSTRAINTS = {
   MAX_ADVANCE_DAYS: 90,
   BOOKING_DURATION_MINUTES: 120,
   CANCELLATION_DEADLINE_HOURS: 4,
+  EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  PHONE_PATTERN: /^[+]?[\d\s\-()]{10,20}$/,
 };
 
 // Business hours configuration
@@ -94,6 +96,10 @@ export const DEFAULT_BUSINESS_HOURS = {
   OPEN_TIME: '11:00',
   CLOSE_TIME: '21:00',
   TIME_SLOT_MINUTES: 30,
+  // Aliases for compatibility
+  open: '11:00',
+  close: '21:00',
+  timeSlotInterval: 30,
 };
 
 // Status colors for UI

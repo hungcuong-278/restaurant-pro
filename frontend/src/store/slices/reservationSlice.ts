@@ -144,21 +144,6 @@ export const checkAvailability = createAsyncThunk(
   }
 );
 
-/**
- * Check table availability
- */
-export const checkAvailability = createAsyncThunk(
-  'reservation/checkAvailability',
-  async (params: { date: string; time: string; party_size: number }, { rejectWithValue }) => {
-    try {
-      const response = await reservationService.checkAvailability(params);
-      return response;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to check availability');
-    }
-  }
-);
-
 const reservationSlice = createSlice({
   name: 'reservation',
   initialState,
