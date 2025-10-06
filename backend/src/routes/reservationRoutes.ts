@@ -18,6 +18,7 @@ router.post('/', reservationController.createReservation);
  * @route   GET /api/reservations/my
  * @desc    Get current user's reservations
  * @access  Private (authenticated users)
+ * @note    Specific routes MUST come before parametric routes
  */
 router.get('/my', reservationController.getMyReservations);
 
@@ -25,6 +26,7 @@ router.get('/my', reservationController.getMyReservations);
  * @route   GET /api/reservations/available-tables
  * @desc    Check table availability
  * @access  Private (authenticated users)
+ * @note    Specific routes MUST come before parametric routes
  */
 router.get('/available-tables', reservationController.checkAvailability);
 
@@ -39,6 +41,7 @@ router.get('/', reservationController.getAllReservations);
  * @route   GET /api/reservations/:id
  * @desc    Get single reservation by ID
  * @access  Private (owner or staff/admin)
+ * @note    Parametric route MUST be LAST to avoid matching specific routes
  */
 router.get('/:id', reservationController.getReservationById);
 

@@ -61,11 +61,24 @@ class ReservationService {
         restaurantId = defaultRestaurant?.id;
       }
 
+      // Format date to YYYY-MM-DD for consistency
+      let formattedDate: string;
+      const dateValue = data.reservation_date as any;
+      if (dateValue instanceof Date) {
+        formattedDate = dateValue.toISOString().split('T')[0];
+      } else if (typeof dateValue === 'string') {
+        formattedDate = dateValue.includes('T') 
+          ? dateValue.split('T')[0] 
+          : dateValue;
+      } else {
+        formattedDate = String(dateValue);
+      }
+
       // Check if table is available (if table_id provided)
       if (data.table_id) {
         const isAvailable = await this.isTableAvailable(
           data.table_id,
-          data.reservation_date,
+          formattedDate,
           data.reservation_time
         );
 
@@ -86,7 +99,7 @@ class ReservationService {
         customer_email: data.customer_email.toLowerCase().trim(),
         customer_phone: data.customer_phone?.trim() || null,
         party_size: data.party_size,
-        reservation_date: data.reservation_date,
+        reservation_date: formattedDate,
         reservation_time: data.reservation_time,
         status: 'pending',
         special_requests: data.special_requests?.trim() || null,
@@ -100,7 +113,7 @@ class ReservationService {
         .where('reservations.id', reservationId)
         .select(
           'reservations.*',
-          'tables.table_number',
+          'tables.number as table_number',
           'tables.capacity',
           'tables.location'
         )
@@ -134,7 +147,7 @@ class ReservationService {
         .orderBy('reservations.reservation_time', 'desc')
         .select(
           'reservations.*',
-          'tables.table_number',
+          'tables.number as table_number',
           'tables.capacity',
           'tables.location',
           'restaurants.name as restaurant_name'
@@ -193,7 +206,7 @@ class ReservationService {
         .orderBy('reservations.reservation_time', 'desc')
         .select(
           'reservations.*',
-          'tables.table_number',
+          'tables.number as table_number',
           'tables.capacity',
           'tables.location',
           'restaurants.name as restaurant_name',
@@ -229,7 +242,7 @@ class ReservationService {
         .where('reservations.id', id)
         .select(
           'reservations.*',
-          'tables.table_number',
+          'tables.number as table_number',
           'tables.capacity',
           'tables.location',
           'restaurants.name as restaurant_name'
@@ -354,7 +367,7 @@ class ReservationService {
         .where('reservations.id', id)
         .select(
           'reservations.*',
-          'tables.table_number',
+          'tables.number as table_number',
           'tables.capacity',
           'tables.location'
         )
@@ -454,7 +467,8 @@ class ReservationService {
       const availableTables = await db('tables')
         .where('restaurant_id', restaurantId)
         .where('capacity', '>=', params.party_size)
-        .where('is_available', true)
+        .where('status', 'available')
+        .where('is_active', true)
         .whereNotExists(function() {
           this.select('*')
             .from('reservations')

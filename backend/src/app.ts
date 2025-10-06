@@ -72,8 +72,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/debug', debugRoutes);
 
-// Global reservation routes (no restaurant context needed)
-app.use('/api/reservations', globalReservationRoutes);
+// Reservation routes - use main reservationRoutes
+app.use('/api/reservations', reservationRoutes);
+
+// Global reservation routes commented out to avoid route conflict
+// app.use('/api/reservations', globalReservationRoutes);
 
 // Restaurant-specific routes - mount directly with full path
 app.use('/api/restaurants/:restaurantId/tables', tableRoutes);
