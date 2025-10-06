@@ -127,3 +127,83 @@ class ReservationService {
 }
 
 export default new ReservationService();
+
+// ===== UTILITY FUNCTIONS =====
+
+/**
+ * Generate time slots for booking
+ */
+export const generateTimeSlots = (
+  openTime: string = '11:00',
+  closeTime: string = '21:00',
+  intervalMinutes: number = 30
+): string[] => {
+  const slots: string[] = [];
+  const [openHour, openMin] = openTime.split(':').map(Number);
+  const [closeHour, closeMin] = closeTime.split(':').map(Number);
+  
+  let currentMinutes = openHour * 60 + openMin;
+  const endMinutes = closeHour * 60 + closeMin;
+  
+  while (currentMinutes <= endMinutes) {
+    const hours = Math.floor(currentMinutes / 60);
+    const mins = currentMinutes % 60;
+    slots.push(`${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`);
+    currentMinutes += intervalMinutes;
+  }
+  
+  return slots;
+};
+
+/**
+ * Check if date is in the past
+ */
+export const isPastDate = (date: string): boolean => {
+  const selectedDate = new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return selectedDate < today;
+};
+
+/**
+ * Check if booking is too soon (less than 2 hours)
+ */
+export const isTooSoon = (date: string, time: string): boolean => {
+  const bookingDateTime = new Date(`${date}T${time}`);
+  const now = new Date();
+  const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+  return bookingDateTime < twoHoursFromNow;
+};
+
+/**
+ * Check if booking is too far ahead (more than 90 days)
+ */
+export const isTooFarAhead = (date: string): boolean => {
+  const selectedDate = new Date(date);
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 90);
+  return selectedDate > maxDate;
+};
+
+/**
+ * Format date for display (e.g., "Monday, October 15, 2025")
+ */
+export const formatDateForDisplay = (date: string): string => {
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+/**
+ * Format time for display (e.g., "7:00 PM")
+ */
+export const formatTimeForDisplay = (time: string): string => {
+  const [hours, minutes] = time.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+};
