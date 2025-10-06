@@ -5,6 +5,7 @@ import {
   ReservationResponse,
   AvailabilityResponse
 } from '../types/reservation';
+import { AUTH_STORAGE_KEYS } from '../types/auth';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -19,7 +20,7 @@ const reservationApi = axios.create({
 // Add auth token to requests
 reservationApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -126,7 +127,8 @@ class ReservationService {
   }
 }
 
-export default new ReservationService();
+const reservationService = new ReservationService();
+export default reservationService;
 
 // ===== UTILITY FUNCTIONS =====
 
