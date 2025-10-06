@@ -54,7 +54,7 @@ const ReservationSummary: React.FC<ReservationSummaryProps> = ({
   isLoading = false,
   disabled = false,
 }) => {
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(true);
 
   // Format duration for display
   const formatDuration = (minutes: number): string => {
@@ -67,12 +67,7 @@ const ReservationSummary: React.FC<ReservationSummaryProps> = ({
   };
 
   // Handle confirm
-  const handleConfirm = () => {
-    if (!acceptedTerms) {
-      alert('Please accept the terms and conditions to continue');
-      return;
-    }
-    onConfirm();
+  const handleConfirm = () => { onConfirm(); 
   };
 
   return (
@@ -272,10 +267,10 @@ const ReservationSummary: React.FC<ReservationSummaryProps> = ({
       <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={handleConfirm}
-          disabled={disabled || isLoading || !acceptedTerms}
+          disabled={disabled || isLoading}
           className={`
             flex-1 px-8 py-4 rounded-none font-bold uppercase tracking-wide transition-all duration-300
-            ${acceptedTerms && !disabled && !isLoading
+            ${!disabled && !isLoading
               ? 'bg-gr-gold text-white hover:bg-opacity-90 hover:shadow-lg'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }

@@ -16,6 +16,7 @@ import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/admin/DashboardPage';
+import SimpleReservationPage from './pages/reservations/SimpleReservationPage';
 import ReservationPage from './pages/reservations/ReservationPage';
 import BookingConfirmationPage from './pages/reservations/BookingConfirmationPage';
 import MyReservationsPage from './pages/reservations/MyReservationsPage';
@@ -52,6 +53,7 @@ const App: React.FC = () => {
               <Route path="/register" element={<RegisterPage />} />
               
               {/* Reservation Routes */}
+              <Route path="/reservations" element={<SimpleReservationPage />} />
               <Route path="/reservations/new" element={<ReservationPage />} />
               <Route path="/reservations/confirmation/:reservationId" element={<BookingConfirmationPage />} />
               <Route path="/reservations/my-reservations" element={<MyReservationsPage />} />

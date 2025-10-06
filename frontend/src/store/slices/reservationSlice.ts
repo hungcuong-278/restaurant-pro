@@ -165,14 +165,14 @@ const reservationSlice = createSlice({
       state.currentStep = action.payload;
     },
     nextStep: (state) => {
-      const steps: BookingStep[] = ['datetime', 'table', 'details', 'confirmation'];
+      const steps: BookingStep[] = ['datetime', 'table', 'details', 'review'];
       const currentIndex = steps.indexOf(state.currentStep);
       if (currentIndex < steps.length - 1) {
         state.currentStep = steps[currentIndex + 1];
       }
     },
     previousStep: (state) => {
-      const steps: BookingStep[] = ['datetime', 'table', 'details', 'confirmation'];
+      const steps: BookingStep[] = ['datetime', 'table', 'details', 'review'];
       const currentIndex = steps.indexOf(state.currentStep);
       if (currentIndex > 0) {
         state.currentStep = steps[currentIndex - 1];
