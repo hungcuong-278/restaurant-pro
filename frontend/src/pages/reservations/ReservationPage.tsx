@@ -25,7 +25,7 @@ import {
   setSelectedTable,
   setPartySize,
   clearSelection,
-  fetchAvailableTables,
+  checkAvailability,
   createReservation,
   clearError,
 } from '../../store/slices/reservationSlice';
@@ -96,12 +96,7 @@ const ReservationPage: React.FC = () => {
   useEffect(() => {
     if (selectedDate && selectedTime && partySize && currentStep === 'table') {
       dispatch(
-        fetchAvailableTables({
-          restaurantId: RESTAURANT_ID,
-          date: selectedDate,
-          time: selectedTime,
-          partySize,
-        })
+        checkAvailability({ date: selectedDate, time: selectedTime, party_size: partySize })
       );
     }
   }, [selectedDate, selectedTime, partySize, currentStep, dispatch]);
@@ -446,4 +441,6 @@ const ReservationPage: React.FC = () => {
 };
 
 export default ReservationPage;
+
+
 

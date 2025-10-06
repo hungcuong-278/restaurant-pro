@@ -15,7 +15,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
-import { fetchReservationById } from '../../store/slices/reservationSlice';
+import { fetchReservation } from '../../store/slices/reservationSlice';
 import { formatDateForDisplay, formatTimeForDisplay } from '../../services/reservationService';
 import { RESERVATION_STATUS_COLORS } from '../../types/reservation';
 
@@ -33,7 +33,7 @@ const BookingConfirmationPage: React.FC = () => {
   // Fetch reservation details
   useEffect(() => {
     if (reservationId) {
-      dispatch(fetchReservationById(reservationId));
+      dispatch(fetchReservation(reservationId));
     }
   }, [reservationId, dispatch]);
 
@@ -362,3 +362,4 @@ const BookingConfirmationPage: React.FC = () => {
 };
 
 export default BookingConfirmationPage;
+

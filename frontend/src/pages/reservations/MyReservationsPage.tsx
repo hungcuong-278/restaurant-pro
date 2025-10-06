@@ -17,7 +17,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
-import { fetchUserReservations, cancelReservation } from '../../store/slices/reservationSlice';
+import { fetchMyReservations, cancelReservation } from '../../store/slices/reservationSlice';
 import { Reservation, ReservationStatus, RESERVATION_STATUS_LABELS, RESERVATION_STATUS_COLORS } from '../../types/reservation';
 import { formatDateForDisplay, formatTimeForDisplay } from '../../services/reservationService';
 
@@ -46,7 +46,7 @@ const MyReservationsPage: React.FC = () => {
   // Fetch user reservations
   useEffect(() => {
     if (user?.id) {
-      dispatch(fetchUserReservations(user.id));
+      dispatch(fetchMyReservations());
     }
   }, [user, dispatch]);
 
@@ -337,6 +337,8 @@ const MyReservationsPage: React.FC = () => {
 };
 
 export default MyReservationsPage;
+
+
 
 
 
