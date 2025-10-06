@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import Header from './components/Header';
@@ -31,6 +32,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <Provider store={store}>
+        <AuthProvider>
         <ToastProvider>
           <Router>
             <div className="min-h-screen bg-white">
@@ -68,10 +70,12 @@ const App: React.FC = () => {
         </div>
       </Router>
         </ToastProvider>
+        </AuthProvider>
       </Provider>
     </ErrorBoundary>
   );
 };
 
 export default App;
+
 

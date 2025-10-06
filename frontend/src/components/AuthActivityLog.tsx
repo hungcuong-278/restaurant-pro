@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../store/store';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AuthEvent {
   id: string;
-  type: 'login' | 'register' | 'logout' | 'error';
+  type: 'login' | 'logout' | 'registration' | 'failed_login' | 'error';
+  timestamp: Date;
+  message: string;
   user?: {
     email: string;
     name: string;
     role: string;
   };
-  timestamp: Date;
-  message: string;
 }
 
 const AuthActivityLog: React.FC = () => {
-  const { user, isAuthenticated, error } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated, error } = useAuth();
   const [authEvents, setAuthEvents] = useState<AuthEvent[]>([]);
 
   // Theo dõi thay đổi authentication state
@@ -25,7 +24,7 @@ const AuthActivityLog: React.FC = () => {
       type,
       user: userData ? {
         email: userData.email,
-        name: `${userData.firstName} ${userData.lastName}`,
+        name: `${userData.first_name} ${userData.last_name}`,
         role: userData.role
       } : undefined,
       timestamp: new Date(),
@@ -41,7 +40,7 @@ const AuthActivityLog: React.FC = () => {
       if (!existingLoginEvent) {
         const loginEvent = createEvent(
           'login', 
-          `${user.firstName} ${user.lastName} đã đăng nhập thành công`,
+          `${user.first_name} ${user.last_name} đã đăng nhập thành công`,
           user
         );
         setAuthEvents(prev => [loginEvent, ...prev].slice(0, 10)); // Giữ 10 events gần nhất
@@ -66,16 +65,18 @@ const AuthActivityLog: React.FC = () => {
       };
       setAuthEvents(prev => [logoutEvent, ...prev].slice(0, 10));
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, authEvents]);
 
   const getEventIcon = (type: AuthEvent['type']) => {
     switch (type) {
       case 'login':
-        return '✅';
-      case 'register':
-        return '🆕';
+        return '🟢';
       case 'logout':
-        return '🚪';
+        return '🔴';
+      case 'registration':
+        return '🆕';
+      case 'failed_login':
+        return '⚠️';
       case 'error':
         return '❌';
       default:
@@ -86,79 +87,81 @@ const AuthActivityLog: React.FC = () => {
   const getEventColor = (type: AuthEvent['type']) => {
     switch (type) {
       case 'login':
-        return 'text-green-600 bg-green-50';
-      case 'register':
-        return 'text-blue-600 bg-blue-50';
+        return 'bg-green-50 border-green-200';
       case 'logout':
-        return 'text-gray-600 bg-gray-50';
+        return 'bg-red-50 border-red-200';
+      case 'registration':
+        return 'bg-blue-50 border-blue-200';
+      case 'failed_login':
       case 'error':
-        return 'text-red-600 bg-red-50';
+        return 'bg-red-50 border-red-200';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'bg-gray-50 border-gray-200';
     }
+  };
+
+  const formatTime = (timestamp: Date) => {
+    return timestamp.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
   };
 
   return (
     <div className="bg-white shadow-lg rounded-lg p-6 mb-8">
       <h2 className="text-xl font-bold text-gray-800 mb-4">
-        📊 Nhật Ký Hoạt Động Xác Thực
+        📊 Nhật Ký Hoạt Động Authentication
       </h2>
       
       <div className="space-y-3">
         {authEvents.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <p>Chưa có hoạt động nào được ghi nhận</p>
-            <p className="text-sm mt-2">Thử đăng nhập hoặc đăng ký để xem log hoạt động</p>
+            <p className="text-sm mt-2">Hãy thử đăng nhập hoặc đăng ký để xem nhật ký hoạt động</p>
           </div>
         ) : (
           authEvents.map((event) => (
             <div
               key={event.id}
-              className={`p-4 rounded-lg border-l-4 ${getEventColor(event.type)}`}
+              className={`border rounded-lg p-4 ${getEventColor(event.type)}`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{getEventIcon(event.type)}</span>
-                  <div>
-                    <p className="font-medium">{event.message}</p>
-                    {event.user && (
-                      <div className="text-sm mt-1 space-y-1">
-                        <p><strong>Email:</strong> {event.user.email}</p>
-                        <p><strong>Họ tên:</strong> {event.user.name}</p>
-                        <p><strong>Vai trò:</strong> 
-                          <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                            event.user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                            event.user.role === 'manager' ? 'bg-blue-100 text-blue-800' :
-                            event.user.role === 'staff' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {event.user.role}
-                          </span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
+              <div className="flex items-start space-x-3">
+                <div className="text-lg">
+                  {getEventIcon(event.type)}
                 </div>
-                <div className="text-xs text-gray-500 text-right">
-                  <p>{event.timestamp.toLocaleDateString('vi-VN')}</p>
-                  <p>{event.timestamp.toLocaleTimeString('vi-VN')}</p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-900">
+                      {event.message}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatTime(event.timestamp)}
+                    </p>
+                  </div>
+                  
+                  {event.user && (
+                    <div className="mt-2 text-xs text-gray-600">
+                      <span className="font-medium">{event.user.name}</span>
+                      <span className="mx-2">•</span>
+                      <span>{event.user.email}</span>
+                      <span className="mx-2">•</span>
+                      <span className="capitalize">{event.user.role}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           ))
         )}
       </div>
-
-      {authEvents.length > 0 && (
-        <div className="mt-4 pt-4 border-t">
-          <button
-            onClick={() => setAuthEvents([])}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            🗑️ Xóa tất cả log
-          </button>
-        </div>
-      )}
+      
+      <div className="mt-6 pt-4 border-t">
+        <p className="text-xs text-gray-500">
+          💡 Component này tự động ghi lại các hoạt động authentication real-time.
+          Tối đa 10 events gần nhất được hiển thị.
+        </p>
+      </div>
     </div>
   );
 };

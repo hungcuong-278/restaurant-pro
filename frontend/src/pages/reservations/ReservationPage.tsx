@@ -12,6 +12,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
@@ -63,7 +64,7 @@ const ReservationPage: React.FC = () => {
     availabilityError,
   } = useSelector((state: RootState) => state.reservation);
 
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated } = useAuth();
 
   // Local form state
   const [formData, setFormData] = useState<FormData>({
@@ -445,3 +446,4 @@ const ReservationPage: React.FC = () => {
 };
 
 export default ReservationPage;
+

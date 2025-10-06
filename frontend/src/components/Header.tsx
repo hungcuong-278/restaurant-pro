@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/store';
-import { logout } from '../store/slices/authSlice';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, logout } = useAuth();
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -25,11 +22,11 @@ const Header: React.FC = () => {
     { name: 'Kitchen', href: '/kitchen', roles: ['admin', 'staff', 'kitchen'] },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     // Confirm logout
     if (window.confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-      // Dispatch logout action
-      dispatch(logout());
+      // Logout using AuthContext
+      await logout();
       
       // Close mobile menu if open
       setIsMenuOpen(false);
@@ -93,7 +90,7 @@ const Header: React.FC = () => {
             {user ? (
               <div className="flex items-center space-x-4">
                 <span className="text-white text-sm">
-                  Welcome, {user.firstName}
+                  Welcome, {user.first_name}
                 </span>
                 <Link
                   to="/reservations/my-reservations"
@@ -166,18 +163,10 @@ const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation Menu */}
         {isMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-              onClick={() => setIsMenuOpen(false)}
-            />
-            
-            {/* Slide-in Menu */}
-            <div className="md:hidden fixed inset-x-0 top-20 z-50 animate-slide-in">
-              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-900 border-t border-gray-700 shadow-2xl">
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-900 border-t border-gray-700 shadow-2xl">
                 {navigation.map((item) => (
                   <Link
                     key={item.name}
@@ -198,7 +187,7 @@ const Header: React.FC = () => {
                 {user ? (
                   <div className="space-y-2">
                     <div className="px-4 py-3 text-white text-sm min-h-[48px] flex items-center">
-                      Welcome, {user.firstName}
+                      Welcome, {user.first_name}
                     </div>
                     <Link
                       to="/reservations/my-reservations"
@@ -243,8 +232,7 @@ const Header: React.FC = () => {
                 )}
               </div>
             </div>
-            </div>
-          </>
+          </div>
         )}
       </div>
     </header>

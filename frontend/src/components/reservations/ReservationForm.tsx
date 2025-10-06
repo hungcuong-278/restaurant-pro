@@ -11,8 +11,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
+import { useAuth } from '../../contexts/AuthContext';
+
 import { RESERVATION_CONSTRAINTS } from '../../types/reservation';
 
 interface ReservationFormData {
@@ -40,7 +40,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   error = null,
   disabled = false,
 }) => {
-  const user = useSelector((state: RootState) => state.auth.user);
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState<ReservationFormData>({
     customerName: initialData?.customerName || '',
@@ -56,7 +56,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   // Auto-fill from user profile if logged in
   useEffect(() => {
     if (user && !formData.customerName && !formData.customerEmail) {
-      const fullName = `${user.firstName} ${user.lastName}`.trim();
+      const fullName = `${user.first_name} ${user.last_name}`.trim();
       setFormData((prev) => ({
         ...prev,
         customerName: fullName || '',
@@ -182,7 +182,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
 
   // Handle reset
   const handleReset = () => {
-    const fullName = user ? `${user.firstName} ${user.lastName}`.trim() : '';
+    const fullName = user ? `${user.first_name} ${user.last_name}`.trim() : '';
     setFormData({
       customerName: fullName,
       customerEmail: user?.email || '',
@@ -400,3 +400,5 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
 };
 
 export default ReservationForm;
+
+

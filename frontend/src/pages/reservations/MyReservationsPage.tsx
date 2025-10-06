@@ -13,6 +13,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
@@ -29,7 +30,7 @@ const MyReservationsPage: React.FC = () => {
   const { reservations, isLoading, error } = useSelector(
     (state: RootState) => state.reservation
   );
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated } = useAuth();
 
   const [filter, setFilter] = useState<FilterType>('all');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -336,3 +337,6 @@ const MyReservationsPage: React.FC = () => {
 };
 
 export default MyReservationsPage;
+
+
+
