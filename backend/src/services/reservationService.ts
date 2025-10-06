@@ -478,7 +478,10 @@ class ReservationService {
             .whereIn('status', ['pending', 'confirmed', 'seated']);
         })
         .orderBy('capacity', 'asc')
-        .select('*');
+        .select(
+          'tables.*',
+          'tables.number as table_number'
+        );
 
       return {
         success: true,
