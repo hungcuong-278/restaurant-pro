@@ -1,88 +1,72 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import { 
+  register, 
+  login, 
+  logout, 
+  getProfile, 
+  refreshToken,
+  changePassword 
+} from '../controllers/authController';
+import { authenticateToken, authorizeRole, authRateLimit } from '../middleware/auth';
 
 const router = Router();
 
-// User registration
-router.post('/register', (req: Request, res: Response) => {
-  const { firstName, lastName, email, password, role = 'customer' } = req.body;
-  
-  // Mock registration for testing
-  if (!firstName || !lastName || !email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: 'All fields are required'
-    });
-  }
+/**
+ * Public routes
+ */
 
-  // Simulate user creation
-  return res.status(201).json({
-    success: true,
-    message: 'User registered successfully',
-    user: {
-      id: Date.now().toString(),
-      firstName,
-      lastName,
-      email,
-      role
-    },
-    token: `mock-jwt-token-${Date.now()}`
-  });
-});
+// User registration
+router.post('/register', authRateLimit, register);
 
 // User login
-router.post('/login', (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  
-  // Mock authentication for testing
-  if (email === 'admin@restaurant.com' && password === 'admin123') {
-    res.json({
-      success: true,
-      message: 'Login successful',
-      user: {
-        id: '1',
-        firstName: 'Gordon',
-        lastName: 'Ramsay',
-        email: 'admin@restaurant.com',
-        role: 'admin'
-      },
-      token: 'mock-jwt-token-123456789'
-    });
-  } else if (email === 'chef@restaurant.com' && password === 'chef123') {
-    res.json({
-      success: true,
-      message: 'Login successful',
-      user: {
-        id: '2',
-        firstName: 'Jamie',
-        lastName: 'Oliver',
-        email: 'chef@restaurant.com',
-        role: 'manager'
-      },
-      token: 'mock-jwt-token-987654321'
-    });
-  } else {
-    res.status(401).json({
-      success: false,
-      message: 'Invalid email or password'
-    });
-  }
-});
+router.post('/login', authRateLimit, login);
 
-// Password reset request
-router.post('/forgot-password', (req: Request, res: Response) => {
-  // TODO: Implement password reset
-  res.json({
-    success: true,
-    message: 'Password reset endpoint - Coming soon'
+// Refresh access token
+router.post('/refresh-token', authRateLimit, refreshToken);
+
+/**
+ * Protected routes (require authentication)
+ */
+
+// Get current user profile
+router.get('/profile', authenticateToken, getProfile);
+
+// Logout current session
+router.post('/logout', authenticateToken, logout);
+
+// Change password
+router.patch('/change-password', authenticateToken, changePassword);
+
+/**
+ * Admin only routes
+ */
+
+// Get all users (admin only)
+router.get('/users', authenticateToken, authorizeRole('admin'), async (req, res) => {
+  // This would be implemented in a separate controller
+  res.status(501).json({
+    success: false,
+    message: 'Not implemented yet'
   });
 });
 
-// Get current user profile
-router.get('/profile', (req: Request, res: Response) => {
-  // TODO: Implement profile retrieval (requires auth middleware)
-  res.json({
+// Deactivate user (admin only)
+router.patch('/users/:userId/deactivate', authenticateToken, authorizeRole('admin'), async (req, res) => {
+  // This would be implemented in a separate controller
+  res.status(501).json({
+    success: false,
+    message: 'Not implemented yet'
+  });
+});
+
+/**
+ * Health check endpoint
+ */
+router.get('/health', (req, res) => {
+  res.status(200).json({
     success: true,
-    message: 'User profile endpoint - Coming soon'
+    message: 'Auth service is healthy',
+    timestamp: new Date().toISOString()
   });
 });
 

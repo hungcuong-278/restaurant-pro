@@ -38,7 +38,7 @@ const PaymentPage: React.FC = () => {
         const confirmMsg = 
           `✅ Xác nhận thanh toán ${selectedMethod === 'cash' ? 'tiền mặt' : 'thẻ tín dụng'}\n\n` +
           `Mã đơn: ${orderNumber}\n` +
-          `Số tiền: $${amount.toFixed(2)}\n\n` +
+          `Số tiền: ${Math.round(amount).toLocaleString('vi-VN')}₫\n\n` +
           `Nhân viên sẽ xử lý thanh toán tại quầy.`;
         
         if (window.confirm(confirmMsg)) {

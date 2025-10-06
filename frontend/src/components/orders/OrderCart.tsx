@@ -66,7 +66,7 @@ const OrderCart: React.FC<OrderCartProps> = ({
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
                   <h4 className="font-semibold text-gray-800">{item.menuItem.name}</h4>
-                  <p className="text-sm text-gray-600">${item.menuItem.price.toFixed(2)} each</p>
+                  <p className="text-sm text-gray-600">{Math.round(item.menuItem.price).toLocaleString('vi-VN')}₫ each</p>
                 </div>
                 <button
                   onClick={() => onRemoveItem(item.menuItem.id)}
@@ -101,7 +101,7 @@ const OrderCart: React.FC<OrderCartProps> = ({
                   </button>
                 </div>
                 <div className="text-lg font-bold text-green-600">
-                  ${(item.menuItem.price * item.quantity).toFixed(2)}
+                  {Math.round(item.menuItem.price * item.quantity).toLocaleString('vi-VN')}₫
                 </div>
               </div>
 
@@ -123,20 +123,20 @@ const OrderCart: React.FC<OrderCartProps> = ({
         {/* Subtotal */}
         <div className="flex justify-between mb-2 text-gray-700">
           <span>Subtotal</span>
-          <span className="font-semibold">${calculateSubtotal().toFixed(2)}</span>
+          <span className="font-semibold">{Math.round(calculateSubtotal()).toLocaleString('vi-VN')}₫</span>
         </div>
 
         {/* Tax */}
         <div className="flex justify-between mb-3 text-gray-700">
           <span>Tax (10%)</span>
-          <span className="font-semibold">${calculateTax().toFixed(2)}</span>
+          <span className="font-semibold">{Math.round(calculateTax()).toLocaleString('vi-VN')}₫</span>
         </div>
 
         {/* Total */}
         <div className="flex justify-between items-center pt-3 border-t border-gray-300">
           <span className="text-lg font-bold text-gray-800">Total</span>
           <span className="text-2xl font-bold text-green-600">
-            ${calculateTotal().toFixed(2)}
+            {Math.round(calculateTotal()).toLocaleString('vi-VN')}₫
           </span>
         </div>
 

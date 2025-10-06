@@ -57,7 +57,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, onAdd, disabled = fal
         <div className="flex items-center justify-between">
           {/* Price */}
           <span className="text-2xl font-bold text-green-600">
-            ${item.price.toFixed(2)}
+            {Math.round(item.price).toLocaleString('vi-VN')}₫
           </span>
 
           {/* Add Button */}

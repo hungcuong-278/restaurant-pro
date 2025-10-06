@@ -227,7 +227,7 @@ const OrderDetailsPage: React.FC = () => {
                         {item.item_name}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Qty: {item.quantity} × ${item.item_price.toFixed(2)}
+                        Qty: {item.quantity} × {Math.round(item.item_price).toLocaleString('vi-VN')}₫
                       </p>
                       {item.special_instructions && (
                         <p className="text-xs text-gray-500 italic mt-1">
@@ -236,7 +236,7 @@ const OrderDetailsPage: React.FC = () => {
                       )}
                     </div>
                     <p className="font-semibold text-gray-800">
-                      ${item.total_price.toFixed(2)}
+                      {Math.round(item.total_price).toLocaleString('vi-VN')}₫
                     </p>
                   </div>
                 ))}
@@ -244,7 +244,7 @@ const OrderDetailsPage: React.FC = () => {
                 <div className="pt-3 mt-3 border-t-2 flex justify-between items-center">
                   <span className="text-lg font-bold text-gray-800">Total:</span>
                   <span className="text-2xl font-bold text-blue-600">
-                    ${order.total_amount.toFixed(2)}
+                    {Math.round(order.total_amount).toLocaleString('vi-VN')}₫
                   </span>
                 </div>
               </div>
@@ -279,7 +279,7 @@ const OrderDetailsPage: React.FC = () => {
               <div className="flex justify-between items-center pt-3 border-t">
                 <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
                 <span className="text-2xl font-bold text-blue-600">
-                  ${order.total_amount.toFixed(2)}
+                  {Math.round(order.total_amount).toLocaleString('vi-VN')}₫
                 </span>
               </div>
             </div>
