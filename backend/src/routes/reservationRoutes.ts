@@ -1,47 +1,59 @@
-import { Router } from 'express';
+import express from 'express';
 import reservationController from '../controllers/reservationController';
+import { authenticateToken } from '../middleware/auth';
 
-const router = Router({ mergeParams: true });
+const router = express.Router();
 
-// Base route: /api/restaurants/:restaurantId/reservations
+// All routes require authentication
+router.use(authenticateToken);
 
-// Get all reservations with filtering
-router.get('/', reservationController.getReservations);
-
-// Get available time slots for a date
-router.get('/availability/slots', reservationController.getAvailableSlots);
-
-// Check availability for specific time/table
-router.get('/availability/check', reservationController.checkAvailability);
-
-// Get reservations by specific date
-router.get('/date/:date', reservationController.getReservationsByDate);
-
-// Get reservation calendar for date range
-router.get('/calendar', reservationController.getReservationCalendar);
-
-// Get reservation statistics
-router.get('/stats', reservationController.getReservationStats);
-
-// Get single reservation
-router.get('/:id', reservationController.getReservation);
-
-// Create new reservation
+/**
+ * @route   POST /api/reservations
+ * @desc    Create new reservation
+ * @access  Private (authenticated users)
+ */
 router.post('/', reservationController.createReservation);
 
-// Update reservation
+/**
+ * @route   GET /api/reservations/my
+ * @desc    Get current user's reservations
+ * @access  Private (authenticated users)
+ */
+router.get('/my', reservationController.getMyReservations);
+
+/**
+ * @route   GET /api/reservations/available-tables
+ * @desc    Check table availability
+ * @access  Private (authenticated users)
+ */
+router.get('/available-tables', reservationController.checkAvailability);
+
+/**
+ * @route   GET /api/reservations
+ * @desc    Get all reservations (with filters)
+ * @access  Private (staff/admin only)
+ */
+router.get('/', reservationController.getAllReservations);
+
+/**
+ * @route   GET /api/reservations/:id
+ * @desc    Get single reservation by ID
+ * @access  Private (owner or staff/admin)
+ */
+router.get('/:id', reservationController.getReservationById);
+
+/**
+ * @route   PUT /api/reservations/:id
+ * @desc    Update reservation
+ * @access  Private (owner or staff/admin)
+ */
 router.put('/:id', reservationController.updateReservation);
 
-// Cancel reservation
+/**
+ * @route   DELETE /api/reservations/:id
+ * @desc    Cancel reservation
+ * @access  Private (owner or staff/admin)
+ */
 router.delete('/:id', reservationController.cancelReservation);
-
-// Confirm reservation
-router.patch('/:id/confirm', reservationController.confirmReservation);
-
-// Seat reservation (mark as seated)
-router.patch('/:id/seat', reservationController.seatReservation);
-
-// Complete reservation
-router.patch('/:id/complete', reservationController.completeReservation);
 
 export default router;

@@ -1,480 +1,515 @@
-import { Knex } from 'knex';
 import db from '../config/database';
 
-export interface Reservation {
-  id: string;
-  restaurant_id: string;
-  table_id?: string;
-  customer_id?: string;
+interface CreateReservationData {
+  restaurant_id?: string;
+  table_id?: string | null;
+  customer_id: string;
   customer_name: string;
   customer_email: string;
   customer_phone?: string;
   party_size: number;
   reservation_date: string;
   reservation_time: string;
-  status: 'pending' | 'confirmed' | 'seated' | 'completed' | 'cancelled' | 'no_show';
+  special_requests?: string;
+}
+
+interface UpdateReservationData {
+  table_id?: string | null;
+  party_size?: number;
+  reservation_date?: string;
+  reservation_time?: string;
+  status?: string;
   special_requests?: string;
   notes?: string;
-  confirmed_at?: string;
-  confirmed_by?: string;
-  created_at: string;
-  updated_at: string;
-  table?: {
-    number: string;
-    capacity: number;
-    location?: string;
-  };
 }
 
-export interface AvailabilitySlot {
-  time: string;
-  available: boolean;
-  table_options: {
-    id: string;
-    number: string;
-    capacity: number;
-    location?: string;
-  }[];
-}
-
-export interface ReservationFilters {
-  date?: string;
+interface GetAllReservationsParams {
   status?: string;
-  table_id?: string;
-  customer_email?: string;
-  page?: number;
+  date?: string;
   limit?: number;
+  offset?: number;
+}
+
+interface CheckAvailabilityParams {
+  date: string;
+  time: string;
+  party_size: number;
+  restaurant_id?: string;
 }
 
 class ReservationService {
-  // Basic reservation operations
-  async getReservations(
-    restaurantId: string,
-    filters: ReservationFilters = {}
-  ): Promise<{ reservations: Reservation[]; total: number }> {
-    const { date, status, table_id, customer_email, page = 1, limit = 10 } = filters;
-    
-    let query = db('reservations')
-      .leftJoin('tables', 'reservations.table_id', 'tables.id')
-      .select(
-        'reservations.*',
-        'tables.number as table_number',
-        'tables.capacity as table_capacity',
-        'tables.location as table_location'
-      )
-      .where('reservations.restaurant_id', restaurantId);
-
-    if (date) {
-      query = query.where('reservations.reservation_date', date);
-    }
-
-    if (status) {
-      query = query.where('reservations.status', status);
-    }
-
-    if (table_id) {
-      query = query.where('reservations.table_id', table_id);
-    }
-
-    if (customer_email) {
-      query = query.where('reservations.customer_email', 'LIKE', `%${customer_email}%`);
-    }
-
-    // Get total count
-    const countQuery = query.clone().count('reservations.id as total');
-    const [{ total }] = await countQuery;
-
-    // Get paginated results
-    const offset = (page - 1) * limit;
-    const reservations = await query
-      .orderBy('reservations.reservation_date', 'desc')
-      .orderBy('reservations.reservation_time', 'asc')
-      .limit(limit)
-      .offset(offset);
-
-    // Format reservations with table info
-    const formattedReservations = reservations.map(reservation => ({
-      ...reservation,
-      table: reservation.table_number ? {
-        number: reservation.table_number,
-        capacity: reservation.table_capacity,
-        location: reservation.table_location
-      } : null,
-      // Remove redundant table fields
-      table_number: undefined,
-      table_capacity: undefined,
-      table_location: undefined
-    }));
-
-    return {
-      reservations: formattedReservations,
-      total: Number(total)
-    };
-  }
-
-  async getReservationById(id: string, restaurantId: string): Promise<Reservation | null> {
-    const reservation = await db('reservations')
-      .leftJoin('tables', 'reservations.table_id', 'tables.id')
-      .select(
-        'reservations.*',
-        'tables.number as table_number',
-        'tables.capacity as table_capacity',
-        'tables.location as table_location'
-      )
-      .where('reservations.id', id)
-      .where('reservations.restaurant_id', restaurantId)
-      .first();
-
-    if (!reservation) return null;
-
-    return {
-      ...reservation,
-      table: reservation.table_number ? {
-        number: reservation.table_number,
-        capacity: reservation.table_capacity,
-        location: reservation.table_location
-      } : null
-    };
-  }
-
-  async createReservation(data: Omit<Reservation, 'id' | 'created_at' | 'updated_at' | 'table'>): Promise<Reservation> {
-    // Check availability before creating
-    if (data.table_id) {
-      const available = await this.checkAvailability(
-        data.restaurant_id,
-        data.reservation_date,
-        data.reservation_time,
-        data.table_id
-      );
-
-      if (!available) {
-        throw new Error('Selected table is not available at the requested time');
+  /**
+   * Create new reservation
+   */
+  async createReservation(data: CreateReservationData) {
+    try {
+      // Validate reservation date (must be in future)
+      const reservationDateTime = new Date(`${data.reservation_date}T${data.reservation_time}`);
+      const now = new Date();
+      
+      if (reservationDateTime <= now) {
+        return {
+          success: false,
+          message: 'Reservation must be for a future date and time'
+        };
       }
-    }
 
-    const [reservation] = await db('reservations')
-      .insert(data)
-      .returning('*');
+      // Get default restaurant if not provided
+      let restaurantId = data.restaurant_id;
+      if (!restaurantId) {
+        const defaultRestaurant = await db('restaurants').first();
+        restaurantId = defaultRestaurant?.id;
+      }
 
-    const fullReservation = await this.getReservationById(reservation.id, data.restaurant_id);
-    if (!fullReservation) {
-      throw new Error('Failed to retrieve created reservation');
-    }
-    
-    return fullReservation;
-  }
-
-  async updateReservation(
-    id: string,
-    restaurantId: string,
-    data: Partial<Reservation>
-  ): Promise<Reservation | null> {
-    // If updating table or time, check availability
-    if (data.table_id || data.reservation_date || data.reservation_time) {
-      const currentReservation = await this.getReservationById(id, restaurantId);
-      if (!currentReservation) return null;
-
-      const newTableId = data.table_id || currentReservation.table_id;
-      const newDate = data.reservation_date || currentReservation.reservation_date;
-      const newTime = data.reservation_time || currentReservation.reservation_time;
-
-      if (newTableId) {
-        const available = await this.checkAvailability(
-          restaurantId,
-          newDate,
-          newTime,
-          newTableId,
-          id // Exclude current reservation from conflict check
+      // Check if table is available (if table_id provided)
+      if (data.table_id) {
+        const isAvailable = await this.isTableAvailable(
+          data.table_id,
+          data.reservation_date,
+          data.reservation_time
         );
 
-        if (!available) {
-          throw new Error('Selected table is not available at the requested time');
+        if (!isAvailable) {
+          return {
+            success: false,
+            message: 'Selected table is not available at this time. Please choose a different time or table.'
+          };
         }
       }
-    }
 
-    const [reservation] = await db('reservations')
-      .where({ id, restaurant_id: restaurantId })
-      .update(data)
-      .returning('*');
-
-    if (!reservation) return null;
-
-    return this.getReservationById(id, restaurantId);
-  }
-
-  async cancelReservation(id: string, restaurantId: string): Promise<boolean> {
-    const updated = await db('reservations')
-      .where({ id, restaurant_id: restaurantId })
-      .update({ status: 'cancelled' });
-
-    return updated > 0;
-  }
-
-  // Availability checking
-  async checkAvailability(
-    restaurantId: string,
-    date: string,
-    time: string,
-    tableId?: string,
-    excludeReservationId?: string
-  ): Promise<boolean> {
-    const startTime = new Date(`${date} ${time}`);
-    const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours
-
-    let query = db('reservations')
-      .where({
+      // Create reservation
+      const [reservationId] = await db('reservations').insert({
         restaurant_id: restaurantId,
-        reservation_date: date
-      })
-      .whereIn('status', ['pending', 'confirmed', 'seated']);
-
-    if (tableId) {
-      query = query.where('table_id', tableId);
-    }
-
-    if (excludeReservationId) {
-      query = query.whereNot('id', excludeReservationId);
-    }
-
-    // Check for time conflicts
-    query = query.where(function() {
-      this.where(function() {
-        // Existing reservation starts before our end time and ends after our start time
-        const endTimeStr = endTime.toTimeString().slice(0, 5);
-        this.where('reservation_time', '<', endTimeStr)
-          .where(db.raw('TIME(reservation_time, "+2 hours")'), '>', time);
+        table_id: data.table_id || null,
+        customer_id: data.customer_id,
+        customer_name: data.customer_name.trim(),
+        customer_email: data.customer_email.toLowerCase().trim(),
+        customer_phone: data.customer_phone?.trim() || null,
+        party_size: data.party_size,
+        reservation_date: data.reservation_date,
+        reservation_time: data.reservation_time,
+        status: 'pending',
+        special_requests: data.special_requests?.trim() || null,
+        created_at: new Date(),
+        updated_at: new Date()
       });
-    });
 
-    const conflicts = await query;
-    return conflicts.length === 0;
+      // Fetch created reservation with table info
+      const reservation = await db('reservations')
+        .leftJoin('tables', 'reservations.table_id', 'tables.id')
+        .where('reservations.id', reservationId)
+        .select(
+          'reservations.*',
+          'tables.table_number',
+          'tables.capacity',
+          'tables.location'
+        )
+        .first();
+
+      return {
+        success: true,
+        message: 'Reservation created successfully',
+        reservation
+      };
+
+    } catch (error) {
+      console.error('Create reservation service error:', error);
+      return {
+        success: false,
+        message: 'Failed to create reservation'
+      };
+    }
   }
 
-  async getAvailableSlots(
-    restaurantId: string,
-    date: string,
-    partySize: number,
-    duration: number = 120 // minutes
-  ): Promise<AvailabilitySlot[]> {
-    // Get restaurant business hours (simplified - assume 11:00 to 22:00)
-    const openTime = 11; // 11:00
-    const closeTime = 22; // 22:00
-    const slotInterval = 30; // 30-minute intervals
-
-    const slots: AvailabilitySlot[] = [];
-
-    // Generate time slots
-    for (let hour = openTime; hour < closeTime; hour++) {
-      for (let minute = 0; minute < 60; minute += slotInterval) {
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        
-        // Get available tables for this time slot
-        const availableTables = await this.getAvailableTablesForSlot(
-          restaurantId,
-          date,
-          timeStr,
-          partySize,
-          duration
+  /**
+   * Get user's reservations
+   */
+  async getUserReservations(userId: string) {
+    try {
+      const reservations = await db('reservations')
+        .leftJoin('tables', 'reservations.table_id', 'tables.id')
+        .leftJoin('restaurants', 'reservations.restaurant_id', 'restaurants.id')
+        .where('reservations.customer_id', userId)
+        .orderBy('reservations.reservation_date', 'desc')
+        .orderBy('reservations.reservation_time', 'desc')
+        .select(
+          'reservations.*',
+          'tables.table_number',
+          'tables.capacity',
+          'tables.location',
+          'restaurants.name as restaurant_name'
         );
 
-        slots.push({
-          time: timeStr,
-          available: availableTables.length > 0,
-          table_options: availableTables
-        });
-      }
-    }
+      return {
+        success: true,
+        reservations,
+        count: reservations.length
+      };
 
-    return slots;
+    } catch (error) {
+      console.error('Get user reservations error:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch reservations'
+      };
+    }
   }
 
-  async getAvailableTablesForSlot(
-    restaurantId: string,
+  /**
+   * Get all reservations (admin/staff)
+   */
+  async getAllReservations(params: GetAllReservationsParams) {
+    try {
+      let query = db('reservations')
+        .leftJoin('tables', 'reservations.table_id', 'tables.id')
+        .leftJoin('restaurants', 'reservations.restaurant_id', 'restaurants.id')
+        .leftJoin('users', 'reservations.customer_id', 'users.id');
+
+      // Apply filters
+      if (params.status) {
+        query = query.where('reservations.status', params.status);
+      }
+
+      if (params.date) {
+        query = query.where('reservations.reservation_date', params.date);
+      }
+
+      // Get total count
+      const countQuery = query.clone();
+      const [{ count }] = await countQuery.count('* as count');
+
+      // Apply pagination
+      if (params.limit) {
+        query = query.limit(params.limit);
+      }
+
+      if (params.offset) {
+        query = query.offset(params.offset);
+      }
+
+      // Fetch reservations
+      const reservations = await query
+        .orderBy('reservations.reservation_date', 'desc')
+        .orderBy('reservations.reservation_time', 'desc')
+        .select(
+          'reservations.*',
+          'tables.table_number',
+          'tables.capacity',
+          'tables.location',
+          'restaurants.name as restaurant_name',
+          'users.first_name',
+          'users.last_name'
+        );
+
+      return {
+        success: true,
+        reservations,
+        count: parseInt(count as string),
+        limit: params.limit,
+        offset: params.offset
+      };
+
+    } catch (error) {
+      console.error('Get all reservations error:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch reservations'
+      };
+    }
+  }
+
+  /**
+   * Get single reservation by ID
+   */
+  async getReservationById(id: string, userId: string, userRole?: string) {
+    try {
+      const reservation = await db('reservations')
+        .leftJoin('tables', 'reservations.table_id', 'tables.id')
+        .leftJoin('restaurants', 'reservations.restaurant_id', 'restaurants.id')
+        .where('reservations.id', id)
+        .select(
+          'reservations.*',
+          'tables.table_number',
+          'tables.capacity',
+          'tables.location',
+          'restaurants.name as restaurant_name'
+        )
+        .first();
+
+      if (!reservation) {
+        return {
+          success: false,
+          message: 'Reservation not found'
+        };
+      }
+
+      // Check access rights (customer can only see their own reservations)
+      if (userRole !== 'staff' && userRole !== 'admin' && reservation.customer_id !== userId) {
+        return {
+          success: false,
+          message: 'Access denied'
+        };
+      }
+
+      return {
+        success: true,
+        reservation
+      };
+
+    } catch (error) {
+      console.error('Get reservation by ID error:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch reservation'
+      };
+    }
+  }
+
+  /**
+   * Update reservation
+   */
+  async updateReservation(id: string, data: UpdateReservationData, userId: string, userRole?: string) {
+    try {
+      // Check if reservation exists
+      const reservation = await db('reservations').where('id', id).first();
+
+      if (!reservation) {
+        return {
+          success: false,
+          message: 'Reservation not found'
+        };
+      }
+
+      // Check access rights
+      const isStaffOrAdmin = userRole === 'staff' || userRole === 'admin';
+      const isOwner = reservation.customer_id === userId;
+
+      if (!isStaffOrAdmin && !isOwner) {
+        return {
+          success: false,
+          message: 'Access denied'
+        };
+      }
+
+      // Customers can only update certain fields and only if reservation is pending
+      if (!isStaffOrAdmin) {
+        if (reservation.status !== 'pending') {
+          return {
+            success: false,
+            message: 'Cannot modify reservation after it has been confirmed'
+          };
+        }
+
+        // Customers cannot change status
+        if (data.status) {
+          delete data.status;
+        }
+      }
+
+      // Validate new reservation time if provided
+      if (data.reservation_date && data.reservation_time) {
+        const reservationDateTime = new Date(`${data.reservation_date}T${data.reservation_time}`);
+        const now = new Date();
+        
+        if (reservationDateTime <= now) {
+          return {
+            success: false,
+            message: 'Reservation must be for a future date and time'
+          };
+        }
+      }
+
+      // Check table availability if table changed
+      if (data.table_id && data.table_id !== reservation.table_id) {
+        const isAvailable = await this.isTableAvailable(
+          data.table_id,
+          data.reservation_date || reservation.reservation_date,
+          data.reservation_time || reservation.reservation_time,
+          id // Exclude current reservation
+        );
+
+        if (!isAvailable) {
+          return {
+            success: false,
+            message: 'Selected table is not available at this time'
+          };
+        }
+      }
+
+      // Update reservation
+      await db('reservations')
+        .where('id', id)
+        .update({
+          ...data,
+          updated_at: new Date(),
+          ...(data.status === 'confirmed' && !reservation.confirmed_at ? {
+            confirmed_at: new Date(),
+            confirmed_by: userId
+          } : {})
+        });
+
+      // Fetch updated reservation
+      const updatedReservation = await db('reservations')
+        .leftJoin('tables', 'reservations.table_id', 'tables.id')
+        .where('reservations.id', id)
+        .select(
+          'reservations.*',
+          'tables.table_number',
+          'tables.capacity',
+          'tables.location'
+        )
+        .first();
+
+      return {
+        success: true,
+        message: 'Reservation updated successfully',
+        reservation: updatedReservation
+      };
+
+    } catch (error) {
+      console.error('Update reservation error:', error);
+      return {
+        success: false,
+        message: 'Failed to update reservation'
+      };
+    }
+  }
+
+  /**
+   * Cancel reservation
+   */
+  async cancelReservation(id: string, userId: string, userRole?: string) {
+    try {
+      const reservation = await db('reservations').where('id', id).first();
+
+      if (!reservation) {
+        return {
+          success: false,
+          message: 'Reservation not found'
+        };
+      }
+
+      // Check access rights
+      const isStaffOrAdmin = userRole === 'staff' || userRole === 'admin';
+      const isOwner = reservation.customer_id === userId;
+
+      if (!isStaffOrAdmin && !isOwner) {
+        return {
+          success: false,
+          message: 'Access denied'
+        };
+      }
+
+      // Check if already cancelled
+      if (reservation.status === 'cancelled') {
+        return {
+          success: false,
+          message: 'Reservation is already cancelled'
+        };
+      }
+
+      // Check if already completed
+      if (reservation.status === 'completed') {
+        return {
+          success: false,
+          message: 'Cannot cancel completed reservation'
+        };
+      }
+
+      // Cancel reservation
+      await db('reservations')
+        .where('id', id)
+        .update({
+          status: 'cancelled',
+          updated_at: new Date()
+        });
+
+      return {
+        success: true,
+        message: 'Reservation cancelled successfully'
+      };
+
+    } catch (error) {
+      console.error('Cancel reservation error:', error);
+      return {
+        success: false,
+        message: 'Failed to cancel reservation'
+      };
+    }
+  }
+
+  /**
+   * Check table availability
+   */
+  async checkAvailability(params: CheckAvailabilityParams) {
+    try {
+      // Get default restaurant if not provided
+      let restaurantId = params.restaurant_id;
+      if (!restaurantId) {
+        const defaultRestaurant = await db('restaurants').first();
+        restaurantId = defaultRestaurant?.id;
+      }
+
+      // Get all tables that can accommodate the party size
+      const availableTables = await db('tables')
+        .where('restaurant_id', restaurantId)
+        .where('capacity', '>=', params.party_size)
+        .where('is_available', true)
+        .whereNotExists(function() {
+          this.select('*')
+            .from('reservations')
+            .whereRaw('reservations.table_id = tables.id')
+            .where('reservation_date', params.date)
+            .where('reservation_time', params.time)
+            .whereIn('status', ['pending', 'confirmed', 'seated']);
+        })
+        .orderBy('capacity', 'asc')
+        .select('*');
+
+      return {
+        success: true,
+        available: availableTables.length > 0,
+        tables: availableTables,
+        count: availableTables.length
+      };
+
+    } catch (error) {
+      console.error('Check availability error:', error);
+      return {
+        success: false,
+        message: 'Failed to check availability'
+      };
+    }
+  }
+
+  /**
+   * Check if specific table is available
+   */
+  private async isTableAvailable(
+    tableId: string,
     date: string,
     time: string,
-    partySize: number,
-    duration: number = 120
-  ): Promise<{ id: string; number: string; capacity: number; location?: string }[]> {
-    // Get all tables that can accommodate the party size
-    const suitableTables = await db('tables')
-      .where({
-        restaurant_id: restaurantId,
-        is_active: true,
-        status: 'available'
-      })
-      .where('capacity', '>=', partySize)
-      .orderBy('capacity', 'asc'); // Prefer smaller tables that fit
+    excludeReservationId?: string
+  ): Promise<boolean> {
+    try {
+      let query = db('reservations')
+        .where('table_id', tableId)
+        .where('reservation_date', date)
+        .where('reservation_time', time)
+        .whereIn('status', ['pending', 'confirmed', 'seated']);
 
-    const availableTables = [];
-
-    for (const table of suitableTables) {
-      const available = await this.checkAvailability(restaurantId, date, time, table.id);
-      if (available) {
-        availableTables.push({
-          id: table.id,
-          number: table.number,
-          capacity: table.capacity,
-          location: table.location
-        });
+      if (excludeReservationId) {
+        query = query.whereNot('id', excludeReservationId);
       }
+
+      const existingReservation = await query.first();
+
+      return !existingReservation;
+
+    } catch (error) {
+      console.error('Check table availability error:', error);
+      return false;
     }
-
-    return availableTables;
-  }
-
-  // Reservation management
-  async confirmReservation(
-    id: string,
-    restaurantId: string,
-    confirmedBy: string
-  ): Promise<Reservation | null> {
-    const updateData = {
-      status: 'confirmed' as const,
-      confirmed_at: new Date().toISOString(),
-      confirmed_by: confirmedBy
-    };
-
-    return this.updateReservation(id, restaurantId, updateData);
-  }
-
-  async seatReservation(id: string, restaurantId: string): Promise<Reservation | null> {
-    const reservation = await this.getReservationById(id, restaurantId);
-    if (!reservation) return null;
-
-    // Update reservation status to seated
-    await this.updateReservation(id, restaurantId, { status: 'seated' });
-
-    // Update table status to occupied if table is assigned
-    if (reservation.table_id) {
-      await db('tables')
-        .where('id', reservation.table_id)
-        .update({ status: 'occupied' });
-    }
-
-    return this.getReservationById(id, restaurantId);
-  }
-
-  async completeReservation(id: string, restaurantId: string): Promise<Reservation | null> {
-    const reservation = await this.getReservationById(id, restaurantId);
-    if (!reservation) return null;
-
-    // Update reservation status to completed
-    await this.updateReservation(id, restaurantId, { status: 'completed' });
-
-    // Free up the table if assigned
-    if (reservation.table_id) {
-      await db('tables')
-        .where('id', reservation.table_id)
-        .update({ status: 'available' });
-    }
-
-    return this.getReservationById(id, restaurantId);
-  }
-
-  // Calendar and reporting
-  async getReservationsByDate(
-    restaurantId: string,
-    date: string
-  ): Promise<Reservation[]> {
-    const { reservations } = await this.getReservations(restaurantId, {
-      date,
-      limit: 100 // Get all for the day
-    });
-
-    return reservations;
-  }
-
-  async getReservationCalendar(
-    restaurantId: string,
-    startDate: string,
-    endDate: string
-  ): Promise<{ date: string; count: number; reservations: Reservation[] }[]> {
-    const reservations = await db('reservations')
-      .leftJoin('tables', 'reservations.table_id', 'tables.id')
-      .select(
-        'reservations.*',
-        'tables.number as table_number',
-        'tables.capacity as table_capacity',
-        'tables.location as table_location'
-      )
-      .where('reservations.restaurant_id', restaurantId)
-      .where('reservations.reservation_date', '>=', startDate)
-      .where('reservations.reservation_date', '<=', endDate)
-      .orderBy('reservations.reservation_date', 'asc')
-      .orderBy('reservations.reservation_time', 'asc');
-
-    // Group by date
-    const calendar: { [date: string]: Reservation[] } = {};
-    
-    reservations.forEach(reservation => {
-      const date = reservation.reservation_date;
-      if (!calendar[date]) {
-        calendar[date] = [];
-      }
-      
-      calendar[date].push({
-        ...reservation,
-        table: reservation.table_number ? {
-          number: reservation.table_number,
-          capacity: reservation.table_capacity,
-          location: reservation.table_location
-        } : null
-      });
-    });
-
-    // Convert to array format
-    return Object.keys(calendar).map(date => ({
-      date,
-      count: calendar[date].length,
-      reservations: calendar[date]
-    }));
-  }
-
-  // Statistics
-  async getReservationStats(
-    restaurantId: string,
-    startDate: string,
-    endDate: string
-  ): Promise<{
-    total_reservations: number;
-    confirmed_reservations: number;
-    cancelled_reservations: number;
-    no_shows: number;
-    average_party_size: number;
-    peak_hours: { hour: string; count: number }[];
-  }> {
-    const stats = await db('reservations')
-      .where('restaurant_id', restaurantId)
-      .where('reservation_date', '>=', startDate)
-      .where('reservation_date', '<=', endDate)
-      .select(
-        db.raw('COUNT(*) as total_reservations'),
-        db.raw('SUM(CASE WHEN status = "confirmed" THEN 1 ELSE 0 END) as confirmed_reservations'),
-        db.raw('SUM(CASE WHEN status = "cancelled" THEN 1 ELSE 0 END) as cancelled_reservations'),
-        db.raw('SUM(CASE WHEN status = "no_show" THEN 1 ELSE 0 END) as no_shows'),
-        db.raw('AVG(party_size) as average_party_size')
-      )
-      .first();
-
-    // Get peak hours
-    const peakHours = await db('reservations')
-      .where('restaurant_id', restaurantId)
-      .where('reservation_date', '>=', startDate)
-      .where('reservation_date', '<=', endDate)
-      .whereIn('status', ['confirmed', 'seated', 'completed'])
-      .select(
-        db.raw('substr(reservation_time, 1, 2) as hour'),
-        db.raw('COUNT(*) as count')
-      )
-      .groupBy('hour')
-      .orderBy('count', 'desc')
-      .limit(5);
-
-    return {
-      ...stats,
-      peak_hours: peakHours
-    };
   }
 }
 
