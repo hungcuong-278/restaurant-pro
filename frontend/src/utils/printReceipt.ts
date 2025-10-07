@@ -151,10 +151,10 @@ const generateKitchenReceiptHTML = (order: Order): string => {
           <strong>Status:</strong>
           <span class="status-badge status-${order.status}">${order.status}</span>
         </div>
-        ${order.customer_name ? `
+        ${order.customer_notes ? `
         <div>
-          <strong>Customer:</strong>
-          <span>${order.customer_name}</span>
+          <strong>Customer Notes:</strong>
+          <span>${order.customer_notes}</span>
         </div>
         ` : ''}
       </div>
@@ -186,17 +186,17 @@ const generateKitchenReceiptHTML = (order: Order): string => {
       <div class="order-info">
         <div>
           <strong>Subtotal:</strong>
-          <span>${formatPrice(order.subtotal || 0)}</span>
+          <span>${formatPrice(order.subtotal || order.total_amount || 0)}</span>
         </div>
-        ${order.tax ? `
+        ${order.tax_amount ? `
         <div>
           <strong>Tax:</strong>
-          <span>${formatPrice(order.tax)}</span>
+          <span>${formatPrice(order.tax_amount)}</span>
         </div>
         ` : ''}
         <div style="font-size: 16px; border-top: 1px solid #000; padding-top: 5px; margin-top: 5px;">
           <strong>TOTAL:</strong>
-          <strong>${formatPrice(order.total)}</strong>
+          <strong>${formatPrice(order.total_amount)}</strong>
         </div>
       </div>
       
