@@ -5,6 +5,7 @@ import Button from '../../components/common/Button';
 import Spinner from '../../components/common/Spinner';
 import { orderService } from '../../services/orderService';
 import type { Order } from '../../services/orderService';
+import { printKitchenReceipt } from '../../utils/printReceipt';
 
 const KitchenViewPage: React.FC = () => {
   // State
