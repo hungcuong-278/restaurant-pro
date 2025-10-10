@@ -1,5 +1,5 @@
 ﻿import { Request, Response } from 'express';
-import tableService from '../services/tableService';
+import * as tableService from '../services/tableService';
 import { setLastError, addDebugLog } from '../routes/debugRoutes';
 
 const VALID_STATUSES = ['available', 'occupied', 'reserved', 'maintenance'];
@@ -27,7 +27,7 @@ export const getTables = async (req: Request, res: Response): Promise<void> => {
 export const getTable = async (req: Request, res: Response): Promise<void> => {
   try {
     const { restaurantId, id } = req.params;
-    const table = await tableService.getTableById(id, restaurantId);
+    const table = await tableService.getTableById(id);
 
     if (!table) {
       res.status(404).json({ success: false, message: 'Table not found' });
@@ -153,7 +153,7 @@ export const updateTableStatus = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    const updatedTable = await tableService.updateTableStatus(id, restaurantId, status);
+    const updatedTable = await tableService.updateTableStatus(id, status);
 
     if (!updatedTable) {
       res.status(404).json({ success: false, message: 'Table not found' });
@@ -243,7 +243,8 @@ export const bulkUpdatePositions = async (req: Request, res: Response): Promise<
 
 export const getTableAvailability = async (req: Request, res: Response): Promise<void> => {
   try {
-    const restaurantId = req.params.restaurantId;
+    // Use restaurantId from params or default
+    const restaurantId = req.params.restaurantId || 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
     const { date, time, party_size } = req.query;
 
     if (!date || !time) {

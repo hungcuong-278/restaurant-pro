@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Auth Data - RestaurantPro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    .status {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .status-item:last-child {
+      border-bottom: none;
+    }
+    .label {
+      font-weight: 600;
+      color: #495057;
+    }
+    .value {
+      font-family: 'Courier New', monospace;
+      color: #6c757d;
+      font-size: 12px;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .value.found {
+      color: #dc3545;
+    }
+    .value.empty {
+      color: #28a745;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 10px;
+    }
+    .btn-clear {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    .btn-clear:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+    }
+    .btn-login {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+    }
+    .btn-refresh {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-refresh:hover {
+      background: #5a6268;
+    }
+    .alert {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .alert.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .alert.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .alert.show {
+      display: block;
+    }
+    .warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .warning strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Clear Authentication Data</h1>
+    <p class="subtitle">Fix lỗi 401 Unauthorized bằng cách xóa token cũ</p>
+
+    <div class="warning">
+      <strong>⚠️ Bạn đang gặp lỗi 401?</strong>
+      Đây là công cụ để xóa hoàn toàn dữ liệu đăng nhập cũ và bắt đầu lại từ đầu.
+    </div>
+
+    <div id="alert" class="alert"></div>
+
+    <div class="status">
+      <h3 style="margin-bottom: 15px; color: #333;">📊 Trạng thái hiện tại:</h3>
+      <div class="status-item">
+        <span class="label">Token:</span>
+        <span id="token-status" class="value">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span class="label">Refresh Token:</span>
+        <span id="refresh-status" class="value">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span class="label">User Data:</span>
+        <span id="user-status" class="value">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span class="label">Total Items:</span>
+        <span id="total-status" class="value">Checking...</span>
+      </div>
+    </div>
+
+    <button class="btn-clear" onclick="clearAll()">
+      🗑️ Xóa TẤT CẢ dữ liệu đăng nhập
+    </button>
+
+    <button class="btn-login" onclick="goToLogin()">
+      🔑 Đến trang Login
+    </button>
+
+    <button class="btn-refresh" onclick="checkStatus()">
+      🔄 Refresh trạng thái
+    </button>
+  </div>
+
+  <script>
+    function checkStatus() {
+      const token = localStorage.getItem('token');
+      const refreshToken = localStorage.getItem('refreshToken');
+      const user = localStorage.getItem('user');
+      const totalItems = localStorage.length;
+
+      document.getElementById('token-status').textContent = token 
+        ? `${token.substring(0, 30)}...` 
+        : 'Không có';
+      document.getElementById('token-status').className = token ? 'value found' : 'value empty';
+
+      document.getElementById('refresh-status').textContent = refreshToken 
+        ? `${refreshToken.substring(0, 30)}...` 
+        : 'Không có';
+      document.getElementById('refresh-status').className = refreshToken ? 'value found' : 'value empty';
+
+      document.getElementById('user-status').textContent = user 
+        ? 'Có dữ liệu' 
+        : 'Không có';
+      document.getElementById('user-status').className = user ? 'value found' : 'value empty';
+
+      document.getElementById('total-status').textContent = `${totalItems} items`;
+      document.getElementById('total-status').className = totalItems > 0 ? 'value found' : 'value empty';
+    }
+
+    function showAlert(message, type) {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = `alert ${type} show`;
+      setTimeout(() => {
+        alert.className = 'alert';
+      }, 3000);
+    }
+
+    function clearAll() {
+      try {
+        // Xóa các keys authentication
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        
+        // Thử xóa các biến thể khác nếu có
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('jwt');
+        
+        // Clear toàn bộ localStorage (cẩn thận!)
+        // localStorage.clear();
+        
+        showAlert('✅ Đã xóa thành công tất cả dữ liệu đăng nhập!', 'success');
+        
+        // Update status
+        setTimeout(() => {
+          checkStatus();
+        }, 500);
+        
+      } catch (error) {
+        showAlert('❌ Lỗi khi xóa dữ liệu: ' + error.message, 'error');
+      }
+    }
+
+    function goToLogin() {
+      window.location.href = 'http://localhost:3000/login';
+    }
+
+    // Check status on load
+    checkStatus();
+  </script>
+</body>
+</html>

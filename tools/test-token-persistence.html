@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Token Persistence Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .test-section {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .log-container {
+            background: #1a202c;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid #2d3748;
+            color: #e2e8f0;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            color: #a0aec0;
+            margin-right: 10px;
+        }
+        .log-success {
+            color: #48bb78;
+        }
+        .log-error {
+            color: #f56565;
+        }
+        .log-warning {
+            color: #ed8936;
+        }
+        .log-info {
+            color: #4299e1;
+        }
+        .token-display {
+            background: #edf2f7;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-break: break-all;
+            color: #2d3748;
+        }
+        .token-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .badge-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .badge-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .badge-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .stat-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Token Persistence Test</h1>
+            <p>Test if token stays in localStorage after API requests</p>
+        </div>
+
+        <div class="content">
+            <!-- Test 1: Login and Save Token -->
+            <div class="test-section">
+                <h2>1️⃣ Login & Save Token</h2>
+                <p style="color: #718096; margin-bottom: 15px;">
+                    Login and save token to localStorage
+                </p>
+                <button class="btn" onclick="testLogin()">🔐 Login & Save Token</button>
+                <div id="tokenDisplay1"></div>
+            </div>
+
+            <!-- Test 2: Call Profile Immediately -->
+            <div class="test-section">
+                <h2>2️⃣ Call Profile (Check Token After)</h2>
+                <p style="color: #718096; margin-bottom: 15px;">
+                    Call /auth/profile and check if token is still in localStorage
+                </p>
+                <button class="btn" onclick="testProfile()">👤 Get Profile</button>
+                <div id="tokenDisplay2"></div>
+            </div>
+
+            <!-- Test 3: Call Profile Multiple Times -->
+            <div class="test-section">
+                <h2>3️⃣ Multiple Profile Calls</h2>
+                <p style="color: #718096; margin-bottom: 15px;">
+                    Call /auth/profile 5 times and monitor token
+                </p>
+                <button class="btn" onclick="testMultipleProfile()">🔄 Call 5 Times</button>
+                <div id="tokenDisplay3"></div>
+            </div>
+
+            <!-- Test 4: Call Orders Endpoint -->
+            <div class="test-section">
+                <h2>4️⃣ Test Orders Endpoint</h2>
+                <p style="color: #718096; margin-bottom: 15px;">
+                    Call /orders and check token persistence
+                </p>
+                <button class="btn" onclick="testOrders()">📋 Get Orders</button>
+                <div id="tokenDisplay4"></div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="test-section">
+                <h2>📊 Statistics</h2>
+                <div class="grid">
+                    <div class="stat-card">
+                        <div class="stat-label">API Calls</div>
+                        <div class="stat-value" id="apiCallCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Token Checks</div>
+                        <div class="stat-value" id="tokenCheckCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Token Lost</div>
+                        <div class="stat-value" id="tokenLostCount" style="color: #f56565;">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs -->
+            <div class="test-section">
+                <h2>📝 Detailed Logs</h2>
+                <div class="btn-group">
+                    <button class="btn" onclick="clearLogs()" style="background: #e53e3e;">🗑️ Clear Logs</button>
+                    <button class="btn" onclick="clearStorage()" style="background: #dd6b20;">🔥 Clear Storage</button>
+                </div>
+                <div class="log-container" id="logContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let stats = {
+            apiCalls: 0,
+            tokenChecks: 0,
+            tokenLost: 0
+        };
+
+        function log(message, type = 'info') {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="log-time">[${time}]</span>${message}`;
+            
+            container.insertBefore(entry, container.firstChild);
+        }
+
+        function updateStats() {
+            document.getElementById('apiCallCount').textContent = stats.apiCalls;
+            document.getElementById('tokenCheckCount').textContent = stats.tokenChecks;
+            document.getElementById('tokenLostCount').textContent = stats.tokenLost;
+        }
+
+        function checkToken(location) {
+            stats.tokenChecks++;
+            updateStats();
+
+            const token = localStorage.getItem('token');
+            if (token) {
+                log(`✅ Token EXISTS in localStorage (${location})`, 'success');
+                return token;
+            } else {
+                log(`❌❌ TOKEN MISSING from localStorage (${location})`, 'error');
+                stats.tokenLost++;
+                updateStats();
+                return null;
+            }
+        }
+
+        function displayToken(elementId, label, token) {
+            const element = document.getElementById(elementId);
+            if (token) {
+                element.innerHTML = `
+                    <div class="token-display">
+                        <div class="token-label">${label}</div>
+                        <div>${token.substring(0, 50)}...</div>
+                    </div>
+                `;
+            } else {
+                element.innerHTML = `
+                    <div class="token-display" style="background: #fed7d7; border-color: #fc8181;">
+                        <div class="token-label">${label}</div>
+                        <div style="color: #c53030; font-weight: 600;">❌ TOKEN NOT FOUND</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            log('🔐 Starting login test...', 'info');
+            
+            try {
+                log('→ Calling POST /auth/login', 'info');
+                stats.apiCalls++;
+                updateStats();
+
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@restaurant.com',
+                        password: 'admin123'
+                    })
+                });
+
+                log(`← Response: ${response.status} ${response.statusText}`, 'info');
+
+                const data = await response.json();
+                
+                if (data.success && data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    log('✅ Login successful, token saved', 'success');
+                    
+                    const tokenAfter = checkToken('after login');
+                    displayToken('tokenDisplay1', 'Token After Login', tokenAfter);
+                } else {
+                    log(`❌ Login failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProfile() {
+            log('👤 Starting profile test...', 'info');
+            
+            const tokenBefore = checkToken('before profile call');
+            if (!tokenBefore) {
+                log('❌ No token found! Login first.', 'error');
+                return;
+            }
+
+            try {
+                log(`→ Calling GET /auth/profile with token: ${tokenBefore.substring(0, 20)}...`, 'info');
+                stats.apiCalls++;
+                updateStats();
+
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${tokenBefore}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                log(`← Response: ${response.status} ${response.statusText}`, 'info');
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ Profile received: ${data.user.email}`, 'success');
+                } else {
+                    log(`⚠️ Profile failed: ${data.message}`, 'warning');
+                }
+
+                // CRITICAL: Check token after request
+                setTimeout(() => {
+                    const tokenAfter = checkToken('AFTER profile call');
+                    displayToken('tokenDisplay2', 'Token After Profile Call', tokenAfter);
+                    
+                    if (tokenBefore && !tokenAfter) {
+                        log('🚨🚨🚨 TOKEN WAS REMOVED BY INTERCEPTOR! 🚨🚨🚨', 'error');
+                    } else if (tokenBefore === tokenAfter) {
+                        log('✅ Token unchanged (correct behavior)', 'success');
+                    }
+                }, 100);
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                
+                setTimeout(() => {
+                    const tokenAfter = checkToken('after error');
+                    displayToken('tokenDisplay2', 'Token After Error', tokenAfter);
+                }, 100);
+            }
+        }
+
+        async function testMultipleProfile() {
+            log('🔄 Starting multiple profile calls...', 'info');
+            
+            const tokenInitial = checkToken('before multiple calls');
+            if (!tokenInitial) {
+                log('❌ No token found! Login first.', 'error');
+                return;
+            }
+
+            let results = [];
+
+            for (let i = 1; i <= 5; i++) {
+                try {
+                    log(`→ Call ${i}/5: GET /auth/profile`, 'info');
+                    stats.apiCalls++;
+                    updateStats();
+
+                    const response = await fetch(`${API_BASE}/auth/profile`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    log(`← Call ${i}/5: ${response.status}`, 'info');
+
+                    await new Promise(resolve => setTimeout(resolve, 200));
+
+                    const tokenAfter = checkToken(`after call ${i}`);
+                    results.push({
+                        call: i,
+                        hasToken: !!tokenAfter
+                    });
+
+                    if (!tokenAfter) {
+                        log(`🚨 Token lost after call ${i}!`, 'error');
+                        break;
+                    }
+                } catch (error) {
+                    log(`❌ Call ${i} error: ${error.message}`, 'error');
+                    break;
+                }
+            }
+
+            const finalToken = checkToken('after all calls');
+            displayToken('tokenDisplay3', `Token After ${results.length} Calls`, finalToken);
+        }
+
+        async function testOrders() {
+            log('📋 Starting orders test...', 'info');
+            
+            const tokenBefore = checkToken('before orders call');
+            if (!tokenBefore) {
+                log('❌ No token found! Login first.', 'error');
+                return;
+            }
+
+            try {
+                log('→ Calling GET /orders', 'info');
+                stats.apiCalls++;
+                updateStats();
+
+                const response = await fetch(`${API_BASE}/orders`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${tokenBefore}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                log(`← Response: ${response.status} ${response.statusText}`, 'info');
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Orders received: ${data.orders?.length || 0} orders`, 'success');
+                } else {
+                    log(`⚠️ Orders failed: ${response.status}`, 'warning');
+                }
+
+                setTimeout(() => {
+                    const tokenAfter = checkToken('AFTER orders call');
+                    displayToken('tokenDisplay4', 'Token After Orders Call', tokenAfter);
+                    
+                    if (tokenBefore && !tokenAfter) {
+                        log('🚨🚨🚨 TOKEN WAS REMOVED BY INTERCEPTOR! 🚨🚨🚨', 'error');
+                    }
+                }, 100);
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '';
+            log('Logs cleared', 'info');
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            log('localStorage cleared', 'warning');
+            stats.tokenLost = 0;
+            updateStats();
+        }
+
+        // Initial log
+        log('🚀 Token Persistence Test ready', 'success');
+        log('📝 Click buttons to start testing', 'info');
+    </script>
+</body>
+</html>

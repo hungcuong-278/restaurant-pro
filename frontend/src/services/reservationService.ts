@@ -116,7 +116,7 @@ class ReservationService {
     party_size: number;
   }): Promise<AvailabilityResponse> {
     try {
-      const response = await reservationApi.get('/reservations/available-tables', { params });
+      const response = await reservationApi.get('/tables/availability/check', { params });
       return response.data;
     } catch (error: any) {
       if (error.response?.data) {

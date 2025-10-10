@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>API Test</title></head>
+<body>
+<h1>Restaurant Pro - API Test</h1>
+<button onclick='testLogin()'>1. Test Login</button>
+<button onclick='testOrders()'>2. Test Orders</button>
+<button onclick='testTables()'>3. Test Tables</button>
+<button onclick='checkToken()'>Check Token</button>
+<pre id='output'></pre>
+<script>
+const API = 'http://localhost:5000/api';
+const log = (msg) => document.getElementById('output').innerHTML += msg + '\n';
+
+async function testLogin() {
+  try {
+    const res = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: 'admin@restaurant.com', password: 'admin123'})
+    });
+    const data = await res.json();
+    localStorage.setItem('token', data.token);
+    log(' Login OK - Token saved');
+  } catch(e) { log(' Login failed: ' + e); }
+}
+
+async function testOrders() {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(API + '/orders', {
+      headers: {'Authorization': 'Bearer ' + token}
+    });
+    const data = await res.json();
+    log(' Orders: ' + data.data.orders.length + ' orders');
+  } catch(e) { log(' Orders failed: ' + e); }
+}
+
+async function testTables() {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(API + '/tables/available?date=2025-10-08&time=19:00&guests=4', {
+      headers: {'Authorization': 'Bearer ' + token}
+    });
+    const data = await res.json();
+    log(' Tables: ' + data.data.length + ' available');
+  } catch(e) { log(' Tables failed: ' + e); }
+}
+
+function checkToken() {
+  const token = localStorage.getItem('token');
+  log(token ? ' Token exists: ' + token.substring(0,50) + '...' : ' No token');
+}
+</script>
+</body>
+</html>

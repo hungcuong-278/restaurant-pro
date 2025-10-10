@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug Redirect Issue</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #00d4ff;
+      margin-bottom: 20px;
+    }
+    .test-section {
+      background: #16213e;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #0f3460;
+    }
+    .test-section h2 {
+      color: #00d4ff;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .result {
+      background: #0f3460;
+      border-radius: 5px;
+      padding: 15px;
+      margin-top: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .success {
+      color: #00ff88;
+    }
+    .error {
+      color: #ff6b6b;
+    }
+    .warning {
+      color: #ffd93d;
+    }
+    .info {
+      color: #00d4ff;
+    }
+    .log-entry {
+      border-left: 3px solid #667eea;
+      padding-left: 10px;
+      margin-bottom: 10px;
+    }
+    input {
+      background: #0f3460;
+      border: 1px solid #00d4ff;
+      color: white;
+      padding: 8px;
+      border-radius: 5px;
+      margin-right: 10px;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Debug Redirect Issue - Complete Test</h1>
+    
+    <div class="test-section">
+      <h2>📊 Test 1: Check Backend Status</h2>
+      <button onclick="testBackend()">Test Backend</button>
+      <div id="backend-result" class="result">Ready to test...</div>
+    </div>
+
+    <div class="test-section">
+      <h2>🔑 Test 2: Login & Get Token</h2>
+      <input type="email" id="email" placeholder="Email" value="admin@restaurant.com">
+      <input type="password" id="password" placeholder="Password" value="admin123">
+      <button onclick="testLogin()">Login & Save Token</button>
+      <button onclick="showToken()">Show Current Token</button>
+      <div id="login-result" class="result">
+Current Token: <span id="token-display">None</span>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>📋 Test 3: Fetch Orders with Token</h2>
+      <button onclick="testOrders()">Test GET /orders</button>
+      <button onclick="testOrdersDetailed()">Test with Console Logs</button>
+      <div id="orders-result" class="result">Login first to test orders...</div>
+    </div>
+
+    <div class="test-section">
+      <h2>🔍 Test 4: Check Interceptor Behavior</h2>
+      <button onclick="testInterceptor()">Test 401 Handling</button>
+      <button onclick="checkLocalStorage()">Check localStorage</button>
+      <div id="interceptor-result" class="result">Ready to test interceptor...</div>
+    </div>
+
+    <div class="test-section">
+      <h2>🌐 Test 5: Check Network Redirects</h2>
+      <button onclick="testRedirects()">Test for Redirects</button>
+      <button onclick="monitorRequests()">Monitor All Requests</button>
+      <div id="redirect-result" class="result">Ready to monitor...</div>
+    </div>
+
+    <div class="test-section">
+      <h2>📝 Test 6: Full Flow Simulation</h2>
+      <button onclick="simulateFullFlow()">Simulate: Login → Orders → Kitchen</button>
+      <div id="flow-result" class="result">Ready to simulate full user flow...</div>
+    </div>
+  </div>
+
+  <script>
+    let requestLog = [];
+
+    // Utility: Log with timestamp
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const colors = {
+        success: 'success',
+        error: 'error',
+        warning: 'warning',
+        info: 'info'
+      };
+      return `<div class="log-entry"><span class="${colors[type]}">[${timestamp}]</span> ${message}</div>`;
+    }
+
+    // Test 1: Backend Status
+    async function testBackend() {
+      const result = document.getElementById('backend-result');
+      result.innerHTML = log('Testing backend...', 'info');
+      
+      try {
+        // Test health endpoint
+        const healthResponse = await fetch('http://localhost:5000/health');
+        result.innerHTML += log(`✅ Health endpoint: ${healthResponse.status}`, 'success');
+      } catch (error) {
+        result.innerHTML += log(`⚠️ Health endpoint failed: ${error.message}`, 'warning');
+      }
+
+      try {
+        // Test auth endpoint
+        const authResponse = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'test@test.com', password: 'wrong' })
+        });
+        result.innerHTML += log(`✅ Auth endpoint responding: ${authResponse.status}`, 'success');
+      } catch (error) {
+        result.innerHTML += log(`❌ Auth endpoint failed: ${error.message}`, 'error');
+      }
+
+      try {
+        // Test orders endpoint (without auth - should get 401)
+        const ordersResponse = await fetch('http://localhost:5000/api/orders');
+        result.innerHTML += log(`✅ Orders endpoint: ${ordersResponse.status} ${ordersResponse.status === 401 ? '(Expected 401)' : ''}`, ordersResponse.status === 401 ? 'success' : 'warning');
+      } catch (error) {
+        result.innerHTML += log(`❌ Orders endpoint failed: ${error.message}`, 'error');
+      }
+    }
+
+    // Test 2: Login
+    async function testLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const result = document.getElementById('login-result');
+      
+      result.innerHTML = log('Attempting login...', 'info');
+      
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        result.innerHTML += log(`Response Status: ${response.status}`, response.ok ? 'success' : 'error');
+        result.innerHTML += log(`Response Body:\n${JSON.stringify(data, null, 2)}`, 'info');
+
+        if (data.success && data.token) {
+          localStorage.setItem('token', data.token);
+          if (data.refreshToken) {
+            localStorage.setItem('refreshToken', data.refreshToken);
+          }
+          if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
+          
+          result.innerHTML += log('✅ Token saved to localStorage', 'success');
+          showToken();
+        } else {
+          result.innerHTML += log('❌ Login failed', 'error');
+        }
+      } catch (error) {
+        result.innerHTML += log(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    function showToken() {
+      const token = localStorage.getItem('token');
+      const display = document.getElementById('token-display');
+      if (token) {
+        display.textContent = token.substring(0, 50) + '...';
+        display.className = 'success';
+      } else {
+        display.textContent = 'None';
+        display.className = 'error';
+      }
+    }
+
+    // Test 3: Orders
+    async function testOrders() {
+      const token = localStorage.getItem('token');
+      const result = document.getElementById('orders-result');
+      
+      if (!token) {
+        result.innerHTML = log('❌ No token! Login first.', 'error');
+        return;
+      }
+
+      result.innerHTML = log('Fetching orders...', 'info');
+      result.innerHTML += log(`Token: ${token.substring(0, 30)}...`, 'info');
+      
+      try {
+        const response = await fetch('http://localhost:5000/api/orders', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        result.innerHTML += log(`Status: ${response.status}`, response.ok ? 'success' : 'error');
+        
+        const data = await response.json();
+        result.innerHTML += log(`Response:\n${JSON.stringify(data, null, 2)}`, response.ok ? 'success' : 'error');
+
+        if (response.status === 401) {
+          result.innerHTML += log('⚠️ Got 401 - Token might be expired or invalid', 'warning');
+          result.innerHTML += log('🔍 Check if interceptor is clearing token...', 'warning');
+        }
+      } catch (error) {
+        result.innerHTML += log(`❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function testOrdersDetailed() {
+      const token = localStorage.getItem('token');
+      const result = document.getElementById('orders-result');
+      
+      if (!token) {
+        result.innerHTML = log('❌ No token! Login first.', 'error');
+        return;
+      }
+
+      result.innerHTML = log('🔍 Detailed test starting...', 'info');
+      
+      // Check token before request
+      result.innerHTML += log(`📦 Token in localStorage: ${!!token}`, 'info');
+      result.innerHTML += log(`📦 Token length: ${token.length}`, 'info');
+      
+      try {
+        result.innerHTML += log('📤 Sending request to /api/orders...', 'info');
+        
+        const response = await fetch('http://localhost:5000/api/orders', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        result.innerHTML += log(`📥 Response received: ${response.status}`, response.ok ? 'success' : 'error');
+        result.innerHTML += log(`📥 Response headers: ${JSON.stringify([...response.headers])}`, 'info');
+
+        // Check token after request
+        const tokenAfter = localStorage.getItem('token');
+        result.innerHTML += log(`📦 Token after request: ${!!tokenAfter}`, tokenAfter ? 'success' : 'error');
+        
+        if (!tokenAfter && token) {
+          result.innerHTML += log('⚠️ WARNING: Token was REMOVED after request!', 'error');
+          result.innerHTML += log('🔍 This means interceptor caught 401 and cleared storage', 'warning');
+        }
+
+        const data = await response.json();
+        result.innerHTML += log(`📄 Response data:\n${JSON.stringify(data, null, 2)}`, 'info');
+
+      } catch (error) {
+        result.innerHTML += log(`❌ Fetch error: ${error.message}`, 'error');
+        result.innerHTML += log(`📦 Token after error: ${!!localStorage.getItem('token')}`, 'info');
+      }
+    }
+
+    // Test 4: Interceptor
+    async function testInterceptor() {
+      const result = document.getElementById('interceptor-result');
+      result.innerHTML = log('Testing interceptor behavior...', 'info');
+      
+      // Save current location
+      const originalPath = window.location.pathname;
+      result.innerHTML += log(`Current path: ${originalPath}`, 'info');
+
+      // Test with invalid token
+      localStorage.setItem('token', 'invalid-token-for-testing');
+      result.innerHTML += log('Set invalid token', 'info');
+
+      try {
+        const response = await fetch('http://localhost:5000/api/orders', {
+          headers: {
+            'Authorization': 'Bearer invalid-token-for-testing'
+          }
+        });
+
+        result.innerHTML += log(`Response: ${response.status}`, 'info');
+
+        // Check if token was cleared
+        const tokenAfter = localStorage.getItem('token');
+        result.innerHTML += log(`Token after 401: ${tokenAfter ? 'Still exists' : 'CLEARED'}`, tokenAfter ? 'warning' : 'success');
+
+        // Check if redirect happened
+        if (window.location.pathname !== originalPath) {
+          result.innerHTML += log(`⚠️ Page was REDIRECTED to: ${window.location.pathname}`, 'warning');
+        } else {
+          result.innerHTML += log(`✅ No redirect (test tool page)`, 'success');
+        }
+
+      } catch (error) {
+        result.innerHTML += log(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    function checkLocalStorage() {
+      const result = document.getElementById('interceptor-result');
+      result.innerHTML = log('Checking localStorage...', 'info');
+      
+      const items = ['token', 'refreshToken', 'user'];
+      items.forEach(key => {
+        const value = localStorage.getItem(key);
+        if (value) {
+          result.innerHTML += log(`✅ ${key}: ${value.substring(0, 50)}...`, 'success');
+        } else {
+          result.innerHTML += log(`❌ ${key}: NOT FOUND`, 'error');
+        }
+      });
+
+      result.innerHTML += log(`\nTotal localStorage items: ${localStorage.length}`, 'info');
+    }
+
+    // Test 5: Redirects
+    async function testRedirects() {
+      const result = document.getElementById('redirect-result');
+      result.innerHTML = log('Checking for redirect behavior...', 'info');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        result.innerHTML += log('❌ No token to test with', 'error');
+        return;
+      }
+
+      result.innerHTML += log('Making request to /api/orders...', 'info');
+      
+      const startPath = window.location.pathname;
+      result.innerHTML += log(`Start path: ${startPath}`, 'info');
+
+      try {
+        const response = await fetch('http://localhost:5000/api/orders', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        result.innerHTML += log(`Response: ${response.status}`, 'info');
+
+        const endPath = window.location.pathname;
+        if (startPath !== endPath) {
+          result.innerHTML += log(`⚠️ REDIRECT DETECTED! ${startPath} → ${endPath}`, 'error');
+        } else {
+          result.innerHTML += log(`✅ No redirect occurred`, 'success');
+        }
+
+      } catch (error) {
+        result.innerHTML += log(`Error: ${error.message}`, 'error');
+      }
+    }
+
+    function monitorRequests() {
+      const result = document.getElementById('redirect-result');
+      result.innerHTML = log('Request monitoring started...', 'info');
+      result.innerHTML += log('Open Browser DevTools → Network tab to see all requests', 'warning');
+      result.innerHTML += log('This tool will log all fetch requests for 30 seconds', 'info');
+
+      // Intercept fetch
+      const originalFetch = window.fetch;
+      let requestCount = 0;
+
+      window.fetch = async (...args) => {
+        requestCount++;
+        const url = args[0];
+        const options = args[1] || {};
+        
+        result.innerHTML += log(`\n[Request #${requestCount}] ${options.method || 'GET'} ${url}`, 'info');
+        
+        if (options.headers?.Authorization) {
+          result.innerHTML += log(`  → Has Authorization header`, 'success');
+        } else {
+          result.innerHTML += log(`  → NO Authorization header`, 'warning');
+        }
+
+        try {
+          const response = await originalFetch(...args);
+          result.innerHTML += log(`  ← Response: ${response.status}`, response.ok ? 'success' : 'error');
+          return response;
+        } catch (error) {
+          result.innerHTML += log(`  ← Error: ${error.message}`, 'error');
+          throw error;
+        }
+      };
+
+      // Restore after 30 seconds
+      setTimeout(() => {
+        window.fetch = originalFetch;
+        result.innerHTML += log('\n✅ Monitoring stopped', 'success');
+        result.innerHTML += log(`Total requests monitored: ${requestCount}`, 'info');
+      }, 30000);
+    }
+
+    // Test 6: Full Flow
+    async function simulateFullFlow() {
+      const result = document.getElementById('flow-result');
+      result.innerHTML = log('🚀 Starting full flow simulation...', 'info');
+      
+      try {
+        // Step 1: Login
+        result.innerHTML += log('\n📍 Step 1: Login', 'info');
+        const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'admin@restaurant.com',
+            password: 'admin123'
+          })
+        });
+
+        const loginData = await loginResponse.json();
+        if (!loginData.success) {
+          throw new Error('Login failed');
+        }
+
+        localStorage.setItem('token', loginData.token);
+        result.innerHTML += log('✅ Login successful', 'success');
+        result.innerHTML += log(`Token: ${loginData.token.substring(0, 30)}...`, 'info');
+
+        // Step 2: Fetch Orders
+        result.innerHTML += log('\n📍 Step 2: Fetch Orders', 'info');
+        const ordersResponse = await fetch('http://localhost:5000/api/orders', {
+          headers: { 'Authorization': `Bearer ${loginData.token}` }
+        });
+
+        result.innerHTML += log(`Orders response: ${ordersResponse.status}`, ordersResponse.ok ? 'success' : 'error');
+
+        if (ordersResponse.status === 401) {
+          result.innerHTML += log('❌ Got 401 on orders - THIS IS THE PROBLEM!', 'error');
+          result.innerHTML += log('Token might be invalid or backend auth is failing', 'warning');
+        } else if (ordersResponse.ok) {
+          const ordersData = await ordersResponse.json();
+          result.innerHTML += log(`✅ Orders fetched: ${ordersData.data?.length || 0} orders`, 'success');
+        }
+
+        // Step 3: Check token still exists
+        result.innerHTML += log('\n📍 Step 3: Check localStorage', 'info');
+        const tokenAfter = localStorage.getItem('token');
+        result.innerHTML += log(`Token still in storage: ${!!tokenAfter}`, tokenAfter ? 'success' : 'error');
+
+        // Step 4: Try Kitchen endpoint
+        result.innerHTML += log('\n📍 Step 4: Fetch Kitchen Orders', 'info');
+        const kitchenResponse = await fetch('http://localhost:5000/api/orders?status=preparing', {
+          headers: { 'Authorization': `Bearer ${loginData.token}` }
+        });
+
+        result.innerHTML += log(`Kitchen response: ${kitchenResponse.status}`, kitchenResponse.ok ? 'success' : 'error');
+
+        result.innerHTML += log('\n✅ Full flow completed', 'success');
+
+      } catch (error) {
+        result.innerHTML += log(`\n❌ Flow failed: ${error.message}`, 'error');
+      }
+    }
+
+    // Initialize
+    showToken();
+  </script>
+</body>
+</html>
