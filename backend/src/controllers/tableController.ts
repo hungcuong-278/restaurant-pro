@@ -6,8 +6,9 @@ const VALID_STATUSES = ['available', 'occupied', 'reserved', 'maintenance'];
 
 export const getTables = async (req: Request, res: Response): Promise<void> => {
   try {
-    const restaurantId = req.params.restaurantId;
+    // For now, just get all tables (can add filtering by restaurantId later)
     const status = req.query.status as string;
+    const restaurantId = req.params.restaurantId || '1'; // Default restaurant
 
     let tables;
     if (status) {

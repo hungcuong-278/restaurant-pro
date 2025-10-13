@@ -11,7 +11,7 @@ const logger = createLogger('StripeService');
 
 // Initialize Stripe with API key from environment
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy', {
-  apiVersion: '2024-10-28.acacia',
+  apiVersion: '2025-09-30.clover',
   typescript: true,
 });
 
@@ -222,8 +222,8 @@ class StripeService {
       return {
         id: refund.id,
         amount: refund.amount,
-        status: refund.status,
-        reason: refund.reason || undefined,
+        status: refund.status || 'pending',
+        reason: refund.reason || '',
       };
     } catch (error: any) {
       logger.error('Failed to create refund', {

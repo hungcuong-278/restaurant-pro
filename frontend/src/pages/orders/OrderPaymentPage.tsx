@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { StripePaymentForm } from '../../components/payments/StripePaymentForm';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { fetchOrderById } from '../../store/slices/orderSlice';
+import { fetchOrderById, Order } from '../../store/slices/orderSlice';
+import { RootState } from '../../store/store';
 
 export const OrderPaymentPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -13,7 +14,7 @@ export const OrderPaymentPage: React.FC = () => {
 
   // Get order from Redux store
   const order = useAppSelector((state) =>
-    state.orders.orders.find((o) => o.id === orderId)
+    state.orders?.orders?.find((o) => o.id === orderId)
   );
 
   useEffect(() => {

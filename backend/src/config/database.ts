@@ -1,6 +1,6 @@
 import knex, { Knex } from 'knex';
-import dotenv from 'dotenv';
-import path from 'path';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 
 dotenv.config();
 

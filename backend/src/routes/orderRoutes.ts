@@ -1,62 +1,23 @@
-import express from 'express';
+import { Router } from 'express';
 import {
+  getAllOrders,
+  getOrderById,
   createOrder,
-  getOrders,
-  getOrder,
   updateOrderStatus,
-  addItemToOrder,
-  removeItemFromOrder,
-  updateOrderItem,
-  cancelOrder,
-  updateOrder
+  deleteOrder
 } from '../controllers/orderController';
-import { orderPaymentRoutes } from './paymentRoutes';
-import {
-  generateHTMLReceipt,
-  generateTextReceipt,
-  getReceiptData
-} from '../controllers/receiptController';
+import { authenticateToken } from '../middleware/auth';
 
-const router = express.Router({ mergeParams: true });
+const router = Router();
 
-/**
- * Order Routes
- * Base path: /api/restaurants/:restaurantId/orders
- */
+// All routes require authentication
+router.use(authenticateToken);
 
-// Create new order
+// Order routes
+router.get('/', getAllOrders);
+router.get('/:id', getOrderById);
 router.post('/', createOrder);
-
-// Get all orders for restaurant (with filters)
-router.get('/', getOrders);
-
-// Get single order by ID
-router.get('/:orderId', getOrder);
-
-// Update order (non-status fields: notes, discount, tip)
-router.patch('/:orderId', updateOrder);
-
-// Update order status
-router.patch('/:orderId/status', updateOrderStatus);
-
-// Cancel order
-router.post('/:orderId/cancel', cancelOrder);
-
-// Add item to order
-router.post('/:orderId/items', addItemToOrder);
-
-// Update order item
-router.patch('/:orderId/items/:itemId', updateOrderItem);
-
-// Remove item from order
-router.delete('/:orderId/items/:itemId', removeItemFromOrder);
-
-// Receipt routes
-router.get('/:orderId/receipt', generateHTMLReceipt);
-router.get('/:orderId/receipt/text', generateTextReceipt);
-router.get('/:orderId/receipt/data', getReceiptData);
-
-// Mount payment routes under /orders/:orderId
-router.use('/:orderId', orderPaymentRoutes);
+router.patch('/:id/status', updateOrderStatus);
+router.delete('/:id', deleteOrder);
 
 export default router;

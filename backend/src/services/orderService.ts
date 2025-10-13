@@ -11,18 +11,6 @@ import {
   OrderStatus,
   OrderItemStatus
 } from '../types/order.types';
-import { createLogger } from '../utils/logger';
-import {
-  NotFoundError,
-  ValidationError,
-  OrderNotModifiableError,
-  InvalidOrderStatusError,
-  OrderAlreadyPaidError,
-  MenuItemNotAvailableError,
-  DatabaseError
-} from '../utils/errors';
-
-const logger = createLogger('OrderService');
 
 // Constants
 const TAX_RATE = 0.085; // 8.5% sales tax
@@ -43,17 +31,12 @@ async function generateOrderNumber(): Promise<string> {
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
   
-  // Get today's order count - ordered_at is stored as millisecond timestamp
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  const todayStartMs = todayStart.getTime();
-  
-  const todayEnd = new Date(now);
-  todayEnd.setHours(23, 59, 59, 999);
-  const todayEndMs = todayEnd.getTime();
+  // Get today's order count
+  const todayStart = new Date(now.setHours(0, 0, 0, 0));
+  const todayEnd = new Date(now.setHours(23, 59, 59, 999));
   
   const count = await db('orders')
-    .whereBetween('ordered_at', [todayStartMs, todayEndMs])
+    .whereBetween('ordered_at', [todayStart, todayEnd])
     .count('id as count')
     .first();
   
@@ -105,8 +88,6 @@ function isValidStatusTransition(currentStatus: OrderStatus, newStatus: OrderSta
  * Create a new order with items
  */
 async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
-  logger.info('Creating new order', { restaurant_id: data.restaurant_id, table_id: data.table_id });
-  
   return await db.transaction(async (trx) => {
     // Validate restaurant exists
     const restaurant = await trx('restaurants')
@@ -114,8 +95,7 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
       .first();
     
     if (!restaurant) {
-      logger.error('Restaurant not found', null, { restaurant_id: data.restaurant_id });
-      throw new NotFoundError('Restaurant', data.restaurant_id);
+      throw new Error('Restaurant not found');
     }
     
     // Validate table if provided
@@ -125,8 +105,7 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
         .first();
       
       if (!table) {
-        logger.error('Table not found', null, { table_id: data.table_id });
-        throw new NotFoundError('Table', data.table_id);
+        throw new Error('Table not found');
       }
     }
     
@@ -140,13 +119,11 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
         .first();
       
       if (!menuItem) {
-        logger.error('Menu item not found', null, { menu_item_id: item.menu_item_id });
-        throw new NotFoundError('Menu item', item.menu_item_id);
+        throw new Error(`Menu item ${item.menu_item_id} not found`);
       }
       
       if (!menuItem.is_available) {
-        logger.warn('Menu item not available', { menu_item_id: item.menu_item_id, name: menuItem.name });
-        throw new MenuItemNotAvailableError(item.menu_item_id, menuItem.name);
+        throw new Error(`Menu item ${menuItem.name} is not available`);
       }
       
       const itemTotal = menuItem.price * item.quantity;
@@ -200,13 +177,6 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
       .insert(orderItems)
       .returning('*');
     
-    logger.info('Order created successfully', { 
-      order_id: order.id, 
-      order_number: order.order_number,
-      total_items: insertedItems.length,
-      total_amount: order.total_amount
-    });
-    
     return {
       ...order,
       items: insertedItems
@@ -236,7 +206,7 @@ async function getOrderById(orderId: string): Promise<OrderWithItems | null> {
   if (order.table_id) {
     table = await db('tables')
       .where({ id: order.table_id })
-      .select('id', 'number', 'number as table_number', 'location', 'capacity', 'status')
+      .select('id', 'number', 'location')
       .first();
   }
   
@@ -322,23 +292,14 @@ async function getOrdersByRestaurant(
     .limit(limit)
     .offset(offset);
   
-  // Get items and table info for each order
+  // Get items for each order
   const ordersWithItems = await Promise.all(
     orders.map(async (order) => {
       const items = await db('order_items')
         .where({ order_id: order.id })
         .orderBy('created_at', 'asc');
       
-      // Get table info if table_id exists
-      let table = null;
-      if (order.table_id) {
-        table = await db('tables')
-          .where({ id: order.table_id })
-          .select('id', 'number', 'number as table_number', 'location', 'capacity', 'status')
-          .first();
-      }
-      
-      return { ...order, items, table };
+      return { ...order, items };
     })
   );
   

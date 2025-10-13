@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 import orderService from '../services/orderService';
 import { OrderCreateData, OrderUpdateData, OrderItemCreateData, OrderItemUpdate } from '../types/order.types';
-import { createLogger } from '../utils/logger';
-import { AppError } from '../utils/errors';
-
-const logger = createLogger('OrderController');
 
 /**
  * Create a new order
@@ -56,30 +52,17 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     const order = await orderService.createOrder(orderData);
 
-    logger.info('Order created via API', { order_id: order.id, order_number: order.order_number });
-
     res.status(201).json({
       success: true,
       message: 'Order created successfully',
       data: order
     });
   } catch (error: any) {
-    logger.error('Create order error', error, { restaurant_id: req.params.restaurantId });
-    
-    if (error instanceof AppError) {
-      res.status(error.statusCode).json({
-        success: false,
-        message: error.message,
-        code: error.code,
-        details: error.details
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create order',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
+    console.error('Create order error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to create order'
+    });
   }
 };
 
