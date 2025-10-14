@@ -6,16 +6,17 @@ const VALID_STATUSES = ['available', 'occupied', 'reserved', 'maintenance'];
 
 export const getTables = async (req: Request, res: Response): Promise<void> => {
   try {
-    // For now, just get all tables (can add filtering by restaurantId later)
     const status = req.query.status as string;
-    const restaurantId = req.params.restaurantId || '1'; // Default restaurant
-
-    let tables;
+    
+    // Query database directly to get all tables
+    const db = require('../config/database').default;
+    let query = db('tables').select('*');
+    
     if (status) {
-      tables = await tableService.getTablesByStatus(restaurantId, status as any);
-    } else {
-      tables = await tableService.getTablesByRestaurant(restaurantId);
+      query = query.where('status', status);
     }
+    
+    const tables = await query;
 
     res.json({ success: true, data: tables });
   } catch (error: any) {
