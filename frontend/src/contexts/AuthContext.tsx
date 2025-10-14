@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import authService from '../services/authService';
 import { 
   AuthState, 
@@ -258,9 +258,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Clear error function
-  const clearError = (): void => {
+  const clearError = useCallback((): void => {
     dispatch({ type: 'CLEAR_ERROR' });
-  };
+  }, []);
 
   // Update profile function
   const updateProfile = async (data: Partial<User>): Promise<boolean> => {
