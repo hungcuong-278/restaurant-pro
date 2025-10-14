@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import {
-  getAllOrders,
-  getOrderById,
+  getOrders,
+  getOrder,
   createOrder,
   updateOrderStatus,
-  deleteOrder
+  cancelOrder
 } from '../controllers/orderController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -14,10 +14,10 @@ const router = Router();
 router.use(authenticateToken);
 
 // Order routes
-router.get('/', getAllOrders);
-router.get('/:id', getOrderById);
+router.get('/', getOrders);
+router.get('/:id', getOrder);
 router.post('/', createOrder);
 router.patch('/:id/status', updateOrderStatus);
-router.delete('/:id', deleteOrder);
+router.delete('/:id', cancelOrder);
 
 export default router;
