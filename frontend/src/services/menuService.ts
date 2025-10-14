@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
@@ -72,7 +72,7 @@ const menuService = {
 
       const url = `${API_BASE_URL}/menu/items?${params.toString()}`;
       
-      const response = await axios.get(url);
+      const response = await api.get(url);
       // Backend returns { success: true, data: { items: [...], pagination: {...} } }
       const data = response.data.data || response.data;
       // Extract items array from nested structure
@@ -86,7 +86,7 @@ const menuService = {
   // Get single menu item
   async getMenuItem(itemId: string): Promise<MenuItem> {
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${API_BASE_URL}/menu/items/${itemId}`
       );
       // Backend returns { success: true, data: {...} }
@@ -100,7 +100,7 @@ const menuService = {
   // Create menu item
   async createMenuItem(itemData: CreateMenuItemData): Promise<MenuItem> {
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${API_BASE_URL}/menu/items`,
         itemData
       );
@@ -115,7 +115,7 @@ const menuService = {
   // Update menu item
   async updateMenuItem(itemId: string, itemData: UpdateMenuItemData): Promise<MenuItem> {
     try {
-      const response = await axios.patch(
+      const response = await api.patch(
         `${API_BASE_URL}/menu/items/${itemId}`,
         itemData
       );
@@ -130,7 +130,7 @@ const menuService = {
   // Delete menu item
   async deleteMenuItem(itemId: string): Promise<void> {
     try {
-      await axios.delete(
+      await api.delete(
         `${API_BASE_URL}/menu/items/${itemId}`
       );
     } catch (error) {
@@ -192,3 +192,4 @@ const menuService = {
 };
 
 export default menuService;
+

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 import {
   CreateReservationData,
   UpdateReservationData,
@@ -9,27 +9,9 @@ import { AUTH_STORAGE_KEYS } from '../types/auth';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-// Create axios instance with auth token interceptor
-const reservationApi = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+// Use the shared api instance which already has auth interceptors
+const reservationApi = api;
 
-// Add auth token to requests
-reservationApi.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 class ReservationService {
   /**
@@ -209,3 +191,5 @@ export const formatTimeForDisplay = (time: string): string => {
   const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
   return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 };
+
+
