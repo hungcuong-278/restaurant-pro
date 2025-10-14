@@ -8,7 +8,11 @@ import { OrderCreateData, OrderUpdateData, OrderItemCreateData, OrderItemUpdate 
  */
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
+    // Get default restaurant ID
+    const db = require('../config/database').default;
+    const defaultRestaurant = await db('restaurants').first();
+    const restaurantId = defaultRestaurant?.id || '95648362-ee77-4d72-a7b9-b4c517d0e151';
+
     const orderData: OrderCreateData = {
       ...req.body,
       restaurant_id: restaurantId
