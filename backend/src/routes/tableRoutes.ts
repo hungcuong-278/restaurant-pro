@@ -13,7 +13,9 @@ import {
   getTableAnalytics
 } from '../controllers/tableController';
 
+console.log('🔧 Creating table router...');
 const router = Router({ mergeParams: true });
+console.log('✅ Table router created');
 
 // Table availability and analytics (must be before /:id to avoid conflicts)
 router.get('/availability/check', getTableAvailability); // GET /api/tables/availability/check
@@ -34,4 +36,5 @@ router.delete('/:id', deleteTable);           // DELETE /api/tables/:id
 router.patch('/:id/status', updateTableStatus);         // PATCH /api/tables/:id/status
 router.patch('/:id/position', updateTablePosition);     // PATCH /api/tables/:id/position
 
+console.log('✅ All table routes registered on router');
 export default router;

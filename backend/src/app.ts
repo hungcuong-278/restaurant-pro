@@ -75,17 +75,24 @@ app.use('/api/debug', debugRoutes);
 // Reservation routes - use main reservationRoutes
 app.use('/api/reservations', reservationRoutes);
 
+// Simple API routes
+app.use('/api/tables', tableRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRouter);
+
+
 // Global reservation routes commented out to avoid route conflict
 // app.use('/api/reservations', globalReservationRoutes);
 
 // Restaurant-specific routes - mount directly with full path
-app.use('/api/restaurants/:restaurantId/tables', tableRoutes);
-app.use('/api/restaurants/:restaurantId/reservations', reservationRoutes);
-app.use('/api/restaurants/:restaurantId/orders', orderRoutes);
-app.use('/api/restaurants/:restaurantId/payments', paymentRouter);
+// app.use('/api/restaurants/:restaurantId/tables', tableRoutes);
+// app.use('/api/restaurants/:restaurantId/reservations', reservationRoutes);
+// app.use('/api/restaurants/:restaurantId/orders', orderRoutes);
+// app.use('/api/restaurants/:restaurantId/payments', paymentRouter);
 
 // Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
 
 export default app;
+
