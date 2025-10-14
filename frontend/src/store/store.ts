@@ -4,6 +4,7 @@ import restaurantSlice from './slices/restaurantSlice';
 import menuSlice from './slices/menuSlice';
 import tableSlice from './slices/tableSlice';
 import reservationSlice from './slices/reservationSlice';
+import orderSlice from './slices/orderSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     menu: menuSlice,
     tables: tableSlice,
     reservation: reservationSlice,
+    orders: orderSlice,
   },
 });
 

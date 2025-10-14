@@ -12,10 +12,12 @@ export const OrderPaymentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get order from Redux store
-  const order = useAppSelector((state) =>
-    state.orders?.orders?.find((o) => o.id === orderId)
-  );
+  // Get order from Redux store - use explicit type to avoid TS errors
+  const order = useAppSelector((state: RootState) => {
+    const ordersState = state.orders;
+    if (!ordersState || !ordersState.orders) return null;
+    return ordersState.orders.find((o: Order) => o.id === orderId) || null;
+  });
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -177,18 +179,18 @@ export const OrderPaymentPage: React.FC = () => {
             {order.subtotal !== undefined && (
               <div className="flex justify-between text-gray-700">
                 <span>Subtotal</span>
-                <span>${order.subtotal.toFixed(2)}</span>
+                <span>${parseFloat(order.subtotal).toFixed(2)}</span>
               </div>
             )}
             {order.tax_amount !== undefined && (
               <div className="flex justify-between text-gray-700">
                 <span>Tax</span>
-                <span>${order.tax_amount.toFixed(2)}</span>
+                <span>${parseFloat(order.tax_amount).toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-200">
               <span>Total</span>
-              <span>${order.total_amount?.toFixed(2) || '0.00'}</span>
+              <span>${order.total_amount ? parseFloat(order.total_amount).toFixed(2) : '0.00'}</span>
             </div>
           </div>
 
@@ -218,7 +220,7 @@ export const OrderPaymentPage: React.FC = () => {
         {/* Payment Form */}
         <StripePaymentForm
           orderId={order.id}
-          amount={order.total_amount || 0}
+          amount={order.total_amount ? parseFloat(order.total_amount) : 0}
           customerEmail={order.customer_email}
           customerName={order.customer_name}
           onSuccess={handlePaymentSuccess}

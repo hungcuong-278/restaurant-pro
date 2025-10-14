@@ -1,7 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import api from '../../services/api';
 
 // Types
 export interface OrderItem {
@@ -49,12 +47,7 @@ export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/orders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get('/orders');
       return response.data.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch orders');
@@ -66,12 +59,7 @@ export const fetchOrderById = createAsyncThunk(
   'orders/fetchOrderById',
   async (orderId: string, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_BASE_URL}/orders/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get(`/orders/${orderId}`);
       return response.data.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch order');
@@ -83,13 +71,7 @@ export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (orderData: any, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_BASE_URL}/orders`, orderData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await api.post('/orders', orderData);
       return response.data.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create order');
@@ -101,17 +83,7 @@ export const updateOrderStatus = createAsyncThunk(
   'orders/updateOrderStatus',
   async ({ orderId, status }: { orderId: string; status: string }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.patch(
-        `${API_BASE_URL}/orders/${orderId}/status`,
-        { status },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await api.patch(`/orders/${orderId}/status`, { status });
       return response.data.data;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update order status');
@@ -123,12 +95,7 @@ export const cancelOrder = createAsyncThunk(
   'orders/cancelOrder',
   async (orderId: string, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.delete(`${API_BASE_URL}/orders/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await api.delete(`/orders/${orderId}`);
       return orderId;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Failed to cancel order');
