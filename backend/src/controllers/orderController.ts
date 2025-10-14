@@ -72,7 +72,6 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
  */
 export const getOrders = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId } = req.params;
     const {
       status,
       order_type,
@@ -80,31 +79,63 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
       staff_id,
       start_date,
       end_date,
-      page,
-      limit
+      page = '1',
+      limit = '50'
     } = req.query;
 
-    const filters = {
-      status: status as any,
-      order_type: order_type as any,
-      table_id: table_id as string,
-      staff_id: staff_id as string,
-      start_date: start_date as string,
-      end_date: end_date as string,
-      page: page ? parseInt(page as string) : undefined,
-      limit: limit ? parseInt(limit as string) : undefined
-    };
+    const db = require('../config/database').default;
 
-    const result = await orderService.getOrdersByRestaurant(restaurantId, filters);
+    // Build query
+    let query = db('orders')
+      .select(
+        'orders.*',
+        'tables.number as table_number',
+        'users.first_name as staff_name'
+      )
+      .leftJoin('tables', 'orders.table_id', 'tables.id')
+      .leftJoin('users', 'orders.staff_id', 'users.id')
+      .orderBy('orders.ordered_at', 'desc');
+
+    // Apply filters
+    if (status) {
+      query = query.where('orders.status', status as string);
+    }
+    if (order_type) {
+      query = query.where('orders.order_type', order_type as string);
+    }
+    if (table_id) {
+      query = query.where('orders.table_id', table_id as string);
+    }
+    if (staff_id) {
+      query = query.where('orders.staff_id', staff_id as string);
+    }
+    if (start_date) {
+      query = query.where('orders.ordered_at', '>=', start_date as string);
+    }
+    if (end_date) {
+      query = query.where('orders.ordered_at', '<=', end_date as string);
+    }
+
+    // Pagination
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    const [orders, totalResult] = await Promise.all([
+      query.limit(limitNum).offset(offset),
+      db('orders').count('* as count').first()
+    ]);
+
+    const total = Number(totalResult?.count || 0);
 
     res.json({
       success: true,
-      data: result.orders,
+      data: orders,
       pagination: {
-        total: result.total,
-        page: result.page,
-        limit: result.limit,
-        totalPages: Math.ceil(result.total / result.limit)
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum)
       }
     });
   } catch (error: any) {
@@ -115,11 +146,6 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
-
-/**
- * Get a single order by ID
- * GET /api/restaurants/:restaurantId/orders/:orderId
- */
 export const getOrder = async (req: Request, res: Response): Promise<void> => {
   try {
     const { orderId } = req.params;
@@ -414,3 +440,7 @@ export const updateOrder = async (req: Request, res: Response): Promise<void> =>
     });
   }
 };
+
+
+
+
