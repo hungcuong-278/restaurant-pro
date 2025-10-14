@@ -105,7 +105,7 @@ const orderService = {
       if (filters?.limit) params.append('limit', filters.limit.toString());
 
       const queryString = params.toString();
-      const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders${queryString ? `?${queryString}` : ''}`;
+      const url = `/orders${queryString ? `?${queryString}` : ''}`;
       
       const response = await api.get(url);
       // Backend returns { success: true, data: [...] }
@@ -120,7 +120,7 @@ const orderService = {
   async getOrder(orderId: string): Promise<Order> {
     try {
       const response = await api.get(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`
+        `/orders/${orderId}`
       );
       // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
@@ -134,7 +134,7 @@ const orderService = {
   async createOrder(orderData: CreateOrderData): Promise<Order> {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders`,
+        `/orders`,
         orderData
       );
       // Backend returns { success: true, data: {...} }
@@ -149,7 +149,7 @@ const orderService = {
   async updateOrder(orderId: string, orderData: UpdateOrderData): Promise<Order> {
     try {
       const response = await api.patch(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`,
+        `/orders/${orderId}`,
         orderData
       );
       return response.data;
@@ -163,7 +163,7 @@ const orderService = {
   async updateOrderStatus(orderId: string, status: Order['status']): Promise<Order> {
     try {
       const response = await api.patch(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/status`,
+        `/orders/${orderId}/status`,
         { status }
       );
       return response.data;
@@ -177,7 +177,7 @@ const orderService = {
   async deleteOrder(orderId: string): Promise<void> {
     try {
       await api.delete(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`
+        `/orders/${orderId}`
       );
     } catch (error) {
       console.error('Error deleting order:', error);
@@ -193,7 +193,7 @@ const orderService = {
   }): Promise<OrderItem> {
     try {
       const response = await api.post(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items`,
+        `/orders/${orderId}/items`,
         item
       );
       return response.data;
@@ -210,7 +210,7 @@ const orderService = {
   }): Promise<OrderItem> {
     try {
       const response = await api.patch(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items/${itemId}`,
+        `/orders/${orderId}/items/${itemId}`,
         updates
       );
       return response.data;
@@ -224,7 +224,7 @@ const orderService = {
   async removeOrderItem(orderId: string, itemId: string): Promise<void> {
     try {
       await api.delete(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items/${itemId}`
+        `/orders/${orderId}/items/${itemId}`
       );
     } catch (error) {
       console.error('Error removing order item:', error);
@@ -235,4 +235,5 @@ const orderService = {
 
 export { orderService };
 export default orderService;
+
 
