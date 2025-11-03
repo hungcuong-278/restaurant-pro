@@ -1,11 +1,9 @@
-console.log('🚀 === BACKEND STARTING === 🚀');
 import app from './app';
 import knex from './config/database';
 
-console.log('✅ Imports loaded successfully');
+console.log('🚀 Backend server starting...');
 
 const PORT = process.env.PORT || 5000;
-console.log(`📍 Port: ${PORT}`);
 
 // Global error handlers for debugging
 process.on('uncaughtException', (err) => {
