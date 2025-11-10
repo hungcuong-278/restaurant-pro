@@ -3,13 +3,66 @@
 ## Version Management
 Để quay lại một phiên bản cũ, sử dụng lệnh:
 ```bash
-git checkout v1.0.0  # Thay số phiên bản tương ứng
+git checkout v1.0.1  # Thay số phiên bản tương ứng
 ```
 
 Hoặc xem tất cả các phiên bản:
 ```bash
 git tag --list
 ```
+
+---
+
+## 📦 v1.0.1 (November 11, 2025) ⭐ CURRENT
+**Branch:** `feature/reservation-confirmation`  
+**Commit:** `0f486d6`  
+**Tag:** `v1.0.1`
+
+### 🎨 UI Improvements
+- ✅ **View Menu Button Fix**: Chuyển sang viền trắng + chữ trắng
+  - Dễ nhìn hơn trên background ảnh nhà hàng
+  - Hover effect: background trắng + text đen
+  - Smooth transition animation
+
+### 🧹 Project Cleanup
+- ✅ **Organized Root Directory**:
+  - Di chuyển 19 files cũ vào `archive/` folder
+  - Summary files, test scripts, old plans
+  - Giữ root directory sạch sẽ
+
+- ✅ **Backend Organization**:
+  - Tạo `backend/test-scripts/` folder
+  - Di chuyển 44 test files vào đây
+  - `start-server.bat`, test APIs, debug scripts
+  - Backend root giờ chỉ có files quan trọng
+
+- ✅ **Scripts Organization**:
+  - Tạo `scripts/` folder
+  - Di chuyển `monitor-servers.bat` vào đây
+  - Chuẩn bị cho các scripts khác
+
+- ✅ **Cleanup**:
+  - Xóa `reservationService.ts.backup`
+  - Không còn files dư thừa
+
+### 📁 New Structure
+```
+restaurant-pro/
+├── archive/              ← Old summaries & test files
+├── backend/
+│   ├── test-scripts/     ← All test files (44 files)
+│   └── src/              ← Source code
+├── frontend/
+│   └── src/
+├── scripts/              ← Utility scripts
+└── docs/                 ← Documentation
+```
+
+### 📊 Metrics
+- **Files moved:** 65 files
+- **Folders created:** 3 (archive, backend/test-scripts, scripts)
+- **Lines changed:** 247 lines
+- **Project cleanliness:** 📈 Much improved!
 
 ---
 
@@ -75,11 +128,12 @@ npm start
 
 ---
 
-## 🔜 Planned for v1.0.1
+## 🔜 Planned for v1.0.2
 - [ ] Add reservation email notifications
 - [ ] Add table availability calendar view
 - [ ] Improve mobile responsiveness
 - [ ] Add loading states to all async operations
+- [ ] Optimize image loading
 
 ---
 
