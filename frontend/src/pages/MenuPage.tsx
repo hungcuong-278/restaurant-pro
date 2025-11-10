@@ -22,6 +22,9 @@ const MenuPage: React.FC = () => {
     ? fullMenu.filter(section => section.category.id === selectedCategory)
     : fullMenu;
 
+  // Ensure categories is always an array
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
@@ -73,7 +76,7 @@ const MenuPage: React.FC = () => {
           >
             All Items
           </button>
-          {categories.map((category) => (
+          {safeCategories.map((category) => (
            <button key={category} onClick={() => handleCategoryClick(category)}
               className={`px-6 py-2 rounded-full transition-colors ${
                 selectedCategory === category
