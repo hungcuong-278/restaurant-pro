@@ -16,9 +16,11 @@ import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/admin/DashboardPage';
+import ReservationConfirmationPage from './pages/admin/ReservationConfirmationPage';
 import SimpleReservationPage from './pages/reservations/SimpleReservationPage';
 import ReservationPage from './pages/reservations/ReservationPage';
 import BookingConfirmationPage from './pages/reservations/BookingConfirmationPage';
+import PendingReservationPage from './pages/reservations/PendingReservationPage';
 import MyReservationsPage from './pages/reservations/MyReservationsPage';
 import OrderListPage from './pages/orders/OrderListPage';
 import NewOrderPage from './pages/orders/NewOrderPage';
@@ -55,11 +57,13 @@ const App: React.FC = () => {
               {/* Reservation Routes */}
               <Route path="/reservations" element={<SimpleReservationPage />} />
               <Route path="/reservations/new" element={<ReservationPage />} />
+              <Route path="/reservations/pending/:reservationId" element={<PendingReservationPage />} />
               <Route path="/reservations/confirmation/:reservationId" element={<BookingConfirmationPage />} />
               <Route path="/reservations/my-reservations" element={<MyReservationsPage />} />
               
               {/* Admin Routes */}
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/admin/reservations/confirm" element={<ReservationConfirmationPage />} />
               
               {/* Order Management Routes */}
               <Route path="/orders" element={<OrderListPage />} />

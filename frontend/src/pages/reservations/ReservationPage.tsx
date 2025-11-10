@@ -208,8 +208,8 @@ const ReservationPage: React.FC = () => {
 
     try {
       const result = await dispatch(createReservation(reservationData)).unwrap();
-      // Navigate to confirmation page
-      navigate(`/reservations/confirmation/${result.id}`);
+      // Navigate to PENDING page (not confirmation)
+      navigate(`/reservations/pending/${result.id}`);
     } catch (err) {
       console.error('Failed to create reservation:', err);
       // Error is handled by Redux state
