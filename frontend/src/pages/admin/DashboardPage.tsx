@@ -45,9 +45,19 @@ const DashboardPage: React.FC = () => {
           </div>
           
           <div className="premium-card">
-            <h3 className="text-xl font-bold text-gr-black mb-4">Menu Management</h3>
-            <p className="text-gray-600 mb-4">Update menu items, prices, and availability.</p>
-            <button className="btn-primary-outline">Manage Menu</button>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-bold text-gr-black">Menu Management</h3>
+              <span className="text-3xl">🍽️</span>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Update menu items, prices, and availability for orders and display.
+            </p>
+            <button 
+              onClick={() => navigate('/admin/menu')}
+              className="btn-primary-outline w-full"
+            >
+              Manage Menu →
+            </button>
           </div>
           
           <div className="premium-card">
