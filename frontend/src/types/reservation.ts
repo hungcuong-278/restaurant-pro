@@ -21,6 +21,14 @@ export interface Reservation {
   table_number?: string;
   capacity?: number;
   location?: string;
+  // Joined table object
+  table?: {
+    id: string;
+    number: string;
+    location?: string;
+    capacity: number;
+    status: string;
+  };
   // Joined fields from restaurants
   restaurant_name?: string;
 }

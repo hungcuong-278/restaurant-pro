@@ -1,5 +1,6 @@
 import axios from 'axios';
 import {
+  Reservation,
   CreateReservationData,
   UpdateReservationData,
   ReservationResponse,
@@ -63,18 +64,49 @@ class ReservationService {
   }
 
   /**
-   * Get single reservation by ID
+   * Get all reservations (Admin only)
    */
-  async getReservationById(id: string): Promise<ReservationResponse> {
+  async getReservations(): Promise<Reservation[]> {
     try {
-      const response = await reservationApi.get(`/reservations/${id}`);
+      const response = await reservationApi.get('/reservations');
+      // API returns { success: true, reservations: [...] }
+      return response.data.reservations || response.data.data || [];
+    } catch (error: any) {
+      if (error.response?.data) {
+        throw error;
+      }
+      throw new Error('Failed to fetch reservations');
+    }
+  }
+  /**
+   * Update reservation
+   */
+  async updateReservation(id: string, data: UpdateReservationData): Promise<ReservationResponse> {
+    try {
+      const response = await reservationApi.put(`/reservations/${id}`, data);
       return response.data;
     } catch (error: any) {
       if (error.response?.data) {
         throw error;
       }
-      throw new Error('Failed to fetch reservation');
+      throw new Error('Failed to update reservation');
     }
+  }
+
+  /**
+   * Update reservation status (Admin only)
+   */
+  async updateReservationStatus(id: string, status: 'pending' | 'confirmed' | 'seated' | 'completed' | 'cancelled' | 'no_show'): Promise<ReservationResponse> {
+    try {
+      const response = await reservationApi.put(`/reservations/${id}`, { status });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data) {
+        throw error;
+      }
+      throw new Error('Failed to update reservation status');
+    }
+  } }
   }
 
   /**
@@ -112,8 +144,11 @@ class ReservationService {
    */
   async checkAvailability(params: {
     date: string;
-    time: string;
-    party_size: number;
+const reservationService = new ReservationService();
+export default reservationService;
+
+// Export types for convenience
+export type { Reservation } from '../types/reservation';
   }): Promise<AvailabilityResponse> {
     try {
       const response = await reservationApi.get('/reservations/available-tables', { params });
