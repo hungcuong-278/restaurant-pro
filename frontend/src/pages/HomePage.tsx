@@ -25,9 +25,17 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center bg-gradient-to-br from-gr-black via-gray-900 to-gr-black">
-        {/* Background overlay */}
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+      <section className="relative h-screen flex items-center justify-center bg-gradient-to-br from-gr-black via-gray-900 to-gr-black overflow-hidden">
+        {/* Restaurant background image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url(https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop)',
+          }}
+        ></div>
+        
+        {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-black opacity-60"></div>
         
         {/* Hero content */}
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
