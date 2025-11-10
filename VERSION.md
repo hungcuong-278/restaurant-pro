@@ -13,10 +13,44 @@ git tag --list
 
 ---
 
-## 📦 v1.0.2 (November 11, 2025) ⭐ CURRENT
+## 📦 v1.0.2.1 (November 11, 2025) ⭐ CURRENT HOTFIX
+**Branch:** `feature/reservation-confirmation`  
+**Commit:** `d622a88`  
+**Tag:** `v1.0.2.1`
+
+### 🔧 **Hotfixes**
+- ✅ **Fixed Menu Management Backend Integration**:
+  - Corrected type mismatches (backend uses `category_id` UUID not `category` string)
+  - Added category fetching from `/api/menu/categories` table
+  - Form now uses correct `category_id` field for create/update
+  - Display uses `category_name` from JOIN or lookup
+  - All 8 TypeScript compilation errors resolved
+  - Created MenuManagementPage.css for proper styling
+
+- ✅ **Technical Corrections**:
+  - MenuItem interface now properly includes `category_id` (UUID)
+  - Categories fetched separately from `menu_categories` table
+  - Form select binds to category_id UUID values
+  - Display extracts category_name from backend JOIN response
+  - All CRUD operations use correct field names matching backend schema
+
+### ✅ **Now Fully Working**
+- ✅ Frontend compiles successfully
+- ✅ Menu management page accessible at `/admin/menu`
+- ✅ Create menu items with category selection
+- ✅ Edit existing items
+- ✅ Delete with confirmation
+- ✅ Toggle availability
+- ✅ Category filtering
+- ✅ Real-time sync across all pages
+
+---
+
+## 📦 v1.0.2 (November 11, 2025) ⚠️ BROKEN - USE v1.0.2.1
 **Branch:** `feature/reservation-confirmation`  
 **Commit:** `eb5a66d`  
 **Tag:** `v1.0.2`
+**Status:** ⚠️ Compilation errors - use v1.0.2.1 instead
 
 ### 🍽️ **Menu Management System (Major Feature)**
 - ✅ **Full CRUD Operations**:
