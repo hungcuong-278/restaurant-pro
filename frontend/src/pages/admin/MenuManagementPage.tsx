@@ -1,123 +1,185 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../../store/store';
-import { fetchMenuItems, fetchCategories } from '../../store/slices/menuSlice';
-import menuService from '../../services/menuService';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import './MenuManagementPage.css';
 
-interface MenuItemForm {
+const API_BASE_URL = 'http://localhost:5000/api';
+const RESTAURANT_ID = 'e22b109c-48a8-4fd7-a7ab-f74295945668';
+
+interface MenuCategory {
+  id: string;
   name: string;
-  description: string;
-  price: number;
+  slug: string;
+  description?: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+interface MenuItem {
+  id: string;
+  restaurant_id: string;
   category_id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  price: number;
+  cost?: number;
+  image_url?: string;
+  allergens?: string[];
+  dietary_info?: string[];
+  preparation_time?: number;
   is_available: boolean;
   is_featured: boolean;
-  preparation_time?: number;
-  image_url?: string;
-  dietary_info?: string[];
-  allergens?: string[];
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  // From JOIN with menu_categories
+  category_name?: string;
+  category_slug?: string;
+}
+
+interface MenuItemFormData {
+  name: string;
+  category_id: string;
+  description: string;
+  price: number;
+  image_url: string;
+  preparation_time: number;
+  is_available: boolean;
+  is_featured: boolean;
 }
 
 const MenuManagementPage: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { menuItems, categories, isLoading } = useSelector((state: RootState) => state.menu);
-  
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
-  const [formData, setFormData] = useState<MenuItemForm>({
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [formData, setFormData] = useState<MenuItemFormData>({
     name: '',
+    category_id: '',
     description: '',
     price: 0,
-    category_id: '',
+    image_url: '',
+    preparation_time: 0,
     is_available: true,
     is_featured: false,
-    preparation_time: undefined,
-    image_url: '',
-    dietary_info: [],
-    allergens: []
   });
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  // Check admin access
   useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
-      navigate('/dashboard');
+    fetchCategories();
+    fetchMenuItems();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/menu/categories`, {
+        params: { restaurant_id: RESTAURANT_ID }
+      });
+      const data = response.data.data || response.data;
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setCategories([]);
     }
-  }, [user, navigate]);
+  };
 
-  useEffect(() => {
-    dispatch(fetchMenuItems());
-    dispatch(fetchCategories());
-  }, [dispatch]);
+  const fetchMenuItems = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/menu/items`, {
+        params: { 
+          restaurant_id: RESTAURANT_ID,
+          limit: 100 
+        }
+      });
+      const data = response.data.data || response.data;
+      const items = data.items || data;
+      setMenuItems(Array.isArray(items) ? items : []);
+    } catch (error) {
+      console.error('Error fetching menu items:', error);
+      setMenuItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleOpenModal = (item?: any) => {
+  const handleOpenModal = (item?: MenuItem) => {
     if (item) {
       setEditingItem(item);
       setFormData({
         name: item.name,
+        category_id: item.category_id || '',
         description: item.description || '',
         price: item.price,
-        category_id: item.category_id,
-        is_available: item.is_available,
-        is_featured: item.is_featured || false,
-        preparation_time: item.preparation_time,
         image_url: item.image_url || '',
-        dietary_info: item.dietary_info || [],
-        allergens: item.allergens || []
+        preparation_time: item.preparation_time || 0,
+        is_available: item.is_available,
+        is_featured: item.is_featured,
       });
     } else {
       setEditingItem(null);
       setFormData({
         name: '',
+        category_id: categories.length > 0 ? categories[0].id : '',
         description: '',
         price: 0,
-        category_id: '',
+        image_url: '',
+        preparation_time: 0,
         is_available: true,
         is_featured: false,
-        preparation_time: undefined,
-        image_url: '',
-        dietary_info: [],
-        allergens: []
       });
     }
     setShowModal(true);
-    setError(null);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingItem(null);
-    setError(null);
+    setFormData({
+      name: '',
+      category_id: '',
+      description: '',
+      price: 0,
+      image_url: '',
+      preparation_time: 0,
+      is_available: true,
+      is_featured: false,
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
+    
     try {
+      const payload = {
+        ...formData,
+        restaurant_id: RESTAURANT_ID,
+        price: Number(formData.price),
+        preparation_time: Number(formData.preparation_time),
+      };
+
       if (editingItem) {
-        // Update existing item
-        await menuService.updateMenuItem(editingItem.id, formData);
-        setSuccess('Menu item updated successfully!');
+        // Update
+        await axios.patch(
+          `${API_BASE_URL}/menu/items/${editingItem.id}`,
+          payload
+        );
       } else {
-        // Create new item
-        await menuService.createMenuItem(formData);
-        setSuccess('Menu item created successfully!');
+        // Create
+        await axios.post(
+          `${API_BASE_URL}/menu/items`,
+          payload
+        );
       }
-      
+
+      fetchMenuItems();
       handleCloseModal();
-      dispatch(fetchMenuItems());
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to save menu item');
+    } catch (error) {
+      console.error('Error saving menu item:', error);
+      alert('Failed to save menu item. Please try again.');
     }
   };
 
@@ -127,334 +189,259 @@ const MenuManagementPage: React.FC = () => {
     }
 
     try {
-      await menuService.deleteMenuItem(itemId);
-      setSuccess('Menu item deleted successfully!');
-      dispatch(fetchMenuItems());
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete menu item');
+      await axios.delete(`${API_BASE_URL}/menu/items/${itemId}`, {
+        params: { restaurant_id: RESTAURANT_ID }
+      });
+      fetchMenuItems();
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      alert('Failed to delete menu item. Please try again.');
     }
   };
 
-  const handleToggleAvailability = async (itemId: string, currentStatus: boolean) => {
+  const handleToggleAvailability = async (item: MenuItem) => {
     try {
-      await menuService.updateMenuItem(itemId, { is_available: !currentStatus });
-      dispatch(fetchMenuItems());
-      setSuccess('Availability updated!');
-      setTimeout(() => setSuccess(null), 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update availability');
+      await axios.patch(
+        `${API_BASE_URL}/menu/items/${item.id}`,
+        { is_available: !item.is_available }
+      );
+      fetchMenuItems();
+    } catch (error) {
+      console.error('Error toggling availability:', error);
+      alert('Failed to update availability. Please try again.');
     }
   };
 
-  const filteredItems = selectedCategory
-    ? menuItems.filter(item => item.category_id === selectedCategory)
-    : menuItems;
+  const filteredItems = selectedCategory === 'all'
+    ? menuItems
+    : menuItems.filter(item => item.category_id === selectedCategory);
 
-  if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
-    return null;
-  }
+  const getCategoryName = (categoryId: string): string => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : 'Unknown';
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gr-black">Menu Management</h1>
-            <p className="text-gray-600 mt-1">Manage your restaurant menu items</p>
-          </div>
-          <button
-            onClick={() => handleOpenModal()}
-            className="btn-primary"
-          >
-            ➕ Add New Item
+    <div className="menu-management-page">
+      <div className="page-header">
+        <div className="header-content">
+          <button onClick={() => navigate('/admin/dashboard')} className="back-button">
+            ← Back to Dashboard
           </button>
-        </div>
-
-        {/* Success/Error Messages */}
-        {success && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
-            ✅ {success}
-          </div>
-        )}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-            ❌ {error}
-          </div>
-        )}
-
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button
-            onClick={() => setSelectedCategory(null)}
-            className={`px-4 py-2 rounded-lg transition-colors ${
-              selectedCategory === null
-                ? 'bg-gr-gold text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            All Categories ({menuItems.length})
+          <h1>Menu Management</h1>
+          <button onClick={() => handleOpenModal()} className="add-button">
+            + Add New Item
           </button>
-          {Array.isArray(categories) && categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                selectedCategory === category
-                  ? 'bg-gr-gold text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {category} ({menuItems.filter(item => item.category_id === category).length})
-            </button>
-          ))}
-        </div>
-
-        {/* Menu Items Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Item
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gr-gold mx-auto"></div>
-                    <p className="mt-2 text-gray-600">Loading menu items...</p>
-                  </td>
-                </tr>
-              ) : filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    No menu items found. Add your first item!
-                  </td>
-                </tr>
-              ) : (
-                filteredItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        {item.image_url && (
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            className="h-12 w-12 rounded-lg object-cover mr-4"
-                          />
-                        )}
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                          <div className="text-sm text-gray-500 line-clamp-1">{item.description}</div>
-                          {item.is_featured && (
-                            <span className="inline-flex mt-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                              ⭐ Featured
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900">{item.category_name || item.category_id}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-semibold text-gr-gold">${item.price.toFixed(2)}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleToggleAvailability(item.id, item.is_available)}
-                        className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          item.is_available
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                            : 'bg-red-100 text-red-800 hover:bg-red-200'
-                        }`}
-                      >
-                        {item.is_available ? '✓ Available' : '✗ Unavailable'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleOpenModal(item)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
         </div>
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gr-black mb-4">
-                {editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}
-              </h2>
-              
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Name */}
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Item Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-gr-gold focus:border-gr-gold"
-                      placeholder="e.g., Grilled Salmon"
-                    />
-                  </div>
+      <div className="filters-section">
+        <div className="category-filters">
+          <button
+            className={`filter-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+            onClick={() => setSelectedCategory('all')}
+          >
+            All Items ({menuItems.length})
+          </button>
+          {categories.map(category => {
+            const count = menuItems.filter(item => item.category_id === category.id).length;
+            return (
+              <button
+                key={category.id}
+                className={`filter-btn ${selectedCategory === category.id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                {category.name} ({count})
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-                  {/* Description */}
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-gr-gold focus:border-gr-gold"
-                      rows={3}
-                      placeholder="Describe your dish..."
-                    />
-                  </div>
-
-                  {/* Category */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category *
-                    </label>
-                    <select
-                      required
-                      value={formData.category_id}
-                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-gr-gold focus:border-gr-gold"
+      {loading ? (
+        <div className="loading">Loading menu items...</div>
+      ) : (
+        <div className="menu-items-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Prep Time</th>
+                <th>Status</th>
+                <th>Featured</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map(item => (
+                <tr key={item.id}>
+                  <td>
+                    <div className="item-name">
+                      {item.image_url && (
+                        <img src={item.image_url} alt={item.name} className="item-thumb" />
+                      )}
+                      <div>
+                        <strong>{item.name}</strong>
+                        {item.description && (
+                          <p className="item-desc">{item.description.substring(0, 60)}...</p>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td>{item.category_name || getCategoryName(item.category_id)}</td>
+                  <td>${item.price.toFixed(2)}</td>
+                  <td>{item.preparation_time || 0} min</td>
+                  <td>
+                    <button
+                      className={`status-badge ${item.is_available ? 'available' : 'unavailable'}`}
+                      onClick={() => handleToggleAvailability(item)}
                     >
-                      <option value="">Select category</option>
-                      {Array.isArray(categories) && categories.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
+                      {item.is_available ? '✓ Available' : '✕ Unavailable'}
+                    </button>
+                  </td>
+                  <td>
+                    {item.is_featured && <span className="featured-badge">⭐ Featured</span>}
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <button
+                        className="edit-btn"
+                        onClick={() => handleOpenModal(item)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-                  {/* Price */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Price ($) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-gr-gold focus:border-gr-gold"
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  {/* Preparation Time */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Prep Time (minutes)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={formData.preparation_time || ''}
-                      onChange={(e) => setFormData({ ...formData, preparation_time: e.target.value ? parseInt(e.target.value) : undefined })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-gr-gold focus:border-gr-gold"
-                      placeholder="e.g., 15"
-                    />
-                  </div>
-
-                  {/* Image URL */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Image URL
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-gr-gold focus:border-gr-gold"
-                      placeholder="https://..."
-                    />
-                  </div>
-
-                  {/* Checkboxes */}
-                  <div className="col-span-2 flex gap-6">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.is_available}
-                        onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
-                        className="mr-2 h-4 w-4 text-gr-gold focus:ring-gr-gold border-gray-300 rounded"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Available</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.is_featured}
-                        onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                        className="mr-2 h-4 w-4 text-gr-gold focus:ring-gr-gold border-gray-300 rounded"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Featured Item</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Buttons */}
-                <div className="flex gap-3 mt-6">
-                  <button
-                    type="submit"
-                    className="btn-primary flex-1"
-                  >
-                    {editingItem ? '💾 Update Item' : '➕ Add Item'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className="btn-secondary flex-1"
-                  >
-                    ✕ Cancel
-                  </button>
-                </div>
-              </form>
+      {showModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{editingItem ? 'Edit Menu Item' : 'Add New Menu Item'}</h2>
+              <button className="close-btn" onClick={handleCloseModal}>×</button>
             </div>
+            
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="name">Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="category_id">Category *</label>
+                <select
+                  id="category_id"
+                  value={formData.category_id}
+                  onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="price">Price ($) *</label>
+                  <input
+                    type="number"
+                    id="price"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="preparation_time">Prep Time (min)</label>
+                  <input
+                    type="number"
+                    id="preparation_time"
+                    value={formData.preparation_time}
+                    onChange={(e) => setFormData({ ...formData, preparation_time: parseInt(e.target.value) })}
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="image_url">Image URL</label>
+                <input
+                  type="url"
+                  id="image_url"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+
+              <div className="form-group checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.is_available}
+                    onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
+                  />
+                  Available for ordering
+                </label>
+              </div>
+
+              <div className="form-group checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.is_featured}
+                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                  />
+                  Featured item
+                </label>
+              </div>
+
+              <div className="form-actions">
+                <button type="button" onClick={handleCloseModal} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">
+                  {editingItem ? 'Update Item' : 'Create Item'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
