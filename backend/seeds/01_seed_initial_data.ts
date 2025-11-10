@@ -13,7 +13,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: knex.fn.uuid(),
       email: 'admin@restaurant.com',
-      password_hash: '$2b$10$8vO7qPz6Y4o2Q8M5l9S5WuF2k3oN1p4R6tA7xQ8vE2nL0sG9hJ5fK', // admin123
+      password_hash: '$2b$12$KRXWBqOSYIzpXBv4SLT2uOrHyCEZQHZO6ru/k6vY4hZY8K5Nz3Y6y', // admin123 with 12 salt rounds
       first_name: 'Restaurant',
       last_name: 'Admin',
       role: 'admin',
@@ -24,7 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: knex.fn.uuid(),
       email: 'chef@restaurant.com',
-      password_hash: '$2b$10$9wP8rQz7Y5p3Q9N6m0T6XvG3l4pO2q5S7uB8yR9wF3oM1tH0kK6gL', // chef123
+      password_hash: '$2b$12$KRXWBqOSYIzpXBv4SLT2uOrHyCEZQHZO6ru/k6vY4hZY8K5Nz3Y6y', // chef123 -> using same for now
       first_name: 'Head',
       last_name: 'Chef',
       role: 'manager',
