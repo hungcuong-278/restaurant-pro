@@ -3,7 +3,7 @@
 ## Version Management
 Để quay lại một phiên bản cũ, sử dụng lệnh:
 ```bash
-git checkout v1.0.1  # Thay số phiên bản tương ứng
+git checkout v1.0.2  # Thay số phiên bản tương ứng
 ```
 
 Hoặc xem tất cả các phiên bản:
@@ -13,7 +13,64 @@ git tag --list
 
 ---
 
-## 📦 v1.0.1 (November 11, 2025) ⭐ CURRENT
+## 📦 v1.0.2 (November 11, 2025) ⭐ CURRENT
+**Branch:** `feature/reservation-confirmation`  
+**Commit:** `eb5a66d`  
+**Tag:** `v1.0.2`
+
+### 🍽️ **Menu Management System (Major Feature)**
+- ✅ **Full CRUD Operations**:
+  - ➕ Create new menu items with form validation
+  - ✏️ Edit existing items inline
+  - 🗑️ Delete items with confirmation
+  - 💾 Real-time updates across all pages
+
+- ✅ **Admin Features**:
+  - 🔄 Toggle availability with one click
+  - ⭐ Mark items as featured
+  - 📸 Image URL support
+  - ⏱️ Preparation time tracking
+  - 📝 Rich descriptions
+  - 🔐 Admin/Manager only access
+
+- ✅ **UI/UX**:
+  - Beautiful modal form
+  - Category filtering
+  - Responsive table layout
+  - Success/Error notifications
+  - Inline status indicators
+  - Professional admin interface
+
+### 🔧 **Fixes**
+- ✅ Fixed `Cannot read properties of undefined (reading 'map')` in MenuPage
+- ✅ Added safe array handling for categories
+- ✅ Improved error boundaries
+
+### 🔗 **Integration**
+- ✅ Menu items sync between:
+  - `/admin/menu` (Admin Management)
+  - `/menu` (Customer View)
+  - `/orders/new` (Order Creation)
+- ✅ Dashboard integration with direct link
+- ✅ Real-time updates without page reload
+
+### 📁 **Files Added**
+- `frontend/src/pages/admin/MenuManagementPage.tsx` (480 lines)
+
+### 📁 **Files Modified**
+- `frontend/src/App.tsx` - Added /admin/menu route
+- `frontend/src/pages/admin/DashboardPage.tsx` - Enhanced menu card
+- `frontend/src/pages/MenuPage.tsx` - Fixed categories error
+
+### 📊 **Metrics**
+- **Total Commits:** 2 (6ca6ed0 hotfix, eb5a66d feature)
+- **Lines Added:** 483 lines
+- **Lines Modified:** 7 lines
+- **New Routes:** 1 (/admin/menu)
+
+---
+
+## 📦 v1.0.1 (November 11, 2025)
 **Branch:** `feature/reservation-confirmation`  
 **Commit:** `0f486d6`  
 **Tag:** `v1.0.1`
@@ -128,12 +185,13 @@ npm start
 
 ---
 
-## 🔜 Planned for v1.0.2
-- [ ] Add reservation email notifications
-- [ ] Add table availability calendar view
-- [ ] Improve mobile responsiveness
-- [ ] Add loading states to all async operations
-- [ ] Optimize image loading
+## 🔜 Planned for v1.0.3
+- [ ] Add image upload (not just URL)
+- [ ] Bulk operations (delete/update multiple items)
+- [ ] Menu categories management (CRUD)
+- [ ] Import/Export menu (CSV/JSON)
+- [ ] Menu item statistics (most ordered)
+- [ ] Price history tracking
 
 ---
 
