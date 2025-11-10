@@ -197,10 +197,10 @@ export const OrderPaymentPage: React.FC = () => {
               <span>Status:</span>
               <span className="font-medium capitalize">{order.status}</span>
             </div>
-            {order.customer_name && (
+            {order.customer_notes && (
               <div className="flex justify-between mb-1">
-                <span>Customer:</span>
-                <span className="font-medium">{order.customer_name}</span>
+                <span>Customer Notes:</span>
+                <span className="font-medium">{order.customer_notes}</span>
               </div>
             )}
             {order.created_at && (
@@ -218,8 +218,8 @@ export const OrderPaymentPage: React.FC = () => {
         <StripePaymentForm
           orderId={order.id}
           amount={order.total_amount || 0}
-          customerEmail={order.customer_email}
-          customerName={order.customer_name}
+          customerEmail={order.customer_notes || ''}
+          customerName={order.order_number}
           onSuccess={handlePaymentSuccess}
           onError={handlePaymentError}
           onCancel={handleCancel}
