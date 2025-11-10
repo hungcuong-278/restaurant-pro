@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_BASE_URL = 'http://localhost:5000/api';
 
 // Restaurant ID - In production, this would come from auth context
-const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
+const RESTAURANT_ID = 'e22b109c-48a8-4fd7-a7ab-f74295945668';
 
 export interface OrderItem {
   id: string;
