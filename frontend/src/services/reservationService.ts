@@ -69,7 +69,6 @@ class ReservationService {
   async getReservations(): Promise<Reservation[]> {
     try {
       const response = await reservationApi.get('/reservations');
-      // API returns { success: true, reservations: [...] }
       return response.data.reservations || response.data.data || [];
     } catch (error: any) {
       if (error.response?.data) {
@@ -78,6 +77,22 @@ class ReservationService {
       throw new Error('Failed to fetch reservations');
     }
   }
+
+  /**
+   * Get single reservation by ID
+   */
+  async getReservationById(id: string): Promise<ReservationResponse> {
+    try {
+      const response = await reservationApi.get(`/reservations/${id}`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data) {
+        throw error;
+      }
+      throw new Error('Failed to fetch reservation');
+    }
+  }
+
   /**
    * Update reservation
    */
@@ -106,22 +121,6 @@ class ReservationService {
       }
       throw new Error('Failed to update reservation status');
     }
-  } }
-  }
-
-  /**
-   * Update reservation
-   */
-  async updateReservation(id: string, data: UpdateReservationData): Promise<ReservationResponse> {
-    try {
-      const response = await reservationApi.put(`/reservations/${id}`, data);
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.data) {
-        throw error;
-      }
-      throw new Error('Failed to update reservation');
-    }
   }
 
   /**
@@ -144,11 +143,8 @@ class ReservationService {
    */
   async checkAvailability(params: {
     date: string;
-const reservationService = new ReservationService();
-export default reservationService;
-
-// Export types for convenience
-export type { Reservation } from '../types/reservation';
+    time: string;
+    party_size: number;
   }): Promise<AvailabilityResponse> {
     try {
       const response = await reservationApi.get('/reservations/available-tables', { params });
@@ -164,6 +160,9 @@ export type { Reservation } from '../types/reservation';
 
 const reservationService = new ReservationService();
 export default reservationService;
+
+// Export types for convenience
+export type { Reservation } from '../types/reservation';
 
 // ===== UTILITY FUNCTIONS =====
 
