@@ -4,9 +4,19 @@ import { v4 as uuidv4 } from 'uuid';
 export async function seed(knex: Knex): Promise<void> {
   const restaurantId = 'default';
 
-  // Delete existing menu items and categories for this restaurant
-  await knex('menu_items').where('restaurant_id', restaurantId).del();
-  await knex('menu_categories').where('restaurant_id', restaurantId).del();
+  // Check if we already have menu items for this restaurant
+  const existingItems = await knex('menu_items')
+    .where('restaurant_id', restaurantId)
+    .count('* as count')
+    .first();
+
+  // Only seed if database is empty
+  if (existingItems && Number(existingItems.count) > 0) {
+    console.log('⏭️  Menu items already exist, skipping seed...');
+    return;
+  }
+
+  console.log('🌱 Seeding sample menu items...');
 
   // Insert menu categories
   const categories = [

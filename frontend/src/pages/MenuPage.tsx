@@ -13,6 +13,17 @@ const MenuPage: React.FC = () => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
+  // Auto-refresh when user comes back to this page
+  useEffect(() => {
+    const handleFocus = () => {
+      dispatch(fetchMenuItems({}));
+      dispatch(fetchCategories());
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [dispatch]);
+
   const handleCategoryClick = (categoryId: string | null) => {
     setSelectedCategory(categoryId);
     dispatch(setCurrentCategory(categoryId));

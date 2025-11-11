@@ -23,6 +23,16 @@ const MenuItemGrid: React.FC<MenuItemGridProps> = ({ onAddItem, className = '' }
     fetchMenuItems();
   }, []);
 
+  // Auto-refresh when user comes back to this page
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchMenuItems();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
   const fetchMenuItems = async () => {
     try {
       setLoading(true);
