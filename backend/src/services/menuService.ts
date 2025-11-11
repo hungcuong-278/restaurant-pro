@@ -160,8 +160,15 @@ class MenuService {
   }
 
   async createMenuItem(data: Omit<MenuItem, 'id' | 'created_at' | 'updated_at' | 'category'>): Promise<MenuItem> {
+    // Generate slug from name if not provided
+    const slug = data.slug || this.generateSlug(data.name);
+    
     const itemData = {
       ...data,
+      slug,
+      sort_order: data.sort_order !== undefined ? data.sort_order : 0,
+      is_available: data.is_available !== undefined ? data.is_available : true,
+      is_featured: data.is_featured !== undefined ? data.is_featured : false,
       allergens: JSON.stringify(data.allergens || []),
       dietary_info: JSON.stringify(data.dietary_info || [])
     };
@@ -175,6 +182,16 @@ class MenuService {
       allergens: JSON.parse(item.allergens || '[]'),
       dietary_info: JSON.parse(item.dietary_info || '[]')
     };
+  }
+  
+  // Helper method to generate slug from name
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-')         // Replace spaces with hyphens
+      .replace(/-+/g, '-')          // Replace multiple hyphens with single
+      .trim();
   }
 
   async updateMenuItem(
