@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SimpleReservationPage - Single Page Reservation Form
  *
  * A simplified reservation page without multi-step navigation.
@@ -12,8 +12,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { AppDispatch } from '../../store/store';
 import { createReservation } from '../../store/slices/reservationSlice';
 import ReservationForm from '../../components/reservations/ReservationForm';
-
-const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
+import { RESTAURANT_ID } from '../../config/restaurant';
 
 const SimpleReservationPage: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();

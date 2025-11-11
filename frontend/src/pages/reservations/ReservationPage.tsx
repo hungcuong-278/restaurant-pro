@@ -34,10 +34,7 @@ import DateTimePicker from '../../components/reservations/DateTimePicker';
 import TableSelector from '../../components/reservations/TableSelector';
 import ReservationForm from '../../components/reservations/ReservationForm';
 import ReservationSummary from '../../components/reservations/ReservationSummary';
-
-// Restaurant ID (Golden Fork Restaurant)
-const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
-const RESTAURANT_NAME = 'Golden Fork Restaurant';
+import { RESTAURANT_ID, RESTAURANT_NAME } from '../../config/restaurant';
 
 interface FormData {
   customerName: string;

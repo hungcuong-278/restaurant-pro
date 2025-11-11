@@ -146,7 +146,7 @@ async function createOrder(data: OrderCreateData): Promise<OrderWithItems> {
       
       if (!menuItem.is_available) {
         logger.warn('Menu item not available', { menu_item_id: item.menu_item_id, name: menuItem.name });
-        throw new MenuItemNotAvailableError(item.menu_item_id, menuItem.name);
+        throw new MenuItemNotAvailableError(Number(item.menu_item_id));
       }
       
       const itemTotal = menuItem.price * item.quantity;

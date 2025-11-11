@@ -1,7 +1,7 @@
 import axios from 'axios';
+import { RESTAURANT_ID } from '../config/restaurant';
 
 const API_BASE_URL = 'http://localhost:5000/api';
-const RESTAURANT_ID = 'a8d307c4-40c2-4e11-8468-d65710bae6f3';
 
 export interface MenuItem {
   id: string;

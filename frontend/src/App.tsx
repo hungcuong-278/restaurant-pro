@@ -18,7 +18,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/admin/DashboardPage';
 import SimpleReservationPage from './pages/reservations/SimpleReservationPage';
 import ReservationPage from './pages/reservations/ReservationPage';
-import BookingConfirmationPage from './pages/reservations/BookingConfirmationPage';
+import ReservationConfirmationPage from './pages/reservations/ReservationConfirmationPage';
 import MyReservationsPage from './pages/reservations/MyReservationsPage';
 import OrderListPage from './pages/orders/OrderListPage';
 import NewOrderPage from './pages/orders/NewOrderPage';
@@ -55,7 +55,7 @@ const App: React.FC = () => {
               {/* Reservation Routes */}
               <Route path="/reservations" element={<SimpleReservationPage />} />
               <Route path="/reservations/new" element={<ReservationPage />} />
-              <Route path="/reservations/confirmation/:reservationId" element={<BookingConfirmationPage />} />
+              <Route path="/reservations/confirmation/:reservationId" element={<ReservationConfirmationPage />} />
               <Route path="/reservations/my-reservations" element={<MyReservationsPage />} />
               
               {/* Admin Routes */}

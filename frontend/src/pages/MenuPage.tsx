@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
-import { fetchFullMenu, fetchCategories, setCurrentCategory } from '../store/slices/menuSlice';
+import { fetchMenuItems, fetchCategories, setCurrentCategory } from '../store/slices/menuSlice';
 
 const MenuPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { fullMenu, categories, isLoading, error } = useSelector((state: RootState) => state.menu);
+  const { menuItems, categories, isLoading, error } = useSelector((state: RootState) => state.menu);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
-    dispatch(fetchFullMenu());
+    dispatch(fetchMenuItems({}));
     dispatch(fetchCategories());
   }, [dispatch]);
 
@@ -18,9 +18,27 @@ const MenuPage: React.FC = () => {
     dispatch(setCurrentCategory(categoryId));
   };
 
+  // Group items by category
+  const groupedMenu = menuItems.reduce((acc: any, item: any) => {
+    const categoryName = typeof item.category === 'string' 
+      ? item.category 
+      : item.category?.name || item.category_name || 'Other';
+    
+    if (!acc[categoryName]) {
+      acc[categoryName] = {
+        category: { name: categoryName, id: categoryName },
+        items: []
+      };
+    }
+    acc[categoryName].items.push(item);
+    return acc;
+  }, {});
+
+  const menuSections = Object.values(groupedMenu);
+  
   const filteredMenu = selectedCategory 
-    ? fullMenu.filter(section => section.category.id === selectedCategory)
-    : fullMenu;
+    ? menuSections.filter((section: any) => section.category.name === selectedCategory)
+    : menuSections;
 
   if (isLoading) {
     return (
@@ -39,7 +57,7 @@ const MenuPage: React.FC = () => {
         <div className="text-center">
           <p className="text-xl text-red-600">Error loading menu: {error}</p>
           <button 
-            onClick={() => dispatch(fetchFullMenu())}
+            onClick={() => dispatch(fetchMenuItems({}))}
             className="mt-4 btn-primary"
           >
             Try Again
@@ -87,18 +105,15 @@ const MenuPage: React.FC = () => {
         </div>
 
         {/* Menu Sections */}
-        {filteredMenu.map((section) => (
-          <div key={section.category.id} className="mb-12">
+        {filteredMenu.map((section: any) => (
+          <div key={section.category.name} className="mb-12">
             <div className="premium-card">
               <h2 className="text-3xl font-bold text-gr-black mb-2">
                 {section.category.name}
               </h2>
-              {section.category.description && (
-                <p className="text-gray-600 mb-6">{section.category.description}</p>
-              )}
               
               <div className="grid gap-6 md:grid-cols-2">
-                {section.items.map((item: any) => (
+                {section.items && section.items.map((item: any) => (
                   <div key={item.id} className="border-b border-gray-200 pb-6 last:border-b-0">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -145,7 +160,7 @@ const MenuPage: React.FC = () => {
                       
                       <div className="text-right ml-4">
                         <p className="text-2xl font-bold text-gr-gold">
-                          ${item.price.toFixed(2)}
+                          {Math.round(item.price).toLocaleString('vi-VN')}₫
                         </p>
                       </div>
                     </div>
@@ -153,7 +168,7 @@ const MenuPage: React.FC = () => {
                 ))}
               </div>
               
-              {section.items.length === 0 && (
+              {(!section.items || section.items.length === 0) && (
                 <p className="text-gray-500 text-center py-8">
                   No items available in this category.
                 </p>
@@ -162,7 +177,7 @@ const MenuPage: React.FC = () => {
           </div>
         ))}
 
-        {fullMenu.length === 0 && !isLoading && (
+        {menuItems.length === 0 && !isLoading && (
           <div className="premium-card text-center">
             <h3 className="text-2xl font-bold text-gr-black mb-4">Menu Coming Soon</h3>
             <p className="text-gray-600">

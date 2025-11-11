@@ -130,7 +130,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   // Generate receipt
   const handleGenerateReceipt = () => {
     // Open receipt in new window
-    const receiptUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/restaurants/a8d307c4-40c2-4e11-8468-d65710bae6f3/orders/${orderId}/receipt`;
+    const receiptUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/restaurants/752a7c77-bfc5-4c3e-8a18-c66e6c3208b6/orders/${orderId}/receipt`;
     window.open(receiptUrl, '_blank', 'width=500,height=800');
     setReceiptGenerated(true);
   };
