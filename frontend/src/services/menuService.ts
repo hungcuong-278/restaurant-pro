@@ -100,9 +100,15 @@ const menuService = {
   // Create menu item
   async createMenuItem(itemData: CreateMenuItemData): Promise<MenuItem> {
     try {
+      // Always include restaurant_id
+      const dataWithRestaurant = {
+        ...itemData,
+        restaurant_id: RESTAURANT_ID
+      };
+      
       const response = await axios.post(
         `${API_BASE_URL}/menu/items`,
-        itemData
+        dataWithRestaurant
       );
       // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
@@ -115,9 +121,15 @@ const menuService = {
   // Update menu item
   async updateMenuItem(itemId: string, itemData: UpdateMenuItemData): Promise<MenuItem> {
     try {
+      // Always include restaurant_id for authorization
+      const dataWithRestaurant = {
+        ...itemData,
+        restaurant_id: RESTAURANT_ID
+      };
+      
       const response = await axios.patch(
         `${API_BASE_URL}/menu/items/${itemId}`,
-        itemData
+        dataWithRestaurant
       );
       // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
@@ -131,7 +143,7 @@ const menuService = {
   async deleteMenuItem(itemId: string): Promise<void> {
     try {
       await axios.delete(
-        `${API_BASE_URL}/menu/items/${itemId}`
+        `${API_BASE_URL}/menu/items/${itemId}?restaurant_id=${RESTAURANT_ID}`
       );
     } catch (error) {
       console.error('Error deleting menu item:', error);
