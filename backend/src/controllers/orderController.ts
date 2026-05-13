@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import orderService from '../services/orderService';
 import { OrderCreateData, OrderUpdateData, OrderItemCreateData, OrderItemUpdate } from '../types/order.types';
@@ -13,9 +14,14 @@ const logger = createLogger('OrderController');
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
   try {
     const { restaurantId } = req.params;
+    const authReq = req as any; // AuthenticatedRequest
+    const requestingUser = authReq.user;
+
     const orderData: OrderCreateData = {
       ...req.body,
-      restaurant_id: restaurantId
+      restaurant_id: restaurantId,
+      // Auto-inject customer_id from authenticated user (optionalAuthentication provides this)
+      customer_id: requestingUser?.id || req.body.customer_id || null
     };
 
     // Validation
@@ -56,7 +62,11 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     const order = await orderService.createOrder(orderData);
 
-    logger.info('Order created via API', { order_id: order.id, order_number: order.order_number });
+    logger.info('Order created via API', {
+      order_id: order.id,
+      order_number: order.order_number,
+      customer_id: orderData.customer_id
+    });
 
     res.status(201).json({
       success: true,
@@ -83,13 +93,19 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+
 /**
  * Get all orders for a restaurant with filters
  * GET /api/restaurants/:restaurantId/orders
+ * - admin/manager/staff: see ALL orders
+ * - customer: see only their own orders (filtered by customer_id)
  */
 export const getOrders = async (req: Request, res: Response): Promise<void> => {
   try {
     const { restaurantId } = req.params;
+    const authReq = req as any; // AuthenticatedRequest
+    const requestingUser = authReq.user;
+
     const {
       status,
       order_type,
@@ -101,7 +117,7 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
       limit
     } = req.query;
 
-    const filters = {
+    const filters: any = {
       status: status as any,
       order_type: order_type as any,
       table_id: table_id as string,
@@ -111,6 +127,14 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
       page: page ? parseInt(page as string) : undefined,
       limit: limit ? parseInt(limit as string) : undefined
     };
+
+    // If the user is not admin/manager/staff, restrict to their own orders
+    if (requestingUser) {
+      const privilegedRoles = ['admin', 'manager', 'staff'];
+      if (!privilegedRoles.includes(requestingUser.role)) {
+        filters.customer_id = requestingUser.id;
+      }
+    }
 
     const result = await orderService.getOrdersByRestaurant(restaurantId, filters);
 

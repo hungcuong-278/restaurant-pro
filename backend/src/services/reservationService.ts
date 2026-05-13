@@ -257,7 +257,7 @@ class ReservationService {
       }
 
       // Check access rights (customer can only see their own reservations)
-      if (userRole !== 'staff' && userRole !== 'admin' && reservation.customer_id !== userId) {
+      if (userRole !== 'staff' && userRole !== 'admin' && userRole !== 'manager' && reservation.customer_id !== userId) {
         return {
           success: false,
           message: 'Access denied'
@@ -294,7 +294,7 @@ class ReservationService {
       }
 
       // Check access rights
-      const isStaffOrAdmin = userRole === 'staff' || userRole === 'admin';
+      const isStaffOrAdmin = userRole === 'staff' || userRole === 'admin' || userRole === 'manager';
       const isOwner = reservation.customer_id === userId;
 
       if (!isStaffOrAdmin && !isOwner) {
@@ -403,7 +403,7 @@ class ReservationService {
       }
 
       // Check access rights
-      const isStaffOrAdmin = userRole === 'staff' || userRole === 'admin';
+      const isStaffOrAdmin = userRole === 'staff' || userRole === 'admin' || userRole === 'manager';
       const isOwner = reservation.customer_id === userId;
 
       if (!isStaffOrAdmin && !isOwner) {

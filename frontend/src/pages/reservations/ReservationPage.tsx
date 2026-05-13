@@ -167,8 +167,10 @@ const ReservationPage: React.FC = () => {
   // Handle party size change
   const handlePartySizeChange = (size: number) => {
     dispatch(setPartySize(size));
-    // Reset table selection when party size changes
-    dispatch(setSelectedTable(null));
+    // Reset table selection only if the current table is too small
+    if (selectedTable && selectedTable.capacity < size) {
+      dispatch(setSelectedTable(null));
+    }
   };
 
   // Handle form submit
@@ -179,6 +181,13 @@ const ReservationPage: React.FC = () => {
       customerPhone: data.customerPhone,
       specialRequests: data.specialRequests,
     });
+    
+    if (!selectedTable || selectedTable.capacity < partySize) {
+      alert('Your selected table cannot accommodate the new party size. Please select a new table.');
+      dispatch(setCurrentStep('table'));
+      return;
+    }
+    
     dispatch(nextStep());
   };
 

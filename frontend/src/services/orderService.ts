@@ -89,8 +89,14 @@ export interface OrderFilters {
   limit?: number;
 }
 
+// Helper: get auth headers if a token exists
+function getAuthHeaders() {
+  const token = localStorage.getItem('restaurant_auth_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 const orderService = {
-  // Get all orders
+  // Get all orders (backend restricts by role automatically)
   async getOrders(filters?: OrderFilters): Promise<Order[]> {
     try {
       const params = new URLSearchParams();
@@ -105,7 +111,7 @@ const orderService = {
       const queryString = params.toString();
       const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders${queryString ? `?${queryString}` : ''}`;
       
-      const response = await axios.get(url);
+      const response = await axios.get(url, { headers: getAuthHeaders() });
       // Backend returns { success: true, data: [...] }
       return response.data.data || response.data;
     } catch (error) {
@@ -128,12 +134,13 @@ const orderService = {
     }
   },
 
-  // Create new order
+  // Create new order (send auth token so backend can attach customer_id)
   async createOrder(orderData: CreateOrderData): Promise<Order> {
     try {
       const response = await axios.post(
         `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders`,
-        orderData
+        orderData,
+        { headers: getAuthHeaders() }
       );
       // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;

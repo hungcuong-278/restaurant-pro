@@ -4,8 +4,6 @@ import path from 'path';
 
 dotenv.config();
 
-const environment = process.env.NODE_ENV || 'development';
-
 // Get absolute path to database file
 const dbPath = path.resolve(__dirname, '../../database/dev.sqlite3');
 console.log('[Database] Using database at:', dbPath);

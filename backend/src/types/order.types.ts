@@ -101,6 +101,7 @@ export interface OrderFilters {
   status?: OrderStatus;
   order_type?: OrderType;
   table_id?: string;
+  customer_id?: string;
   staff_id?: string;
   start_date?: string;
   end_date?: string;

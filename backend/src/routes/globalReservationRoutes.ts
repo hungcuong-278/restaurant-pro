@@ -8,6 +8,7 @@
 import { Router } from 'express';
 import { Request, Response } from 'express';
 import reservationService from '../services/reservationService';
+import db from '../config/database';
 
 const router = Router();
 
@@ -17,7 +18,6 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
 
     // Query database directly to find reservation with its restaurant_id
-    const db = require('../config/database').default;
     const reservation = await db('reservations')
       .leftJoin('tables', 'reservations.table_id', 'tables.id')
       .select(

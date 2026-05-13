@@ -3,6 +3,18 @@ import { RESTAURANT_ID } from '../config/restaurant';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
+export interface Category {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface MenuItem {
   id: string;
   restaurant_id: string;
@@ -10,6 +22,7 @@ export interface MenuItem {
   description?: string;
   category: string | { name: string; slug: string };  // Backend returns object, but accept string for compatibility
   category_name?: string;  // Direct category name from backend
+  category_id?: string;  // Category UUID
   price: number;
   image_url?: string;
   is_available: boolean;
@@ -24,7 +37,7 @@ export interface MenuItem {
 export interface CreateMenuItemData {
   name: string;
   description?: string;
-  category: string;
+  category_id: string;  // Send category UUID to backend
   price: number;
   image_url?: string;
   is_available?: boolean;
@@ -34,7 +47,7 @@ export interface CreateMenuItemData {
 export interface UpdateMenuItemData {
   name?: string;
   description?: string;
-  category?: string;
+  category_id?: string;  // Send category UUID to backend
   price?: number;
   image_url?: string;
   is_available?: boolean;
@@ -55,6 +68,11 @@ export interface MenuCategory {
   created_at: string;
   updated_at: string;
 }
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('restaurant_auth_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const menuService = {
   // Get all menu items
@@ -100,17 +118,12 @@ const menuService = {
   // Create menu item
   async createMenuItem(itemData: CreateMenuItemData): Promise<MenuItem> {
     try {
-      // Always include restaurant_id
-      const dataWithRestaurant = {
-        ...itemData,
-        restaurant_id: RESTAURANT_ID
-      };
-      
+      const dataWithRestaurant = { ...itemData, restaurant_id: RESTAURANT_ID };
       const response = await axios.post(
         `${API_BASE_URL}/menu/items`,
-        dataWithRestaurant
+        dataWithRestaurant,
+        { headers: getAuthHeaders() }
       );
-      // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
     } catch (error) {
       console.error('Error creating menu item:', error);
@@ -121,17 +134,12 @@ const menuService = {
   // Update menu item
   async updateMenuItem(itemId: string, itemData: UpdateMenuItemData): Promise<MenuItem> {
     try {
-      // Always include restaurant_id for authorization
-      const dataWithRestaurant = {
-        ...itemData,
-        restaurant_id: RESTAURANT_ID
-      };
-      
+      const dataWithRestaurant = { ...itemData, restaurant_id: RESTAURANT_ID };
       const response = await axios.patch(
         `${API_BASE_URL}/menu/items/${itemId}`,
-        dataWithRestaurant
+        dataWithRestaurant,
+        { headers: getAuthHeaders() }
       );
-      // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
     } catch (error) {
       console.error('Error updating menu item:', error);
@@ -143,7 +151,8 @@ const menuService = {
   async deleteMenuItem(itemId: string): Promise<void> {
     try {
       await axios.delete(
-        `${API_BASE_URL}/menu/items/${itemId}?restaurant_id=${RESTAURANT_ID}`
+        `${API_BASE_URL}/menu/items/${itemId}?restaurant_id=${RESTAURANT_ID}`,
+        { headers: getAuthHeaders() }
       );
     } catch (error) {
       console.error('Error deleting menu item:', error);
@@ -156,23 +165,44 @@ const menuService = {
     return this.getMenuItems({ is_available: true, category });
   },
 
-  // Get menu categories
+  // Get category objects with full info (for admin forms that need IDs)
+  async getCategoryObjects(): Promise<Category[]> {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/menu/categories?restaurant_id=${RESTAURANT_ID}`
+      );
+      // Backend returns { success: true, data: [{id, name, slug, ...}] }
+      const categories = response.data.data || response.data || [];
+      return categories.sort((a: Category, b: Category) => a.sort_order - b.sort_order);
+    } catch (error) {
+      console.error('Error fetching category objects:', error);
+      return [];
+    }
+  },
+
+  // Get menu categories (names only - for backward compatibility)
   async getCategories(): Promise<string[]> {
     try {
-      const items = await this.getMenuItems();
-      // Extract category name from either string or object, with null safety
-      const categories = Array.from(new Set(
-        items
-          .map(item => {
-            if (!item.category) return null;
-            return typeof item.category === 'string' ? item.category : item.category.name;
-          })
-          .filter((cat): cat is string => cat !== null)
-      ));
-      return categories.sort();
+      const categories = await this.getCategoryObjects();
+      return categories.map(cat => cat.name);
     } catch (error) {
       console.error('Error fetching categories:', error);
-      throw error;
+      // Fallback: extract from menu items if API fails
+      try {
+        const items = await this.getMenuItems();
+        const categoryNames = Array.from(new Set(
+          items
+            .map(item => {
+              if (!item.category) return null;
+              return typeof item.category === 'string' ? item.category : item.category.name;
+            })
+            .filter((cat): cat is string => cat !== null)
+        ));
+        return categoryNames.sort();
+      } catch (fallbackError) {
+        console.error('Fallback category fetch failed:', fallbackError);
+        return [];
+      }
     }
   },
 

@@ -12,7 +12,6 @@ import healthRoutes from './routes/healthRoutes';
 import menuRoutes from './routes/menuRoutes';
 import tableRoutes from './routes/tableRoutes';
 import reservationRoutes from './routes/reservationRoutes';
-import globalReservationRoutes from './routes/globalReservationRoutes';
 import orderRoutes from './routes/orderRoutes';
 import { paymentRouter } from './routes/paymentRoutes';
 import debugRoutes from './routes/debugRoutes';

@@ -6,20 +6,42 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import ReservationForm from '../ReservationForm';
-import { AuthProvider } from '../../../contexts/AuthContext';
+import AuthContext from '../../../contexts/AuthContext';
 
 const mockUser = {
   id: 'user-1',
   email: 'test@example.com',
   first_name: 'John',
   last_name: 'Doe',
-  role: 'customer'
+  role: 'customer' as const,
+  is_active: true,
+  email_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+};
+
+const mockAuthContextValue = {
+  user: mockUser,
+  token: 'mock-token',
+  isAuthenticated: true,
+  isLoading: false,
+  error: null,
+  login: jest.fn(),
+  logout: jest.fn(),
+  register: jest.fn(),
+  updateProfile: jest.fn(),
+  changePassword: jest.fn(),
+  refreshToken: jest.fn(),
+  clearError: jest.fn(),
+  hasRole: jest.fn(),
+  isAdmin: jest.fn(),
+  isManager: jest.fn(),
+  isStaff: jest.fn(),
 };
 
 const MockAuthProvider = ({ children }: { children: React.ReactNode }) => (
-  <AuthProvider value={{ user: mockUser, isAuthenticated: true }}>
+  <AuthContext.Provider value={mockAuthContextValue}>
     {children}
-  </AuthProvider>
+  </AuthContext.Provider>
 );
 
 describe('ReservationForm Component', () => {
@@ -316,10 +338,10 @@ describe('ReservationForm Component', () => {
       const emailInput = screen.getByLabelText(/Email Address/i);
 
       await userEvent.tab();
-      expect(document.activeElement).toBe(nameInput);
+      expect(nameInput).toHaveFocus();
 
       await userEvent.tab();
-      expect(document.activeElement).toBe(emailInput);
+      expect(emailInput).toHaveFocus();
     });
   });
 

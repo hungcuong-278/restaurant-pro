@@ -16,6 +16,7 @@ import {
   generateTextReceipt,
   getReceiptData
 } from '../controllers/receiptController';
+import { authenticateToken, optionalAuthentication } from '../middleware/auth';
 
 const router = express.Router({ mergeParams: true });
 
@@ -24,14 +25,14 @@ const router = express.Router({ mergeParams: true });
  * Base path: /api/restaurants/:restaurantId/orders
  */
 
-// Create new order
-router.post('/', createOrder);
+// Create new order (can be optional if guest checkout is allowed, but let's use optionalAuthentication)
+router.post('/', optionalAuthentication, createOrder);
 
-// Get all orders for restaurant (with filters)
-router.get('/', getOrders);
+// Get all orders for restaurant (with filters) - Requires auth
+router.get('/', authenticateToken, getOrders);
 
 // Get single order by ID
-router.get('/:orderId', getOrder);
+router.get('/:orderId', optionalAuthentication, getOrder);
 
 // Update order (non-status fields: notes, discount, tip)
 router.patch('/:orderId', updateOrder);

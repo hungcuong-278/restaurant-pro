@@ -278,6 +278,7 @@ async function getOrdersByRestaurant(
     status,
     order_type,
     table_id,
+    customer_id,
     staff_id,
     start_date,
     end_date,
@@ -297,6 +298,10 @@ async function getOrdersByRestaurant(
   
   if (table_id) {
     query = query.where({ table_id });
+  }
+  
+  if (customer_id) {
+    query = query.where({ customer_id });
   }
   
   if (staff_id) {

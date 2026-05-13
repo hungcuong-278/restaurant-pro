@@ -19,7 +19,9 @@ const Header: React.FC = () => {
 
   // Staff/Admin only navigation
   const staffNavigation = [
-    { name: 'Kitchen', href: '/kitchen', roles: ['admin', 'staff', 'kitchen'] },
+    { name: 'Kitchen', href: '/kitchen', roles: ['admin', 'staff', 'kitchen', 'manager'] },
+    { name: 'Manage Menu', href: '/admin/menu', roles: ['admin', 'manager'] },
+    { name: 'Reservations', href: '/admin/reservations', roles: ['admin', 'manager', 'staff'] },
   ];
 
   const handleLogout = async () => {
@@ -70,7 +72,9 @@ const Header: React.FC = () => {
             ))}
             
             {/* Staff/Admin only links */}
-            {user && ['admin', 'staff', 'kitchen'].includes(user.role) && staffNavigation.map((item) => (
+            {user && ['admin', 'manager', 'staff', 'kitchen'].includes(user.role) && staffNavigation
+              .filter(item => item.roles.includes(user.role))
+              .map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
@@ -203,6 +207,24 @@ const Header: React.FC = () => {
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Dashboard
+                      </Link>
+                    )}
+                    {['admin', 'manager', 'staff'].includes(user.role) && (
+                      <Link
+                        to="/admin/reservations"
+                        className="block px-4 py-3 text-gr-gold hover:bg-gray-800 rounded-lg min-h-[48px] flex items-center"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Reservations
+                      </Link>
+                    )}
+                    {['admin', 'manager'].includes(user.role) && (
+                      <Link
+                        to="/admin/menu"
+                        className="block px-4 py-3 text-gr-gold hover:bg-gray-800 rounded-lg min-h-[48px] flex items-center"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Manage Menu
                       </Link>
                     )}
                     <button

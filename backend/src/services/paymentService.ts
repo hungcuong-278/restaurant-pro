@@ -383,15 +383,16 @@ class PaymentService {
 
       // Calculate split amounts based on type
       switch (config.split_type) {
-        case 'equal':
+        case 'equal': {
           if (!config.number_of_payers || config.number_of_payers < 2) {
             throw new ValidationError('Number of payers must be at least 2 for equal split', 'INVALID_SPLIT_CONFIG');
           }
           const amountPerPayer = orderTotal / config.number_of_payers;
           splitAmounts = Array(config.number_of_payers).fill(amountPerPayer);
           break;
+        }
 
-        case 'custom':
+        case 'custom': {
           if (!config.split_amounts || config.split_amounts.length < 2) {
             throw new ValidationError('Split amounts must be provided for custom split', 'INVALID_SPLIT_CONFIG');
           }
@@ -406,6 +407,7 @@ class PaymentService {
             );
           }
           break;
+        }
 
         case 'by_item':
           // Item-based split would require fetching order items and calculating per item

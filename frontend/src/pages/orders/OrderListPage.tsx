@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
@@ -11,10 +11,12 @@ import EmptyState from '../../components/common/EmptyState';
 import { orderService } from '../../services/orderService';
 import type { Order } from '../../services/orderService';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const OrderListPage: React.FC = () => {
   const navigate = useNavigate();
   const { showSuccess, showError, showWarning } = useToast();
+  const { isAuthenticated } = useAuth();
 
   // State
   const [orders, setOrders] = useState<Order[]>([]);
@@ -31,33 +33,27 @@ const OrderListPage: React.FC = () => {
   const [bulkStatus, setBulkStatus] = useState<string>('');
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  // Fetch orders with debounce
+  // Fetch orders with debounce — must be ABOVE conditional return to comply with Rules of Hooks
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    // Debounce to avoid multiple rapid calls
+    if (!isAuthenticated) return; // skip if not logged in
     const timeoutId = setTimeout(() => {
       fetchOrders();
-    }, 300); // 300ms debounce
-
+    }, 300);
     return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, paymentFilter]);
+  }, [statusFilter, paymentFilter, isAuthenticated]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       setError(null);
-      
       const filters: any = {};
       if (statusFilter !== 'all') filters.status = statusFilter;
       if (paymentFilter !== 'all') filters.paymentStatus = paymentFilter;
-      
       const response = await orderService.getOrders(filters);
-      console.log('Fetched orders:', response);
-      
-      // Ensure we always set an array
       setOrders(Array.isArray(response) ? response : []);
     } catch (err: any) {
-      // Graceful handling of rate limiting
       if (err.response?.status === 429) {
         setError('Too many requests. Please wait a moment before refreshing.');
         showWarning('Please wait a moment before refreshing.');
@@ -66,12 +62,57 @@ const OrderListPage: React.FC = () => {
         setError(errorMsg);
         showError(errorMsg);
       }
-      setOrders([]); // Set empty array on error
-      console.error('Error fetching orders:', err);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // ── Guard: not logged in ─────────────────────────────────────────────────
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="w-24 h-24 bg-gr-black rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
+            <svg className="w-12 h-12 text-gr-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
+            Your <span className="text-gr-gold">Orders</span>
+          </h1>
+          <p className="text-gray-500 mb-8 leading-relaxed">
+            Đăng nhập để xem lịch sử đơn hàng của bạn. Mỗi đơn hàng sẽ được lưu lại dành riêng cho tài khoản của bạn.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              to="/login"
+              className="bg-gr-gold text-white px-8 py-3 font-bold uppercase tracking-widest hover:bg-opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              Đăng Nhập
+            </Link>
+            <Link
+              to="/register"
+              className="border-2 border-gr-black text-gr-black px-8 py-3 font-bold uppercase tracking-widest hover:bg-gr-black hover:text-white transition-all duration-300"
+            >
+              Tạo Tài Khoản
+            </Link>
+          </div>
+          <div className="mt-10 pt-6 border-t border-gray-200">
+            <p className="text-sm text-gray-400">
+              Muốn đặt bàn?{' '}
+              <Link to="/reservations/new" className="text-gr-gold hover:underline font-medium">
+                Đặt bàn tại đây
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // ────────────────────────────────────────────────────────────────────────
+
 
   // Filter orders by search query
   const filteredOrders = (Array.isArray(orders) ? orders : []).filter(order => {

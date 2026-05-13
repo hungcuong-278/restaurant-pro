@@ -8,6 +8,7 @@ import type { Order } from '../../services/orderService';
 import { printKitchenReceipt } from '../../utils/printReceipt';
 
 const KitchenViewPage: React.FC = () => {
+  
   // State
   const [orders, setOrders] = useState<Order[]>([]); // Filtered orders to display
   const [allOrders, setAllOrders] = useState<Order[]>([]); // All orders for counting
@@ -309,7 +310,6 @@ const KitchenViewPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Action Buttons */}
                 <div className="space-y-2">
                   {nextStatus && (
                     <Button
@@ -332,6 +332,15 @@ const KitchenViewPage: React.FC = () => {
                       ✅ Ready for Serving
                     </Button>
                   )}
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => printKitchenReceipt(order)}
+                    size="sm"
+                  >
+                    🖨️ Print Ticket
+                  </Button>
                 </div>
 
                 {/* Payment Status Indicator */}

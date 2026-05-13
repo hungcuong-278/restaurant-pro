@@ -18,7 +18,7 @@ const createReservationSchema = Joi.object({
     'string.email': 'Please provide a valid email address',
     'any.required': 'Email is required'
   }),
-  customer_phone: Joi.string().pattern(/^[+]?[\d\s\-\(\)]+$/).min(10).max(20).optional().allow('', null).messages({
+  customer_phone: Joi.string().pattern(/^[+]?[\d\s\-()]+$/).min(10).max(20).optional().allow('', null).messages({
     'string.pattern.base': 'Please provide a valid phone number',
     'string.min': 'Phone number must be at least 10 characters',
     'string.max': 'Phone number must not exceed 20 characters'
@@ -130,11 +130,11 @@ export const getAllReservations = async (req: AuthenticatedRequest, res: Respons
   try {
     const userRole = req.user?.role;
     
-    // Check if user is staff or admin
-    if (userRole !== 'staff' && userRole !== 'admin') {
+      // Check if user is staff, manager or admin
+    if (userRole !== 'staff' && userRole !== 'admin' && userRole !== 'manager') {
       res.status(403).json({
         success: false,
-        message: 'Access denied. Staff or admin role required.'
+        message: 'Access denied. Staff, manager or admin role required.'
       });
       return;
     }

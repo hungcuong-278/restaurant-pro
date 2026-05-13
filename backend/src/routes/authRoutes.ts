@@ -5,7 +5,8 @@ import {
   logout, 
   getProfile, 
   refreshToken,
-  changePassword 
+  changePassword,
+  createStaffAccount
 } from '../controllers/authController';
 import { authenticateToken, authorizeRole, authRateLimit } from '../middleware/auth';
 
@@ -41,22 +42,17 @@ router.patch('/change-password', authenticateToken, changePassword);
  * Admin only routes
  */
 
+// Create staff/manager/kitchen account (admin only)
+router.post('/users', authenticateToken, authorizeRole('admin'), createStaffAccount);
+
 // Get all users (admin only)
 router.get('/users', authenticateToken, authorizeRole('admin'), async (req, res) => {
-  // This would be implemented in a separate controller
-  res.status(501).json({
-    success: false,
-    message: 'Not implemented yet'
-  });
+  res.status(501).json({ success: false, message: 'Not implemented yet' });
 });
 
 // Deactivate user (admin only)
 router.patch('/users/:userId/deactivate', authenticateToken, authorizeRole('admin'), async (req, res) => {
-  // This would be implemented in a separate controller
-  res.status(501).json({
-    success: false,
-    message: 'Not implemented yet'
-  });
+  res.status(501).json({ success: false, message: 'Not implemented yet' });
 });
 
 /**

@@ -196,7 +196,11 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
       restaurant_id: restaurantId
     };
     
+    console.log('Creating menu item with data:', JSON.stringify(itemData, null, 2));
+    
     const item = await menuService.createMenuItem(itemData);
+    
+    console.log('Menu item created successfully:', item.id);
     
     res.status(201).json({
       success: true,
@@ -204,9 +208,12 @@ export const createMenuItem = async (req: Request, res: Response): Promise<void>
     });
   } catch (error) {
     console.error('Error creating menu item:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({
       success: false,
-      error: 'Failed to create menu item'
+      error: 'Failed to create menu item',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };

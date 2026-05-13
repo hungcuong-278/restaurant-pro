@@ -13,7 +13,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: knex.fn.uuid(),
       email: 'admin@restaurant.com',
-      password_hash: '$2b$10$2xeym8ABQMKC3fi2CyeSBeY4ku6SnznP72w4FHYZ.SQPepAJdwhUW', // admin123
+      password_hash: '$2b$12$jg4kWCUvSdWOuMv1qH1ax.QvBccgZSZUEGx.gk9J6D6/dou0DXXL2', // admin123
       first_name: 'Restaurant',
       last_name: 'Admin',
       role: 'admin',
@@ -24,7 +24,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: knex.fn.uuid(),
       email: 'chef@restaurant.com',
-      password_hash: '$2b$10$C83Qyjq.sYLuyqHemcqE6eZE4Pjs/S7aYjAtyDe.xeak1CDVUmiHu', // chef123
+      password_hash: '$2b$12$aA2L1FEy5jHvXrnV.kpy0eFZG1qYXLt.w8GH95gzHd8ovWtvvMPE.', // chef123
       first_name: 'Head',
       last_name: 'Chef',
       role: 'manager',
@@ -37,7 +37,7 @@ export async function seed(knex: Knex): Promise<void> {
   // Seed Restaurant
   const [restaurant] = await knex('restaurants').insert([
     {
-      id: knex.fn.uuid(),
+      id: '752a7c77-bfc5-4c3e-8a18-c66e6c3208b6',
       name: 'Golden Fork Restaurant',
       slug: 'golden-fork',
       description: 'Fine dining experience with modern cuisine and exceptional service.',

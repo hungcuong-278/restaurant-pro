@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Authentication Service Tests
  */
 import authService from '../../services/authService';
 import db from '../../config/database';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 describe('AuthService', () => {
   beforeAll(async () => {
@@ -201,8 +203,6 @@ describe('AuthService', () => {
     });
 
     it('should include user information in token', async () => {
-      const jwt = require('jsonwebtoken');
-      
       const result = await authService.register({
         email: 'tokeninfo@test.com',
         password: 'TestPass123!',
@@ -216,7 +216,6 @@ describe('AuthService', () => {
     });
 
     it('should set token expiration', async () => {
-      const jwt = require('jsonwebtoken');
       
       const result = await authService.register({
         email: 'tokenexp@test.com',

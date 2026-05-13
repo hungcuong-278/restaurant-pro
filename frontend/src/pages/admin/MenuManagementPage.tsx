@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import menuService, { MenuItem, CreateMenuItemData, UpdateMenuItemData } from '../../services/menuService';
+import React, { useState, useEffect, useCallback } from 'react';
+import menuService, { MenuItem, CreateMenuItemData, Category } from '../../services/menuService';
+import { useToast } from '../../contexts/ToastContext';
 
 const MenuManagementPage: React.FC = () => {
-  const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('');
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -17,19 +17,23 @@ const MenuManagementPage: React.FC = () => {
   const [formData, setFormData] = useState<CreateMenuItemData>({
     name: '',
     description: '',
-    category: '',
+    category_id: '',
     price: 0,
     image_url: '',
     is_available: true,
     preparation_time: 15
   });
 
-  useEffect(() => {
-    loadMenuItems();
-    loadCategories();
-  }, [filterCategory]);
+  const loadCategories = useCallback(async () => {
+    try {
+      const cats = await menuService.getCategories();
+      setCategories(cats);
+    } catch (err) {
+      console.error('Error loading categories:', err);
+    }
+  }, []);
 
-  const loadMenuItems = async () => {
+  const loadMenuItems = useCallback(async () => {
     try {
       setLoading(true);
       const filters = filterCategory ? { category: filterCategory } : {};
@@ -42,24 +46,24 @@ const MenuManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterCategory]);
 
-  const loadCategories = async () => {
-    try {
-      const cats = await menuService.getCategories();
-      setCategories(cats);
-    } catch (err) {
-      console.error('Error loading categories:', err);
-    }
-  };
+  useEffect(() => {
+    loadMenuItems();
+    loadCategories();
+  }, [loadMenuItems, loadCategories]);
 
   const handleOpenModal = (item?: MenuItem) => {
     if (item) {
       setEditingItem(item);
+      // Find category_id from item
+      const categoryId = item.category_id || 
+        categories.find(c => c.name === (typeof item.category === 'string' ? item.category : item.category.name))?.id || 
+        '';
       setFormData({
         name: item.name,
         description: item.description || '',
-        category: typeof item.category === 'string' ? item.category : item.category.name,
+        category_id: categoryId,
         price: item.price,
         image_url: item.image_url || '',
         is_available: item.is_available,
@@ -70,7 +74,7 @@ const MenuManagementPage: React.FC = () => {
       setFormData({
         name: '',
         description: '',
-        category: '',
+        category_id: '',
         price: 0,
         image_url: '',
         is_available: true,
@@ -86,7 +90,7 @@ const MenuManagementPage: React.FC = () => {
     setFormData({
       name: '',
       description: '',
-      category: '',
+      category_id: '',
       price: 0,
       image_url: '',
       is_available: true,
@@ -202,7 +206,7 @@ const MenuManagementPage: React.FC = () => {
                 >
                   <option value="">All Categories</option>
                   {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
               </div>
@@ -414,20 +418,17 @@ const MenuManagementPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Category *
                     </label>
-                    <input
-                      type="text"
+                    <select
                       required
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      list="categories"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gr-gold focus:border-transparent"
-                      placeholder="e.g., Main Courses"
-                    />
-                    <datalist id="categories">
+                      value={formData.category_id}
+                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gr-gold focus:border-transparent bg-white"
+                    >
+                      <option value="">Select a category...</option>
                       {categories.map(cat => (
-                        <option key={cat} value={cat} />
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
                       ))}
-                    </datalist>
+                    </select>
                   </div>
 
                   <div>

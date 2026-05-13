@@ -26,13 +26,24 @@ const registerSchema = Joi.object({
     'string.max': 'Password must be no more than 128 characters long',
     'any.required': 'Password is required'
   }),
-  phone: Joi.string().pattern(/^[+]?[\d\s\-\(\)]+$/).min(10).max(20).optional().messages({
+  phone: Joi.string().pattern(/^[+]?[\d\s\-()]+$/).min(10).max(20).optional().messages({
     'string.pattern.base': 'Please provide a valid phone number',
     'string.min': 'Phone number must be at least 10 characters long',
     'string.max': 'Phone number must be no more than 20 characters long'
-  }),
-  role: Joi.string().valid('customer', 'staff').optional().messages({
-    'any.only': 'Role must be either customer or staff'
+  })
+  // NOTE: 'role' is intentionally omitted — public registration always creates 'customer'
+});
+
+// Admin-only schema: allows privileged roles
+const createStaffSchema = Joi.object({
+  firstName: Joi.string().min(2).max(50).required(),
+  lastName: Joi.string().min(2).max(50).required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).max(128).required(),
+  phone: Joi.string().pattern(/^[+]?[\d\s\-()]+$/).min(10).max(20).optional(),
+  role: Joi.string().valid('staff', 'manager', 'kitchen', 'admin').required().messages({
+    'any.only': 'Role must be one of: staff, manager, kitchen, admin',
+    'any.required': 'Role is required'
   })
 });
 
@@ -52,7 +63,6 @@ const loginSchema = Joi.object({
  */
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Validate request body
     const { error, value } = registerSchema.validate(req.body);
     if (error) {
       res.status(400).json({
@@ -63,9 +73,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const registerData: RegisterRequest = value;
+    // Public registration always creates customer — ignore any role field
+    const registerData: RegisterRequest = { ...value, role: 'customer' };
 
-    // Attempt registration
     const result = await authService.register(registerData, req);
 
     if (result.success) {
@@ -79,6 +89,40 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({
       success: false,
       message: 'Internal server error during registration'
+    });
+  }
+};
+
+/**
+ * Admin-only: Create a staff / manager / kitchen account
+ */
+export const createStaffAccount = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { error, value } = createStaffSchema.validate(req.body);
+    if (error) {
+      res.status(400).json({
+        success: false,
+        message: error.details[0].message,
+        field: error.details[0].path[0]
+      });
+      return;
+    }
+
+    const result = await authService.register(value as RegisterRequest, req);
+
+    if (result.success) {
+      res.status(201).json({
+        ...result,
+        message: `${value.role} account created successfully`
+      });
+    } else {
+      res.status(400).json(result);
+    }
+  } catch (error) {
+    console.error('Create staff account error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
     });
   }
 };
@@ -309,7 +353,7 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
     }
 
     // Hash new password and update
-    const newPasswordHash = await authService.hashPassword(newPassword);
+    await authService.hashPassword(newPassword);
     
     // Implementation would continue here with database update
     // For now, return success response

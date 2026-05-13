@@ -52,7 +52,7 @@ const AuthActivityLog: React.FC = () => {
       const errorEvent = createEvent('error', `Lỗi xác thực: ${error}`);
       setAuthEvents(prev => [errorEvent, ...prev].slice(0, 10));
     }
-  }, [user, isAuthenticated, error]);
+  }, [user, isAuthenticated, error, authEvents]);
 
   // Xử lý logout thủ công
   useEffect(() => {

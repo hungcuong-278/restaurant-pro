@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TableSelector from '../../components/orders/TableSelector';
 import MenuItemGrid from '../../components/orders/MenuItemGrid';
@@ -6,12 +6,22 @@ import OrderCart, { CartItem } from '../../components/orders/OrderCart';
 import Button from '../../components/common/Button';
 import orderService from '../../services/orderService';
 import { MenuItem } from '../../services/menuService';
+import { useAuth } from '../../contexts/AuthContext';
 
 type OrderType = 'dine-in' | 'takeout' | 'delivery';
 
 const NewOrderPage: React.FC = () => {
   const navigate = useNavigate();
-  
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      sessionStorage.setItem('redirectAfterLogin', '/orders/new');
+      navigate('/login');
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
   // Form state
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [orderType, setOrderType] = useState<OrderType>('dine-in');
@@ -21,6 +31,17 @@ const NewOrderPage: React.FC = () => {
   const [orderInstructions, setOrderInstructions] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Show loading while auth state resolves
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gr-gold"></div>
+      </div>
+    );
+  }
+
+
 
   // Handle table selection
   const handleSelectTable = (tableId: string, tableNumber: string) => {

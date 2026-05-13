@@ -17,26 +17,31 @@ import {
   getMenuByCategory,
   getFeaturedItems
 } from '../controllers/menuController';
+import { authenticateToken, authorizeRole } from '../middleware/auth';
 
 const router = Router();
 
-// Menu Categories Routes
+// ─── Menu Categories Routes ──────────────────────────────────────────────────
+// Public read
 router.get('/categories', getCategories);
 router.get('/categories/:id', getCategoryById);
-router.post('/categories', createCategory);
-router.put('/categories/:id', updateCategory);
-router.delete('/categories/:id', deleteCategory);
+// Admin/Manager write
+router.post('/categories', authenticateToken, authorizeRole('manager', 'admin'), createCategory);
+router.put('/categories/:id', authenticateToken, authorizeRole('manager', 'admin'), updateCategory);
+router.delete('/categories/:id', authenticateToken, authorizeRole('manager', 'admin'), deleteCategory);
 
-// Menu Items Routes
+// ─── Menu Items Routes ───────────────────────────────────────────────────────
+// Public read
 router.get('/items', getMenuItems);
 router.get('/items/:id', getMenuItemById);
-router.post('/items', createMenuItem);
-router.put('/items/:id', updateMenuItem);
-router.delete('/items/:id', deleteMenuItem);
-router.patch('/items/:id/toggle', toggleItemAvailability);
+// Admin/Manager write
+router.post('/items', authenticateToken, authorizeRole('manager', 'admin'), createMenuItem);
+router.put('/items/:id', authenticateToken, authorizeRole('manager', 'admin'), updateMenuItem);
+router.delete('/items/:id', authenticateToken, authorizeRole('manager', 'admin'), deleteMenuItem);
+router.patch('/items/:id/toggle', authenticateToken, authorizeRole('manager', 'admin'), toggleItemAvailability);
 
-// Special Menu Routes
-router.get('/full', getMenuByCategory); // Get complete menu organized by categories
-router.get('/featured', getFeaturedItems); // Get featured items
+// ─── Special Menu Routes ─────────────────────────────────────────────────────
+router.get('/full', getMenuByCategory);
+router.get('/featured', getFeaturedItems);
 
 export default router;

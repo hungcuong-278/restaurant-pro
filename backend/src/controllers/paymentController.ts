@@ -24,7 +24,7 @@ const logger = createLogger('PaymentController');
  */
 export const processPayment = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { restaurantId, orderId } = req.params;
+    const { orderId } = req.params;
     const { payment_method, amount, transaction_id, payment_details, processed_by } = req.body;
 
     // Validation

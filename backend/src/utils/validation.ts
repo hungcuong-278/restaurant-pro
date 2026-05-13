@@ -55,7 +55,7 @@ export const userValidation = {
       'string.max': 'Last name cannot exceed 50 characters',
       'any.required': 'Last name is required'
     }),
-    phone: Joi.string().pattern(/^[+]?[\d\s\-\(\)]{10,20}$/).optional().messages({
+    phone: Joi.string().pattern(/^[+]?[\d\s\-()]{10,20}$/).optional().messages({
       'string.pattern.base': 'Please provide a valid phone number'
     }),
     role: Joi.string().valid('admin', 'manager', 'staff', 'customer').default('customer')
@@ -124,7 +124,7 @@ export const reservationValidation = {
   create: Joi.object({
     customerName: Joi.string().min(2).max(100).required(),
     customerEmail: Joi.string().email().required(),
-    customerPhone: Joi.string().pattern(/^[+]?[\d\s\-\(\)]{10,20}$/).optional(),
+    customerPhone: Joi.string().pattern(/^[+]?[\d\s\-()]{10,20}$/).optional(),
     partySize: Joi.number().integer().min(1).max(20).required(),
     reservationDate: Joi.date().min('now').required(),
     reservationTime: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
