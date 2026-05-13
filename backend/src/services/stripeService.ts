@@ -223,7 +223,11 @@ class StripeService {
         id: refund.id,
         amount: refund.amount,
         status: refund.status || 'pending',
+<<<<<<< HEAD
         reason: refund.reason || undefined,
+=======
+        reason: refund.reason || '',
+>>>>>>> origin/main
       };
     } catch (error: any) {
       logger.error('Failed to create refund', {

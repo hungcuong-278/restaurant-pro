@@ -86,19 +86,19 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
-  // Check if a date is selectable
-  const isDateSelectable = (date: Date): boolean => {
-    if (date.getTime() === 0) return false; // Placeholder
-    const dateString = formatDateString(date);
-    return !isPastDate(dateString) && !isTooFarAhead(dateString);
-  };
-
   // Format date to YYYY-MM-DD
   const formatDateString = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  // Check if a date is selectable
+  const isDateSelectable = (date: Date): boolean => {
+    if (date.getTime() === 0) return false; // Placeholder
+    const dateString = formatDateString(date);
+    return !isPastDate(dateString) && !isTooFarAhead(dateString);
   };
 
   // Handle date selection

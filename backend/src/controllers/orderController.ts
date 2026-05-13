@@ -2,10 +2,6 @@
 import { Request, Response } from 'express';
 import orderService from '../services/orderService';
 import { OrderCreateData, OrderUpdateData, OrderItemCreateData, OrderItemUpdate } from '../types/order.types';
-import { createLogger } from '../utils/logger';
-import { AppError } from '../utils/errors';
-
-const logger = createLogger('OrderController');
 
 /**
  * Create a new order
@@ -13,9 +9,16 @@ const logger = createLogger('OrderController');
  */
 export const createOrder = async (req: Request, res: Response): Promise<void> => {
   try {
+<<<<<<< HEAD
     const { restaurantId } = req.params;
     const authReq = req as any; // AuthenticatedRequest
     const requestingUser = authReq.user;
+=======
+    // Get default restaurant ID
+    const db = require('../config/database').default;
+    const defaultRestaurant = await db('restaurants').first();
+    const restaurantId = defaultRestaurant?.id || '95648362-ee77-4d72-a7b9-b4c517d0e151';
+>>>>>>> origin/main
 
     const orderData: OrderCreateData = {
       ...req.body,
@@ -62,34 +65,26 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
 
     const order = await orderService.createOrder(orderData);
 
+<<<<<<< HEAD
     logger.info('Order created via API', {
       order_id: order.id,
       order_number: order.order_number,
       customer_id: orderData.customer_id
     });
 
+=======
+>>>>>>> origin/main
     res.status(201).json({
       success: true,
       message: 'Order created successfully',
       data: order
     });
   } catch (error: any) {
-    logger.error('Create order error', error, { restaurant_id: req.params.restaurantId });
-    
-    if (error instanceof AppError) {
-      res.status(error.statusCode).json({
-        success: false,
-        message: error.message,
-        code: error.code,
-        details: error.details
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create order',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
+    console.error('Create order error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to create order'
+    });
   }
 };
 
@@ -102,10 +97,13 @@ export const createOrder = async (req: Request, res: Response): Promise<void> =>
  */
 export const getOrders = async (req: Request, res: Response): Promise<void> => {
   try {
+<<<<<<< HEAD
     const { restaurantId } = req.params;
     const authReq = req as any; // AuthenticatedRequest
     const requestingUser = authReq.user;
 
+=======
+>>>>>>> origin/main
     const {
       status,
       order_type,
@@ -113,10 +111,11 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
       staff_id,
       start_date,
       end_date,
-      page,
-      limit
+      page = '1',
+      limit = '50'
     } = req.query;
 
+<<<<<<< HEAD
     const filters: any = {
       status: status as any,
       order_type: order_type as any,
@@ -137,15 +136,61 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
     }
 
     const result = await orderService.getOrdersByRestaurant(restaurantId, filters);
+=======
+    const db = require('../config/database').default;
+
+    // Build query
+    let query = db('orders')
+      .select(
+        'orders.*',
+        'tables.number as table_number',
+        'users.first_name as staff_name'
+      )
+      .leftJoin('tables', 'orders.table_id', 'tables.id')
+      .leftJoin('users', 'orders.staff_id', 'users.id')
+      .orderBy('orders.ordered_at', 'desc');
+
+    // Apply filters
+    if (status) {
+      query = query.where('orders.status', status as string);
+    }
+    if (order_type) {
+      query = query.where('orders.order_type', order_type as string);
+    }
+    if (table_id) {
+      query = query.where('orders.table_id', table_id as string);
+    }
+    if (staff_id) {
+      query = query.where('orders.staff_id', staff_id as string);
+    }
+    if (start_date) {
+      query = query.where('orders.ordered_at', '>=', start_date as string);
+    }
+    if (end_date) {
+      query = query.where('orders.ordered_at', '<=', end_date as string);
+    }
+
+    // Pagination
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    const [orders, totalResult] = await Promise.all([
+      query.limit(limitNum).offset(offset),
+      db('orders').count('* as count').first()
+    ]);
+
+    const total = Number(totalResult?.count || 0);
+>>>>>>> origin/main
 
     res.json({
       success: true,
-      data: result.orders,
+      data: orders,
       pagination: {
-        total: result.total,
-        page: result.page,
-        limit: result.limit,
-        totalPages: Math.ceil(result.total / result.limit)
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum)
       }
     });
   } catch (error: any) {
@@ -156,11 +201,6 @@ export const getOrders = async (req: Request, res: Response): Promise<void> => {
     });
   }
 };
-
-/**
- * Get a single order by ID
- * GET /api/restaurants/:restaurantId/orders/:orderId
- */
 export const getOrder = async (req: Request, res: Response): Promise<void> => {
   try {
     const { orderId } = req.params;
@@ -455,3 +495,7 @@ export const updateOrder = async (req: Request, res: Response): Promise<void> =>
     });
   }
 };
+
+
+
+

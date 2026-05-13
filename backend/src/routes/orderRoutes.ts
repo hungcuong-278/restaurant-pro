@@ -1,15 +1,12 @@
-import express from 'express';
+import { Router } from 'express';
 import {
-  createOrder,
   getOrders,
   getOrder,
+  createOrder,
   updateOrderStatus,
-  addItemToOrder,
-  removeItemFromOrder,
-  updateOrderItem,
-  cancelOrder,
-  updateOrder
+  cancelOrder
 } from '../controllers/orderController';
+<<<<<<< HEAD
 import { orderPaymentRoutes } from './paymentRoutes';
 import {
   generateHTMLReceipt,
@@ -17,14 +14,16 @@ import {
   getReceiptData
 } from '../controllers/receiptController';
 import { authenticateToken, optionalAuthentication } from '../middleware/auth';
+=======
+import { authenticateToken } from '../middleware/auth';
+>>>>>>> origin/main
 
-const router = express.Router({ mergeParams: true });
+const router = Router();
 
-/**
- * Order Routes
- * Base path: /api/restaurants/:restaurantId/orders
- */
+// All routes require authentication
+router.use(authenticateToken);
 
+<<<<<<< HEAD
 // Create new order (can be optional if guest checkout is allowed, but let's use optionalAuthentication)
 router.post('/', optionalAuthentication, createOrder);
 
@@ -59,5 +58,13 @@ router.get('/:orderId/receipt/data', getReceiptData);
 
 // Mount payment routes under /orders/:orderId
 router.use('/:orderId', orderPaymentRoutes);
+=======
+// Order routes
+router.get('/', getOrders);
+router.get('/:id', getOrder);
+router.post('/', createOrder);
+router.patch('/:id/status', updateOrderStatus);
+router.delete('/:id', cancelOrder);
+>>>>>>> origin/main
 
 export default router;

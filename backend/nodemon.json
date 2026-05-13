@@ -1,5 +1,14 @@
 {
   "watch": ["src"],
+<<<<<<< HEAD
   "ext": "ts",
   "exec": "ts-node src/index.ts"
+=======
+  "ext": "ts,json",
+  "ignore": ["src/**/*.spec.ts"],
+  "exec": "ts-node --project tsconfig.json src/index.ts",
+  "env": {
+    "NODE_ENV": "development"
+  }
+>>>>>>> origin/main
 }

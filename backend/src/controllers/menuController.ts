@@ -129,26 +129,44 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
 // Menu Items Controllers
 export const getMenuItems = async (req: Request, res: Response): Promise<void> => {
   try {
-    const restaurantId = req.query.restaurant_id as string || 'default';
     const filters = {
       categoryId: req.query.category_id as string,
       available: req.query.available === 'true' ? true : req.query.available === 'false' ? false : undefined,
       featured: req.query.featured === 'true' ? true : req.query.featured === 'false' ? false : undefined,
       page: parseInt(req.query.page as string) || 1,
-      limit: parseInt(req.query.limit as string) || 10
+      limit: parseInt(req.query.limit as string) || 100  // Increased to get all items
     };
 
-    const result = await menuService.getMenuItems(restaurantId, filters);
+    // Query database directly to get all menu items
+    const db = require('../config/database').default;
+    let query = db('menu_items')
+      .leftJoin('menu_categories', 'menu_items.category_id', 'menu_categories.id')
+      .select(
+        'menu_items.*',
+        'menu_categories.name as category_name'
+      );
+    
+    if (filters.categoryId) {
+      query = query.where('menu_items.category_id', filters.categoryId);
+    }
+    if (filters.available !== undefined) {
+      query = query.where('menu_items.is_available', filters.available);
+    }
+    if (filters.featured !== undefined) {
+      query = query.where('menu_items.is_featured', filters.featured);
+    }
+    
+    const items = await query.orderBy('menu_items.name');
     
     res.json({
       success: true,
       data: {
-        items: result.items,
+        items,
         pagination: {
-          page: filters.page,
-          limit: filters.limit,
-          total: result.total,
-          pages: Math.ceil(result.total / filters.limit)
+          page: 1,
+          limit: items.length,
+          total: items.length,
+          pages: 1
         }
       }
     });

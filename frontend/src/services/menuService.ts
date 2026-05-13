@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import axios from 'axios';
 import { RESTAURANT_ID } from '../config/restaurant';
+=======
+import api from './api';
+>>>>>>> origin/main
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -90,7 +94,7 @@ const menuService = {
 
       const url = `${API_BASE_URL}/menu/items?${params.toString()}`;
       
-      const response = await axios.get(url);
+      const response = await api.get(url);
       // Backend returns { success: true, data: { items: [...], pagination: {...} } }
       const data = response.data.data || response.data;
       // Extract items array from nested structure
@@ -104,7 +108,7 @@ const menuService = {
   // Get single menu item
   async getMenuItem(itemId: string): Promise<MenuItem> {
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${API_BASE_URL}/menu/items/${itemId}`
       );
       // Backend returns { success: true, data: {...} }
@@ -118,8 +122,12 @@ const menuService = {
   // Create menu item
   async createMenuItem(itemData: CreateMenuItemData): Promise<MenuItem> {
     try {
+<<<<<<< HEAD
       const dataWithRestaurant = { ...itemData, restaurant_id: RESTAURANT_ID };
       const response = await axios.post(
+=======
+      const response = await api.post(
+>>>>>>> origin/main
         `${API_BASE_URL}/menu/items`,
         dataWithRestaurant,
         { headers: getAuthHeaders() }
@@ -134,8 +142,12 @@ const menuService = {
   // Update menu item
   async updateMenuItem(itemId: string, itemData: UpdateMenuItemData): Promise<MenuItem> {
     try {
+<<<<<<< HEAD
       const dataWithRestaurant = { ...itemData, restaurant_id: RESTAURANT_ID };
       const response = await axios.patch(
+=======
+      const response = await api.patch(
+>>>>>>> origin/main
         `${API_BASE_URL}/menu/items/${itemId}`,
         dataWithRestaurant,
         { headers: getAuthHeaders() }
@@ -150,9 +162,14 @@ const menuService = {
   // Delete menu item
   async deleteMenuItem(itemId: string): Promise<void> {
     try {
+<<<<<<< HEAD
       await axios.delete(
         `${API_BASE_URL}/menu/items/${itemId}?restaurant_id=${RESTAURANT_ID}`,
         { headers: getAuthHeaders() }
+=======
+      await api.delete(
+        `${API_BASE_URL}/menu/items/${itemId}`
+>>>>>>> origin/main
       );
     } catch (error) {
       console.error('Error deleting menu item:', error);
@@ -234,3 +251,4 @@ const menuService = {
 };
 
 export default menuService;
+

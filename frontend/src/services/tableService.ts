@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import axios from 'axios';
 import { RESTAURANT_ID } from '../config/restaurant';
+=======
+import api from './api';
+>>>>>>> origin/main
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -34,8 +38,8 @@ const tableService = {
   // Get all tables
   async getTables(status?: string): Promise<Table[]> {
     try {
-      const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables${status ? `?status=${status}` : ''}`;
-      const response = await axios.get(url);
+      const url = `${API_BASE_URL}/tables${status ? `?status=${status}` : ''}`;
+      const response = await api.get(url);
       // Backend returns { success: true, data: [...] }
       return response.data.data || response.data;
     } catch (error) {
@@ -47,8 +51,8 @@ const tableService = {
   // Get single table
   async getTable(tableId: string): Promise<Table> {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables/${tableId}`
+      const response = await api.get(
+        `${API_BASE_URL}/tables/${tableId}`
       );
       // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
@@ -61,8 +65,8 @@ const tableService = {
   // Create table
   async createTable(tableData: CreateTableData): Promise<Table> {
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables`,
+      const response = await api.post(
+        `${API_BASE_URL}/tables`,
         tableData
       );
       return response.data;
@@ -75,8 +79,8 @@ const tableService = {
   // Update table
   async updateTable(tableId: string, tableData: UpdateTableData): Promise<Table> {
     try {
-      const response = await axios.patch(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables/${tableId}`,
+      const response = await api.patch(
+        `${API_BASE_URL}/tables/${tableId}`,
         tableData
       );
       return response.data;
@@ -89,8 +93,8 @@ const tableService = {
   // Delete table
   async deleteTable(tableId: string): Promise<void> {
     try {
-      await axios.delete(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/tables/${tableId}`
+      await api.delete(
+        `${API_BASE_URL}/tables/${tableId}`
       );
     } catch (error) {
       console.error('Error deleting table:', error);
@@ -105,3 +109,4 @@ const tableService = {
 };
 
 export default tableService;
+

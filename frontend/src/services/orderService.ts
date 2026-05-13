@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import axios from 'axios';
 import { RESTAURANT_ID } from '../config/restaurant';
+=======
+import api from './api';
+>>>>>>> origin/main
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -109,9 +113,13 @@ const orderService = {
       if (filters?.limit) params.append('limit', filters.limit.toString());
 
       const queryString = params.toString();
-      const url = `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders${queryString ? `?${queryString}` : ''}`;
+      const url = `/orders${queryString ? `?${queryString}` : ''}`;
       
+<<<<<<< HEAD
       const response = await axios.get(url, { headers: getAuthHeaders() });
+=======
+      const response = await api.get(url);
+>>>>>>> origin/main
       // Backend returns { success: true, data: [...] }
       return response.data.data || response.data;
     } catch (error) {
@@ -123,8 +131,8 @@ const orderService = {
   // Get single order
   async getOrder(orderId: string): Promise<Order> {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`
+      const response = await api.get(
+        `/orders/${orderId}`
       );
       // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
@@ -137,10 +145,16 @@ const orderService = {
   // Create new order (send auth token so backend can attach customer_id)
   async createOrder(orderData: CreateOrderData): Promise<Order> {
     try {
+<<<<<<< HEAD
       const response = await axios.post(
         `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders`,
         orderData,
         { headers: getAuthHeaders() }
+=======
+      const response = await api.post(
+        `/orders`,
+        orderData
+>>>>>>> origin/main
       );
       // Backend returns { success: true, data: {...} }
       return response.data.data || response.data;
@@ -153,8 +167,8 @@ const orderService = {
   // Update order
   async updateOrder(orderId: string, orderData: UpdateOrderData): Promise<Order> {
     try {
-      const response = await axios.patch(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`,
+      const response = await api.patch(
+        `/orders/${orderId}`,
         orderData
       );
       return response.data;
@@ -167,8 +181,8 @@ const orderService = {
   // Update order status
   async updateOrderStatus(orderId: string, status: Order['status']): Promise<Order> {
     try {
-      const response = await axios.patch(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/status`,
+      const response = await api.patch(
+        `/orders/${orderId}/status`,
         { status }
       );
       return response.data;
@@ -181,8 +195,8 @@ const orderService = {
   // Delete order
   async deleteOrder(orderId: string): Promise<void> {
     try {
-      await axios.delete(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}`
+      await api.delete(
+        `/orders/${orderId}`
       );
     } catch (error) {
       console.error('Error deleting order:', error);
@@ -197,8 +211,8 @@ const orderService = {
     special_instructions?: string;
   }): Promise<OrderItem> {
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items`,
+      const response = await api.post(
+        `/orders/${orderId}/items`,
         item
       );
       return response.data;
@@ -214,8 +228,8 @@ const orderService = {
     special_instructions?: string;
   }): Promise<OrderItem> {
     try {
-      const response = await axios.patch(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items/${itemId}`,
+      const response = await api.patch(
+        `/orders/${orderId}/items/${itemId}`,
         updates
       );
       return response.data;
@@ -228,8 +242,8 @@ const orderService = {
   // Remove order item
   async removeOrderItem(orderId: string, itemId: string): Promise<void> {
     try {
-      await axios.delete(
-        `${API_BASE_URL}/restaurants/${RESTAURANT_ID}/orders/${orderId}/items/${itemId}`
+      await api.delete(
+        `/orders/${orderId}/items/${itemId}`
       );
     } catch (error) {
       console.error('Error removing order item:', error);
@@ -240,3 +254,5 @@ const orderService = {
 
 export { orderService };
 export default orderService;
+
+

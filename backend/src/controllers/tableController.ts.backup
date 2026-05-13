@@ -1,0 +1,351 @@
+﻿import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../types/auth';
+import db from '../config/database';
+
+/**
+ * Get all tables with optional filters
+ */
+export const getAllTables = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { status, location, capacity } = req.query;
+
+    let query = db('tables').select('*');
+
+    // Apply filters
+    if (status) {
+      query = query.where('status', status as string);
+    }
+    if (location) {
+      query = query.where('location', location as string);
+    }
+    if (capacity) {
+      query = query.where('capacity', '>=', parseInt(capacity as string));
+    }
+
+    const tables = await query.orderBy('number', 'asc');
+
+    res.json({
+      success: true,
+      data: tables,
+      count: tables.length
+    });
+  } catch (error) {
+    console.error('Get tables error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tables'
+    });
+  }
+};
+
+/**
+ * Get available tables
+ */
+export const getAvailableTables = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { date, time, party_size } = req.query;
+
+    let query = db('tables')
+      .select('*')
+      .where('status', 'available');
+
+    // Filter by capacity if party_size provided
+    if (party_size) {
+      query = query.where('capacity', '>=', parseInt(party_size as string));
+    }
+
+    // TODO: Check reservations for specific date/time to exclude reserved tables
+    if (date && time) {
+      // This would require joining with reservations table
+      // For now, just return available tables
+    }
+
+    const tables = await query.orderBy('capacity', 'asc');
+
+    res.json({
+      success: true,
+      data: tables,
+      count: tables.length
+    });
+  } catch (error) {
+    console.error('Get available tables error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch available tables'
+    });
+  }
+};
+
+/**
+ * Get single table by ID
+ */
+export const getTableById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const table = await db('tables')
+      .where('id', id)
+      .first();
+
+    if (!table) {
+      res.status(404).json({
+        success: false,
+        message: 'Table not found'
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: table
+    });
+  } catch (error) {
+    console.error('Get table by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch table'
+    });
+  }
+};
+
+/**
+ * Create new table
+ */
+export const createTable = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { table_number, capacity, location, status = 'available' } = req.body;
+
+    // Validate required fields
+    if (!table_number || !capacity) {
+      res.status(400).json({
+        success: false,
+        message: 'Table number and capacity are required'
+      });
+      return;
+    }
+
+    // Check if table number already exists
+    const existingTable = await db('tables')
+      .where('table_number', table_number)
+      .first();
+
+    if (existingTable) {
+      res.status(400).json({
+        success: false,
+        message: 'Table number already exists'
+      });
+      return;
+    }
+
+    // Insert new table
+    const [tableId] = await db('tables').insert({
+      table_number,
+      capacity,
+      location: location || 'indoor',
+      status
+    });
+
+    // Get created table
+    const newTable = await db('tables')
+      .where('id', tableId)
+      .first();
+
+    res.status(201).json({
+      success: true,
+      message: 'Table created successfully',
+      data: newTable
+    });
+  } catch (error) {
+    console.error('Create table error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create table'
+    });
+  }
+};
+
+/**
+ * Update table
+ */
+export const updateTable = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { table_number, capacity, location, status } = req.body;
+
+    // Check if table exists
+    const existingTable = await db('tables')
+      .where('id', id)
+      .first();
+
+    if (!existingTable) {
+      res.status(404).json({
+        success: false,
+        message: 'Table not found'
+      });
+      return;
+    }
+
+    // If updating table number, check uniqueness
+    if (table_number && table_number !== existingTable.table_number) {
+      const duplicate = await db('tables')
+        .where('table_number', table_number)
+        .whereNot('id', id)
+        .first();
+
+      if (duplicate) {
+        res.status(400).json({
+          success: false,
+          message: 'Table number already exists'
+        });
+        return;
+      }
+    }
+
+    // Update table
+    const updateData: any = {};
+    if (table_number) updateData.table_number = table_number;
+    if (capacity) updateData.capacity = capacity;
+    if (location) updateData.location = location;
+    if (status) updateData.status = status;
+
+    await db('tables')
+      .where('id', id)
+      .update(updateData);
+
+    // Get updated table
+    const updatedTable = await db('tables')
+      .where('id', id)
+      .first();
+
+    res.json({
+      success: true,
+      message: 'Table updated successfully',
+      data: updatedTable
+    });
+  } catch (error) {
+    console.error('Update table error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update table'
+    });
+  }
+};
+
+/**
+ * Delete table
+ */
+export const deleteTable = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Check if table exists
+    const table = await db('tables')
+      .where('id', id)
+      .first();
+
+    if (!table) {
+      res.status(404).json({
+        success: false,
+        message: 'Table not found'
+      });
+      return;
+    }
+
+    // Check if table has active reservations
+    const activeReservations = await db('reservations')
+      .where('table_id', id)
+      .whereIn('status', ['pending', 'confirmed', 'seated'])
+      .count('* as count')
+      .first();
+
+    const count = activeReservations ? Number(activeReservations.count) : 0;
+    if (count > 0) {
+      res.status(400).json({
+        success: false,
+        message: 'Cannot delete table with active reservations'
+      });
+      return;
+    }
+
+    // Delete table
+    await db('tables')
+      .where('id', id)
+      .delete();
+
+    res.json({
+      success: true,
+      message: 'Table deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete table error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete table'
+    });
+  }
+};
+
+/**
+ * Update table status
+ */
+export const updateTableStatus = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    const validStatuses = ['available', 'occupied', 'reserved', 'maintenance'];
+    if (!status || !validStatuses.includes(status)) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be one of: ' + validStatuses.join(', ')
+      });
+      return;
+    }
+
+    // Check if table exists
+    const table = await db('tables')
+      .where('id', id)
+      .first();
+
+    if (!table) {
+      res.status(404).json({
+        success: false,
+        message: 'Table not found'
+      });
+      return;
+    }
+
+    // Update status
+    await db('tables')
+      .where('id', id)
+      .update({ status });
+
+    // Get updated table
+    const updatedTable = await db('tables')
+      .where('id', id)
+      .first();
+
+    res.json({
+      success: true,
+      message: 'Table status updated successfully',
+      data: updatedTable
+    });
+  } catch (error) {
+    console.error('Update table status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update table status'
+    });
+  }
+};
+
+export default {
+  getAllTables,
+  getAvailableTables,
+  getTableById,
+  createTable,
+  updateTable,
+  deleteTable,
+  updateTableStatus
+};

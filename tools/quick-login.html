@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Pro - Quick Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #d4af37; }
+        button {
+            background: #d4af37;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background: #b8941f; }
+        .output {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🍽️ Restaurant Pro - Quick Login & API Test</h1>
+        <p>Use this page to quickly login and test API endpoints</p>
+
+        <h3>Step 1: Login</h3>
+        <button onclick="loginAsAdmin()">Login as Admin</button>
+        <button onclick="loginAsCustomer()">Login as Customer</button>
+        <button onclick="checkToken()">Check Current Token</button>
+        <button onclick="clearStorage()">Clear Storage</button>
+
+        <h3>Step 2: Test APIs</h3>
+        <button onclick="testOrders()">Test Orders API</button>
+        <button onclick="testTables()">Test Tables API</button>
+        <button onclick="testReservations()">Test Reservations API</button>
+
+        <h3>Step 3: Go to App</h3>
+        <button onclick="goToApp()">Open Restaurant App →</button>
+
+        <div id="output" class="output">Ready. Click a button to start...</div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:5000/api';
+        const APP = 'http://localhost:3000';
+        const output = document.getElementById('output');
+
+        function log(msg, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${msg}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function loginAsAdmin() {
+            log('Logging in as Admin...', 'info');
+            try {
+                const response = await fetch(`${API}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@restaurant.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    log('✅ Admin login successful!', 'success');
+                    log(`User: ${data.user.first_name} ${data.user.last_name} (${data.user.role})`, 'success');
+                    log(`Token saved: ${data.token.substring(0, 50)}...`, 'info');
+                } else {
+                    log('❌ Login failed: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                log('❌ Login error: ' + error.message, 'error');
+            }
+        }
+
+        async function loginAsCustomer() {
+            log('Logging in as Customer...', 'info');
+            try {
+                const response = await fetch(`${API}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'customer@example.com',
+                        password: 'customer123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success && data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    log('✅ Customer login successful!', 'success');
+                    log(`User: ${data.user.first_name} ${data.user.last_name} (${data.user.role})`, 'success');
+                    log(`Token saved: ${data.token.substring(0, 50)}...`, 'info');
+                } else {
+                    log('❌ Login failed: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                log('❌ Login error: ' + error.message, 'error');
+            }
+        }
+
+        function checkToken() {
+            log('Checking localStorage...', 'info');
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+
+            if (token) {
+                try {
+                    // Decode JWT payload
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const exp = new Date(payload.exp * 1000);
+                    const isExpired = exp < new Date();
+
+                    log('✅ Token exists!', 'success');
+                    log(`Token: ${token.substring(0, 50)}...`, 'info');
+                    log(`Expires: ${exp.toLocaleString()}`, isExpired ? 'error' : 'success');
+                    log(`Status: ${isExpired ? '❌ EXPIRED' : '✅ Valid'}`, isExpired ? 'error' : 'success');
+                } catch (e) {
+                    log('⚠️ Token exists but invalid format', 'error');
+                }
+            } else {
+                log('❌ No token found in localStorage', 'error');
+            }
+
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    log(`✅ User: ${userData.first_name} ${userData.last_name} (${userData.role})`, 'success');
+                } catch (e) {
+                    log('⚠️ User data exists but invalid format', 'error');
+                }
+            } else {
+                log('❌ No user data found', 'error');
+            }
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('🗑️ localStorage and sessionStorage cleared', 'info');
+        }
+
+        async function testOrders() {
+            log('Testing Orders API...', 'info');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                log('❌ No token! Please login first.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API}/orders`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Orders API working!', 'success');
+                    log(`Found ${data.data?.orders?.length || 0} orders`, 'success');
+                } else {
+                    log(`❌ Orders API failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log('❌ Orders API error: ' + error.message, 'error');
+            }
+        }
+
+        async function testTables() {
+            log('Testing Tables API...', 'info');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                log('❌ No token! Please login first.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API}/tables/available?date=2025-10-08&time=19:00&guests=4`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Tables API working!', 'success');
+                    log(`Found ${data.data?.length || 0} available tables`, 'success');
+                } else {
+                    log(`❌ Tables API failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log('❌ Tables API error: ' + error.message, 'error');
+            }
+        }
+
+        async function testReservations() {
+            log('Testing Reservations API...', 'info');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                log('❌ No token! Please login first.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API}/reservations`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Reservations API working!', 'success');
+                    log(`Found ${data.data?.length || 0} reservations`, 'success');
+                } else {
+                    log(`❌ Reservations API failed: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log('❌ Reservations API error: ' + error.message, 'error');
+            }
+        }
+
+        function goToApp() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                log('⚠️ Warning: No token found! Login first for better experience.', 'error');
+            } else {
+                log('✅ Opening app with valid token...', 'success');
+            }
+            window.open(APP, '_blank');
+        }
+
+        // Auto-check token on load
+        window.onload = () => {
+            log('=== Restaurant Pro Quick Login Tool ===', 'info');
+            log('Backend API: ' + API, 'info');
+            log('Frontend App: ' + APP, 'info');
+            log('', 'info');
+            checkToken();
+        };
+    </script>
+</body>
+</html>

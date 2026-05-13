@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backend Connection Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #00d4ff;
+      margin-bottom: 20px;
+    }
+    .test-section {
+      background: #16213e;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #0f3460;
+    }
+    .test-section h2 {
+      color: #00d4ff;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .result {
+      background: #0f3460;
+      border-radius: 5px;
+      padding: 15px;
+      margin-top: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .success {
+      color: #00ff88;
+    }
+    .error {
+      color: #ff6b6b;
+    }
+    .info {
+      color: #00d4ff;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .status-online {
+      background: #00ff88;
+      box-shadow: 0 0 10px #00ff88;
+    }
+    .status-offline {
+      background: #ff6b6b;
+      box-shadow: 0 0 10px #ff6b6b;
+    }
+    input {
+      background: #0f3460;
+      border: 1px solid #00d4ff;
+      color: white;
+      padding: 8px;
+      border-radius: 5px;
+      margin-right: 10px;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Backend Connection Debugger</h1>
+    
+    <div class="test-section">
+      <h2>
+        <span id="status-indicator" class="status-indicator status-offline"></span>
+        Backend Status
+      </h2>
+      <button onclick="testHealth()">Test /health</button>
+      <button onclick="testLogin()">Test Login</button>
+      <button onclick="testOrders()">Test Orders API</button>
+      <button onclick="testTables()">Test Tables API</button>
+      <div id="status-result" class="result">Click a button to test...</div>
+    </div>
+
+    <div class="test-section">
+      <h2>🔑 Authentication Test</h2>
+      <div>
+        <input type="email" id="email" placeholder="Email" value="admin@restaurant.com">
+        <input type="password" id="password" placeholder="Password" value="admin123">
+        <button onclick="testLoginWithCredentials()">Login & Save Token</button>
+        <button onclick="clearToken()">Clear Token</button>
+      </div>
+      <div id="auth-result" class="result">
+Current Token: <span id="current-token">None</span>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>📊 API Tests with Token</h2>
+      <button onclick="testAuthenticatedOrders()">Get Orders (Authenticated)</button>
+      <button onclick="testAuthenticatedTables()">Get Tables (Authenticated)</button>
+      <button onclick="testAuthenticatedReservations()">Get Reservations (Authenticated)</button>
+      <div id="api-result" class="result">Login first to test authenticated endpoints...</div>
+    </div>
+
+    <div class="test-section">
+      <h2>🛠️ Quick Actions</h2>
+      <button onclick="clearAllStorage()">Clear All LocalStorage</button>
+      <button onclick="showStorage()">Show LocalStorage</button>
+      <button onclick="testAllEndpoints()">Test All Endpoints</button>
+      <div id="action-result" class="result">Ready...</div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:5000/api';
+    let currentToken = localStorage.getItem('token');
+
+    function updateTokenDisplay() {
+      currentToken = localStorage.getItem('token');
+      document.getElementById('current-token').textContent = currentToken 
+        ? currentToken.substring(0, 50) + '...' 
+        : 'None';
+    }
+
+    function updateStatusIndicator(online) {
+      const indicator = document.getElementById('status-indicator');
+      indicator.className = online ? 'status-indicator status-online' : 'status-indicator status-offline';
+    }
+
+    async function testHealth() {
+      const result = document.getElementById('status-result');
+      result.innerHTML = '<span class="info">Testing /health endpoint...</span>';
+      
+      try {
+        const response = await fetch('http://localhost:5000/health');
+        const text = await response.text();
+        result.innerHTML = `<span class="success">✅ Status: ${response.status}</span>\n${text}`;
+        updateStatusIndicator(true);
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+        updateStatusIndicator(false);
+      }
+    }
+
+    async function testLogin() {
+      const result = document.getElementById('status-result');
+      result.innerHTML = '<span class="info">Testing login endpoint...</span>';
+      
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'admin@restaurant.com',
+            password: 'admin123'
+          })
+        });
+        const data = await response.json();
+        result.innerHTML = `<span class="success">✅ Status: ${response.status}</span>\n${JSON.stringify(data, null, 2)}`;
+        updateStatusIndicator(true);
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+        updateStatusIndicator(false);
+      }
+    }
+
+    async function testOrders() {
+      const result = document.getElementById('status-result');
+      result.innerHTML = '<span class="info">Testing orders endpoint (without auth)...</span>';
+      
+      try {
+        const response = await fetch(`${API_URL}/orders`);
+        const text = await response.text();
+        result.innerHTML = `<span class="error">Status: ${response.status} (Expected 401)</span>\n${text}`;
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    async function testTables() {
+      const result = document.getElementById('status-result');
+      result.innerHTML = '<span class="info">Testing tables endpoint (without auth)...</span>';
+      
+      try {
+        const response = await fetch(`${API_URL}/tables`);
+        const text = await response.text();
+        result.innerHTML = `<span class="error">Status: ${response.status} (Expected 401)</span>\n${text}`;
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    async function testLoginWithCredentials() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const result = document.getElementById('auth-result');
+      
+      result.innerHTML = '<span class="info">Logging in...</span>';
+      
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        
+        if (data.success && data.token) {
+          localStorage.setItem('token', data.token);
+          if (data.refreshToken) {
+            localStorage.setItem('refreshToken', data.refreshToken);
+          }
+          if (data.user) {
+            localStorage.setItem('user', JSON.stringify(data.user));
+          }
+          updateTokenDisplay();
+          result.innerHTML = `<span class="success">✅ Login successful!</span>\n${JSON.stringify(data, null, 2)}`;
+        } else {
+          result.innerHTML = `<span class="error">❌ Login failed</span>\n${JSON.stringify(data, null, 2)}`;
+        }
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    function clearToken() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      updateTokenDisplay();
+      document.getElementById('auth-result').innerHTML = '<span class="success">✅ Token cleared</span>';
+    }
+
+    async function testAuthenticatedOrders() {
+      const token = localStorage.getItem('token');
+      const result = document.getElementById('api-result');
+      
+      if (!token) {
+        result.innerHTML = '<span class="error">❌ No token found. Login first!</span>';
+        return;
+      }
+      
+      result.innerHTML = '<span class="info">Fetching orders...</span>';
+      
+      try {
+        const response = await fetch(`${API_URL}/orders`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        result.innerHTML = `<span class="success">✅ Status: ${response.status}</span>\n${JSON.stringify(data, null, 2)}`;
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    async function testAuthenticatedTables() {
+      const token = localStorage.getItem('token');
+      const result = document.getElementById('api-result');
+      
+      if (!token) {
+        result.innerHTML = '<span class="error">❌ No token found. Login first!</span>';
+        return;
+      }
+      
+      result.innerHTML = '<span class="info">Fetching tables...</span>';
+      
+      try {
+        const response = await fetch(`${API_URL}/tables`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        result.innerHTML = `<span class="success">✅ Status: ${response.status}</span>\n${JSON.stringify(data, null, 2)}`;
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    async function testAuthenticatedReservations() {
+      const token = localStorage.getItem('token');
+      const result = document.getElementById('api-result');
+      
+      if (!token) {
+        result.innerHTML = '<span class="error">❌ No token found. Login first!</span>';
+        return;
+      }
+      
+      result.innerHTML = '<span class="info">Fetching reservations...</span>';
+      
+      try {
+        const response = await fetch(`${API_URL}/reservations/my`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        result.innerHTML = `<span class="success">✅ Status: ${response.status}</span>\n${JSON.stringify(data, null, 2)}`;
+      } catch (error) {
+        result.innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+      }
+    }
+
+    function clearAllStorage() {
+      localStorage.clear();
+      updateTokenDisplay();
+      document.getElementById('action-result').innerHTML = '<span class="success">✅ All localStorage cleared</span>';
+    }
+
+    function showStorage() {
+      const items = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        items.push(`${key}: ${value.substring(0, 100)}...`);
+      }
+      document.getElementById('action-result').innerHTML = 
+        items.length > 0 
+          ? `<span class="info">LocalStorage (${items.length} items):</span>\n${items.join('\n')}`
+          : '<span class="info">LocalStorage is empty</span>';
+    }
+
+    async function testAllEndpoints() {
+      const result = document.getElementById('action-result');
+      result.innerHTML = '<span class="info">Testing all endpoints...</span>\n';
+      
+      const endpoints = [
+        { name: 'Health', url: 'http://localhost:5000/health', method: 'GET' },
+        { name: 'Login', url: `${API_URL}/auth/login`, method: 'POST', body: { email: 'admin@restaurant.com', password: 'admin123' } },
+        { name: 'Orders', url: `${API_URL}/orders`, method: 'GET' },
+        { name: 'Tables', url: `${API_URL}/tables`, method: 'GET' },
+        { name: 'Menu', url: `${API_URL}/menu/categories`, method: 'GET' },
+      ];
+      
+      let output = '';
+      for (const endpoint of endpoints) {
+        try {
+          const options = {
+            method: endpoint.method,
+            headers: { 'Content-Type': 'application/json' }
+          };
+          if (endpoint.body) {
+            options.body = JSON.stringify(endpoint.body);
+          }
+          const response = await fetch(endpoint.url, options);
+          output += `\n<span class="success">✅ ${endpoint.name}: ${response.status}</span>`;
+        } catch (error) {
+          output += `\n<span class="error">❌ ${endpoint.name}: ${error.message}</span>`;
+        }
+      }
+      result.innerHTML += output;
+    }
+
+    // Initialize
+    updateTokenDisplay();
+    testHealth(); // Auto test on load
+  </script>
+</body>
+</html>
